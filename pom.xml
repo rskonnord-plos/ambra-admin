@@ -28,6 +28,9 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
+    <!--TODO: Update these to release versions, once available-->
+    <ambra.version>2.2.1-SNAPSHOT</ambra.version>
+    <conf-helper.version>2.2.1-SNAPSHOT</conf-helper.version>
   </properties>
 
   <repositories>
@@ -91,11 +94,10 @@
 
     <!--The warpath dependency allows us to build with ambra classes and
           includes all the transitive dependencies from ambra-->
-    <!--TODO: Update this version to a release version, once available-->
     <dependency>
       <groupId>org.ambraproject</groupId>
       <artifactId>ambra-webapp</artifactId>
-      <version>2.2.1-SNAPSHOT</version>
+      <version>${ambra.version}</version>
       <type>warpath</type>
       <exclusions>
         <!--These are some easy wins for reducing the size of the admin war, we don't need these libraries in admin-->
@@ -124,29 +126,26 @@
       </exclusions>
     </dependency>
 
-    <!--TODO: Update this version to a release version, once available-->
     <dependency>
       <groupId>org.ambraproject</groupId>
       <artifactId>conf-helper</artifactId>
-      <version>2.2.1-SNAPSHOT</version>
+      <version>${conf-helper.version}</version>
     </dependency>
 
-    <!--TODO: Update this version to a release version, once available-->
     <!--the war dependency is necessary to overlay classes, ftls, etc. when building the admin war-->
     <dependency>
       <groupId>org.ambraproject</groupId>
       <artifactId>ambra-webapp</artifactId>
-      <version>2.2.1-SNAPSHOT</version>
+      <version>${ambra.version}</version>
       <type>war</type>
       <scope>runtime</scope>
     </dependency>
 
-    <!--TODO: Update this version to a release version, once available-->
     <!--This allows us to reuse test code from ambra-->
     <dependency>
       <groupId>org.ambraproject</groupId>
       <artifactId>ambra-webapp</artifactId>
-      <version>2.2.1-SNAPSHOT</version>
+      <version>${ambra.version}</version>
       <!--In a future version of maven, this classifier may need to change to test-jar-->
       <classifier>tests</classifier>
       <scope>test</scope>
