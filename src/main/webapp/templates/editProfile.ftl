@@ -18,6 +18,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
+</head>
+<body>
+<div id="container" class="profile    `">
+
 <#if displayName?exists && displayName?length gt 0>
   <#assign addressingUser = displayName +"'s" >
 <#else>
@@ -50,8 +60,8 @@ or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <stro
   <ol>
     <li>
       <strong>${email}</strong><br />
-      <a href="${freemarker_config.changeEmailURL}" title="Click here to change your e-mail address">Change your e-mail address</a><br/>
-      <a href="${freemarker_config.changePasswordURL}" title="Click here to change your password">Change your password</a>
+      <a href="${freemarker_config.changeEmailURL}" title="Click here to change your e-mail address">Change ${addressingUser} e-mail address</a><br/>
+      <a href="${freemarker_config.changePasswordURL}" title="Click here to change your password">Change ${addressingUser} password</a>
     </li>
   </ol>
   </fieldset>
@@ -103,7 +113,7 @@ or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <stro
 	  </#if></li>
 		<li>
 				<fieldset class="public-private">
-				<legend>Would you like your address to appear publicly or privately?</legend>
+				<legend>Should ${addressingUser} address to appear publicly or privately?</legend>
    	  <#if tabId?has_content>	
           <@s.radio name="extendedVisibility"  label="Public" list="{'public'}" checked="true" tabindex="7" cssClass="radio" class="radio"/>
 	  <#else>
@@ -196,3 +206,5 @@ or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <stro
 	</fieldset>
 
 </@s.form>
+</div>
+</body>

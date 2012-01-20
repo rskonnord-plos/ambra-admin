@@ -289,10 +289,10 @@
     <action name="editProfileByAdmin" class="org.ambraproject.user.action.AdminUserProfileAction"
             method="executeRetrieveUserProfile">
       <result name="success" type="freemarker">
-        <param name="location">/templates/user.ftl</param>
+        <param name="location">/templates/editProfile.ftl</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/user.ftl</param>
+        <param name="location">/templates/editProfile.ftl</param>
       </result>
     </action>
 
@@ -302,7 +302,7 @@
         <param name="actionName">editProfileByAdmin</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/user.ftl</param>
+        <param name="location">/templates/editProfile.ftl</param>
       </result>
     </action>
 
