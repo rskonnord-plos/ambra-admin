@@ -102,11 +102,6 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
   </filter>
 
   <filter-mapping>
-    <filter-name>RedirectToAmbraFilter</filter-name>
-    <url-pattern>/article/*</url-pattern>
-  </filter-mapping>
-
-  <filter-mapping>
     <filter-name>SinkHoleFilter</filter-name>
     <url-pattern>/*</url-pattern>
     <dispatcher>REQUEST</dispatcher>
@@ -125,6 +120,13 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
     <url-pattern>/*</url-pattern>
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
+
+  <!--This automatically redirects any requests it receives to ambra.  It needs to be mapped for any such requests.
+          Needs to come after VirtualJournalContextFilter-->
+  <filter-mapping>
+    <filter-name>RedirectToAmbraFilter</filter-name>
+    <url-pattern>/article/*</url-pattern>
   </filter-mapping>
 
   <filter-mapping>
