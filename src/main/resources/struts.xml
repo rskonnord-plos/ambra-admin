@@ -289,10 +289,10 @@
     <action name="editProfileByAdmin" class="org.ambraproject.user.action.AdminUserProfileAction"
             method="executeRetrieveUserProfile">
       <result name="success" type="freemarker">
-        <param name="location">/templates/editProfile.ftl</param>
+        <param name="location">/templates/editUserProfile.ftl</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/editProfile.ftl</param>
+        <param name="location">/templates/editUserProfile.ftl</param>
       </result>
     </action>
 
@@ -302,17 +302,17 @@
         <param name="actionName">editProfileByAdmin</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/editProfile.ftl</param>
+        <param name="location">/templates/editUserProfile.ftl</param>
       </result>
     </action>
 
     <action name="retrieveUserAlertsByAdmin" class="org.ambraproject.user.action.AdminUserAlertsAction"
             method="retrieveAlerts">
       <result name="success" type="freemarker">
-        <param name="location">/templates/alerts.ftl</param>
+        <param name="location">/templates/editUserAlerts.ftl</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/alerts.ftl</param>
+        <param name="location">/templates/editUserAlerts.ftl</param>
       </result>
     </action>
 
@@ -321,7 +321,7 @@
         <param name="actionName">retrieveUserAlertsByAdmin</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/alerts.ftl</param>
+        <param name="location">/templates/editUserAlerts.ftl</param>
       </result>
     </action>
 

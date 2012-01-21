@@ -26,7 +26,7 @@
   <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
 </head>
 <body>
-<div id="container" class="profile    `">
+<div id="container" class="profile">
 
 <#if displayName?exists && displayName?length gt 0>
   <#assign addressingUser = displayName +"'s" >
