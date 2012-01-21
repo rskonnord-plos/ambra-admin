@@ -28,6 +28,8 @@
     <h1 style="text-align: center">Ambra: Administration: Manage Caches</h1>
     <#include "includes/navigation.ftl">
 
+    <div><b style="color: red;">Warning:</b> Since this is a separate application from Ambra, none of the items in
+      Ambra's caches will appear here.</div>
     <@messages />
 
     <#if cacheKeys?has_content>
