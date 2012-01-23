@@ -90,6 +90,7 @@
     </interceptors>
 
     <default-interceptor-ref name="ambraAdminStack"/>
+    <default-action-ref name="adminTop"/>
 
     <global-results>
       <result name="role-insufficient" type="freemarker">
