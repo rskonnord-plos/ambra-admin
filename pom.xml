@@ -276,7 +276,6 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>2.1.1</version>
         <configuration>
-          <workDirectory>${project.basedir}/target/war</workDirectory>
           <overlays>
             <overlay>
               <groupId>org.ambraproject</groupId>
