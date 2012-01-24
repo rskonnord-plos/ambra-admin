@@ -16,12 +16,16 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
     default-lazy-init="true">
+
   <import resource="adminTestContext.xml" />
+
+  <bean id="request" class="org.ambraproject.BaseWebTest" factory-method="getDefaultRequestAttributes"/>
 
   <bean id="articleSyndicationHistory" class="org.ambraproject.admin.action.ArticleSyndicationHistory">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="syndicationService" ref="syndicationService"/>
+    <property name="request" ref="request"/>
   </bean>
 
   <bean id="manageFlagsAction" class="org.ambraproject.admin.action.ManageFlagsAction">
@@ -32,17 +36,20 @@
     <property name="flagManagementService" ref="flagManagementService"/>
     <property name="adminService" ref="adminService"/>
     <property name="replyService" ref="replyService"/>
+    <property name="request" ref="request"/>
   </bean>
 
   <bean id="assignAdminRoleAction" class="org.ambraproject.user.action.AssignAdminRoleAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="userService" ref="userService"/>
+    <property name="request" ref="request"/>
   </bean>
 
   <bean id="searchUserAction" class="org.ambraproject.user.action.SearchUserAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="userService" ref="userService"/>
     <property name="adminService" ref="adminService"/>
+    <property name="request" ref="request"/>
   </bean>
 
 </beans>

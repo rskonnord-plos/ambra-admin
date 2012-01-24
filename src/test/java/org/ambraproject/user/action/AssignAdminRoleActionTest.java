@@ -57,7 +57,7 @@ public class AssignAdminRoleActionTest extends AdminWebTest {
     };
   }
 
-  @Test(dataProvider = "savedUser", groups = {ADMIN_GROUP})
+  @Test(dataProvider = "savedUser")
   public void testAssignAdminRoleAction(String userId) throws Exception {
     setupAdminContext();
     assignAdminRoleAction.setTopazId(userId);

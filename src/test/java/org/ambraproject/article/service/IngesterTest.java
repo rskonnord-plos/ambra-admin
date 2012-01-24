@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseTest;
 import org.topazproject.ambra.models.Issue;
 
 import java.io.File;
@@ -219,7 +218,7 @@ public class IngesterTest extends AdminBaseTest {
 
   @DataProvider(name = "imageArticle")
   public Object[][] getImageArticle() throws Exception {
-    File testFile = new File(IngesterTest.class.getClassLoader().getResource("test-ingest-image-article.zip").toURI());
+    File testFile = new File(IngesterTest.class.getClassLoader().getResource("ingest/test-ingest-image-article.zip").toURI());
     ZipFile archive = new ZipFile(testFile);    
     //put the article in the db so we can reingest it
     Article article = new Article();

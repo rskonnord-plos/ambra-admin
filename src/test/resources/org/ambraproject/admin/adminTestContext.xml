@@ -34,6 +34,14 @@
     <constructor-arg index="1" value=""/>
   </bean>
 
+  <bean class="java.lang.String" id="ingestDir">
+    <constructor-arg value="${project.basedir}/src/test/resources/ingest" />
+  </bean>
+
+  <bean class="java.lang.String" id="ingestedDir">
+    <constructor-arg value="${project.basedir}/src/test/resources/ingested" />
+  </bean>
+
   <bean id="documentManagementService" class="org.ambraproject.admin.service.impl.DocumentManagementServiceImpl">
     <property name="articleService" ref="articleService"/>
     <property name="permissionsService" ref="permissionsService"/>
@@ -42,8 +50,8 @@
     <property name="plosDoiUrl" value="http://dx.plos.org/ambra-doi-resolver/10.1371/"/>
     <property name="plosEmail" value="dev@ambraproject.org"/>
     <property name="crossrefXslTemplate" value="${project.basedir}/src/test/resources/crossref.xsl"/>
-    <property name="documentDirectory" value="${project.basedir}/src/test/resources/ingest"/>
-    <property name="ingestedDocumentDirectory" value="${project.basedir}/src/test/resources/ingested"/>
+    <property name="documentDirectory" ref="ingestDir"/>
+    <property name="ingestedDocumentDirectory" ref="ingestedDir"/>
     <property name="documentPrefix" value="info:doi/10.1371/journal."/>
     <property name="onPublishListeners"><list/></property>
     <property name="onDeleteListeners"><list/></property>

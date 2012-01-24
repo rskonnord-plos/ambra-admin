@@ -28,6 +28,8 @@ import org.ambraproject.filestore.FileStoreException;
 import org.ambraproject.filestore.FileStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.UnexpectedRollbackException;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.ambraproject.BaseTest;
@@ -116,6 +118,18 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
     return new Object[][] {
       { articleUri3 }
     };
+  }
+  
+  @AfterMethod(alwaysRun = true)
+  public void cleanupFiles() {
+    new File(documentManagementService.getDocumentDirectory(), articleArchive).delete();
+    new File(documentManagementService.getIngestedDocumentDirectory(), articleArchive).delete();
+  }
+
+  @BeforeMethod(alwaysRun = true)
+  public void cleanupFilesBefore() {
+    new File(documentManagementService.getDocumentDirectory(), articleArchive).delete();
+    new File(documentManagementService.getIngestedDocumentDirectory(), articleArchive).delete();
   }
 
   @Test(dataProvider = "storedUnpublishedArticles")

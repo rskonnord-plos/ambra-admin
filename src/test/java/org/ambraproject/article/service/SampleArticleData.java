@@ -17,10 +17,6 @@ import org.ambraproject.models.*;
 import org.testng.annotations.DataProvider;
 
 import java.io.File;
-import java.net.URI;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipFile;
 
@@ -35,7 +31,7 @@ public class SampleArticleData {
 
   @DataProvider(name = "sampleArticle")
   public static Object[][] getSampleArticleData() throws Exception {
-    File testFile = new File(SampleArticleData.class.getClassLoader().getResource("test-ingest.zip").toURI());
+    File testFile = new File(SampleArticleData.class.getClassLoader().getResource("ingest/test-ingest.zip").toURI());
     ZipFile archive = new ZipFile(testFile);
     Article article = new Article();
     article.setDoi("info:doi/10.1371/journal.pmed.0050082");
@@ -131,8 +127,8 @@ public class SampleArticleData {
 
   @DataProvider(name = "alteredZip")
   public static Object[][] getAlteredZip() throws Exception {
-    File original = new File(SampleArticleData.class.getClassLoader().getResource("altered-ingest-original.zip").toURI());
-    File altered = new File(SampleArticleData.class.getClassLoader().getResource("altered-ingest-new.zip").toURI());
+    File original = new File(SampleArticleData.class.getClassLoader().getResource("ingest/altered-ingest-original.zip").toURI());
+    File altered = new File(SampleArticleData.class.getClassLoader().getResource("ingest/altered-ingest-new.zip").toURI());
     ZipFile originalArchiveAddFiles = new ZipFile(original);
     ZipFile alteredArchiveAddFiles = new ZipFile(altered);
     List<String> newImageDois = new ArrayList<String>(39);
@@ -176,8 +172,8 @@ public class SampleArticleData {
     newImageDois.add("info:doi/10.1371/journal.pgen.1002295.s004");
     newImageDois.add("info:doi/10.1371/journal.pgen.1002295.s005");
 
-    File removedImgsAltered = new File(SampleArticleData.class.getClassLoader().getResource("ingest-remove-img-altered.zip").toURI());
-    File removedImgsOrig = new File(SampleArticleData.class.getClassLoader().getResource("ingest-remove-img-orig.zip").toURI());
+    File removedImgsAltered = new File(SampleArticleData.class.getClassLoader().getResource("ingest/ingest-remove-img-altered.zip").toURI());
+    File removedImgsOrig = new File(SampleArticleData.class.getClassLoader().getResource("ingest/ingest-remove-img-orig.zip").toURI());
 
     LinkedList<String> secondList = new LinkedList<String>();
     secondList.add("info:doi/10.1371/journal.pmed.1001027");
@@ -191,7 +187,7 @@ public class SampleArticleData {
 
   @DataProvider(name = "sampleAssets")
   public static Object[][] getSampleAssets() throws Exception {
-    File testFile = new File(SampleArticleData.class.getClassLoader().getResource("test-ingest-with-parts.zip").toURI());
+    File testFile = new File(SampleArticleData.class.getClassLoader().getResource("ingest/test-ingest-with-parts.zip").toURI());
     ZipFile archive = new ZipFile(testFile);
 
     List<ArticleAsset> assets = new LinkedList<ArticleAsset>();
