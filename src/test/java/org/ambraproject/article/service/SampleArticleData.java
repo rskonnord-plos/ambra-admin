@@ -78,6 +78,8 @@ public class SampleArticleData {
     xml.setContentType("text/xml");
     xml.setSize(32124);
     xml.setDoi("info:doi/10.1371/journal.pmed.0050082");
+    xml.setTitle(article.getTitle());
+    xml.setDescription(article.getDescription());
     assets.add(xml);
 
     ArticleAsset pdf = new ArticleAsset();
@@ -86,6 +88,8 @@ public class SampleArticleData {
     pdf.setDoi("info:doi/10.1371/journal.pmed.0050082");
     pdf.setSize(91325);
     assets.add(pdf);
+    pdf.setTitle(article.getTitle());
+    pdf.setDescription(article.getDescription());
     article.setAssets(assets);
 
 
@@ -197,6 +201,22 @@ public class SampleArticleData {
     xml.setContentType("text/xml");
     xml.setContextElement("table-wrap");
     xml.setSize(106254);
+    xml.setTitle("Controlling Schistosomiasis: Significant Decrease of Anaemia Prevalence " +
+        "One Year after a Single Dose of Praziquantel in Nigerien Schoolchildren");
+    xml.setDescription("<title>Author Summary</title>" +
+        "<p>The World Health Organization's recommendation for the control of urinary schistosomiasis is to " +
+        "reduce morbidity by reducing the prevalence of heavy infections. In Niger, where urinary schistosomiasis " +
+        "is endemic along the Niger River valley and in proximity to ponds, a national control programme for " +
+        "schistosomiasis and soil-transmitted helminth was launched in 2004 with the financial support of the " +
+        "Gates Foundation through the Schistosomiasis Control Initiative. In the framework of the monitoring and " +
+        "evaluation of the control programme, a follow-up of school children took place in eight sentinel sites. " +
+        "The aim of this study was to assess the evolution of <italic>Schistosoma haematobium</italic> infection and " +
+        "associated morbidity after a single-dose administration of praziquantel and albendazole. Before treatment, " +
+        "the overall prevalence of <italic>S. heamatobium</italic> infection was 75.4% and anaemia " +
+        "(haemoglobin &lt;11.5 g/dl) was present in 61.6% of the study sample. One year after a single-dose " +
+        "praziquantel treatment (administered by dose-pole) co-administered with albendazole (400 mg single dose) for " +
+        "de-worming, all morbidity markers of the infection decreased significantly. This study shows how a " +
+        "schistosomiasis control programme can benefit populations by improving their health status.</p>");
     assets.add(xml);
 
     ArticleAsset pdf = new ArticleAsset();
@@ -205,6 +225,8 @@ public class SampleArticleData {
     pdf.setContentType("application/pdf");
     pdf.setContextElement("table-wrap");
     pdf.setSize(132178);
+    pdf.setTitle(xml.getTitle());
+    pdf.setDescription(xml.getDescription());
     assets.add(pdf);
 
     ArticleAsset asset1 = new ArticleAsset();
@@ -213,6 +235,9 @@ public class SampleArticleData {
     asset1.setContentType("image/tiff");
     asset1.setContextElement("table-wrap");
     asset1.setSize(245880);
+    asset1.setTitle("Table 1");
+    asset1.setDescription("<title>Prevalence (%) of anaemia according to the absence or " +
+        "to the presence of several potential risk factors at the baseline data collection</title>");
     assets.add(asset1);
 
     ArticleAsset asset2 = new ArticleAsset();
@@ -221,6 +246,9 @@ public class SampleArticleData {
     asset2.setDoi("info:doi/10.1371/journal.pntd.0000241.t001");
     asset2.setContextElement("table-wrap");
     asset2.setSize(14433);
+    asset2.setTitle("Table 1");
+    asset2.setDescription("<title>Prevalence (%) of anaemia according to the absence or " +
+        "to the presence of several potential risk factors at the baseline data collection</title>");
     assets.add(asset2);
 
     ArticleAsset asset3 = new ArticleAsset();
@@ -229,6 +257,9 @@ public class SampleArticleData {
     asset3.setDoi("info:doi/10.1371/journal.pntd.0000241.t001");
     asset3.setContextElement("table-wrap");
     asset3.setSize(95902);
+    asset3.setTitle("Table 1");
+    asset3.setDescription("<title>Prevalence (%) of anaemia according to the absence or " +
+        "to the presence of several potential risk factors at the baseline data collection</title>");
     assets.add(asset3);
 
     ArticleAsset asset4 = new ArticleAsset();
@@ -237,6 +268,9 @@ public class SampleArticleData {
     asset4.setSize(138172);
     asset4.setDoi("info:doi/10.1371/journal.pntd.0000241.t001");
     asset4.setContextElement("table-wrap");
+    asset4.setTitle("Table 1");
+    asset4.setDescription("<title>Prevalence (%) of anaemia according to the absence or " +
+        "to the presence of several potential risk factors at the baseline data collection</title>");
     assets.add(asset4);
 
 
@@ -246,6 +280,9 @@ public class SampleArticleData {
     asset5.setSize(400768);
     asset5.setDoi("info:doi/10.1371/journal.pntd.0000241.t002");
     asset5.setContextElement("table-wrap");
+    asset5.setTitle("Table 2");
+    asset5.setDescription("<title>Evolution of the prevalence (%) of the main morbidity indicators between " +
+        "initial survey and re-assessment one year later (paired analysis)</title>");
     assets.add(asset5);
 
     ArticleAsset asset6 = new ArticleAsset();
@@ -254,6 +291,9 @@ public class SampleArticleData {
     asset6.setSize(18685);
     asset6.setDoi("info:doi/10.1371/journal.pntd.0000241.t002");
     asset6.setContextElement("table-wrap");
+    asset6.setTitle("Table 2");
+    asset6.setDescription("<title>Evolution of the prevalence (%) of the main morbidity indicators between " +
+        "initial survey and re-assessment one year later (paired analysis)</title>");
     assets.add(asset6);
 
     ArticleAsset asset7 = new ArticleAsset();
@@ -262,6 +302,9 @@ public class SampleArticleData {
     asset7.setSize(161218);
     asset7.setDoi("info:doi/10.1371/journal.pntd.0000241.t002");
     asset7.setContextElement("table-wrap");
+    asset7.setTitle("Table 2");
+    asset7.setDescription("<title>Evolution of the prevalence (%) of the main morbidity indicators between " +
+        "initial survey and re-assessment one year later (paired analysis)</title>");
     assets.add(asset7);
 
     ArticleAsset asset8 = new ArticleAsset();
@@ -270,6 +313,9 @@ public class SampleArticleData {
     asset8.setSize(227830);
     asset8.setDoi("info:doi/10.1371/journal.pntd.0000241.t002");
     asset8.setContextElement("table-wrap");
+    asset8.setTitle("Table 2");
+    asset8.setDescription("<title>Evolution of the prevalence (%) of the main morbidity indicators between " +
+        "initial survey and re-assessment one year later (paired analysis)</title>");
     assets.add(asset8);
 
     return new Object[][]{
