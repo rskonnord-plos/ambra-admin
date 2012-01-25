@@ -15,20 +15,22 @@ package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.admin.AdminWebTest;
+import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.ArticleService;
 import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.article.service.SampleArticleData;
+import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Syndication;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.zip.ZipFile;
 
 import static org.testng.Assert.*;
@@ -43,6 +45,9 @@ public class AdminTopActionTest extends AdminWebTest {
 
   @Autowired
   protected ArticleService articleService; //just using this to check on articles that got ingested
+
+  @Autowired
+  protected SyndicationService syndicationService; //just using this to check that things get syndicated
 
   @Autowired
   @Qualifier("ingestDir")
@@ -89,11 +94,19 @@ public class AdminTopActionTest extends AdminWebTest {
         "Action didn't return publishable syndication");
   }
 
+  private String crossrefFileName(String doi) {
+    return doi.replaceAll("[.:/]", "_") + ".xml";
+  }
+
+  private String zipFileName(String doi) {
+    return doi.replaceFirst("info:doi/10.1371/journal.", "") + ".zip";
+  }
+
   //Ingester test tests all the different scenarios of ingest, so we won't do anything comprehensive here.  Just test the overall ingest.
   @Test(dataProviderClass = SampleArticleData.class, dataProvider = "sampleArticle")
   public void testIngest(ZipFile archive, Article article) throws Exception {
     String zipFileName = new File(archive.getName()).getName();
-    File crossref_file = new File(ingestedDir, article.getDoi().replaceAll("[.:/]", "_") + ".xml");
+    File crossref_file = new File(ingestedDir, crossrefFileName(article.getDoi()));
     File articleDir = new File(filestoreDir, article.getDoi().replaceAll("info:doi/10.1371/journal.", "10.1371/"));
 
     //delete the article in case it's still in the database from the ingester test
@@ -138,5 +151,144 @@ public class AdminTopActionTest extends AdminWebTest {
     }
   }
 
+  @DataProvider(name = "articleToDisable")
+  public Object[][] articleToDisable() throws IOException {
+    Article article = new Article();
+    article.setDoi("info:doi/10.1371/journal.pone.000102");
+    article.setState(Article.STATE_ACTIVE);
+
+    //create files in the ingested and file store directories to check that they get moved out
+    File articleDir = new File(filestoreDir, "/10.1371/pone.000102");
+    File zip = new File(ingestedDir, "pone.000102.zip");
+    File crossref = new File(ingestedDir, crossrefFileName(article.getDoi()));
+
+    if (!articleDir.exists()) {
+      articleDir.mkdirs();
+      File xml = new File(articleDir, "pone.000102.xml");
+      if (!xml.exists()) {
+        xml.createNewFile();
+      }
+    }
+    if (!zip.exists()) {
+      zip.createNewFile();
+    }
+    if (!crossref.exists()) {
+      crossref.createNewFile();
+    }
+
+    Long id = Long.valueOf(dummyDataStore.store(article));
+    return new Object[][]{
+        {article.getDoi(), id}
+    };
+  }
+
+  @Test(dataProvider = "articleToDisable")
+  public void testDisableOneArticle(String doi, Long articleId) throws Exception {
+    try {
+      action.setArticle(doi);
+      String result = action.disableArticle();
+      assertEquals(result, Action.SUCCESS);
+      assertEquals(dummyDataStore.get(articleId, Article.class).getState(),
+          Article.STATE_DISABLED, "Article didn't get correct state set");
+
+      assertFalse(new File(filestoreDir, FSIDMapper.doiTofsid(doi, "xml")).exists(), "article didn't get deleted from the filestore");
+      assertFalse(new File(ingestedDir, crossrefFileName(doi)).exists(), "crossref file didn't get deleted in the ingested folder");
+      assertFalse(new File(ingestedDir, zipFileName(doi)).exists(), "zip file didn't get deleted from the ingested folder");
+      assertTrue(new File(ingestDir, zipFileName(doi)).exists(), "zip file didn't get moved to the ingest folder");
+    } finally {
+      //Clean up any files that may still be around
+      FileUtils.deleteQuietly(new File(ingestedDir, crossrefFileName(doi)));
+      FileUtils.deleteQuietly(new File(ingestedDir, zipFileName(doi)));
+      FileUtils.deleteQuietly(new File(ingestDir, zipFileName(doi)));
+      try {
+        FileUtils.deleteDirectory(new File(filestoreDir, FSIDMapper.zipToFSID(doi, "")));
+      } catch (IOException e) {
+        //suppress
+      }
+    }
+  }
+
+  @Test(dataProvider = "articleToDisable")
+  public void testUnpublishArticle(String doi, Long articleId) throws Exception {
+    try {
+      action.setArticle(doi);
+      String result = action.unpublish();
+      assertEquals(result, Action.SUCCESS);
+      assertEquals(dummyDataStore.get(articleId, Article.class).getState(),
+          Article.STATE_UNPUBLISHED, "Article didn't get correct state set");
+
+      assertTrue(new File(filestoreDir, FSIDMapper.doiTofsid(doi, "xml")).exists(), "article was deleted from the filestore");
+      assertTrue(new File(ingestedDir, crossrefFileName(doi)).exists(), "crossref file was deleted from the ingested folder");
+      assertTrue(new File(ingestedDir, zipFileName(doi)).exists(), "zip file was deleted from the ingested folder");
+      assertFalse(new File(ingestDir, zipFileName(doi)).exists(), "zip file was added to the ingest folder");
+    } finally {
+      //Clean up any files that may still be around
+      FileUtils.deleteQuietly(new File(ingestedDir, crossrefFileName(doi)));
+      FileUtils.deleteQuietly(new File(ingestedDir, zipFileName(doi)));
+      FileUtils.deleteQuietly(new File(ingestDir, zipFileName(doi)));
+      try {
+        FileUtils.deleteDirectory(new File(filestoreDir, FSIDMapper.zipToFSID(doi, "")));
+      } catch (IOException e) {
+        //suppress
+      }
+    }
+  }
+
+  @DataProvider(name = "articles")
+  public Object[][] getArticles() {
+    Article article1 = new Article();
+    article1.setDoi("info:doi/10.1371/journal.ppat.0030025");
+    article1.setState(Article.STATE_UNPUBLISHED);
+    article1.setArchiveName("ppat.0030025.zip");
+    Long id1 = Long.valueOf(dummyDataStore.store(article1));
+
+    Syndication syndication1 = new Syndication();
+    syndication1.setDoi(article1.getDoi());
+    syndication1.setTarget("FOO");
+    syndication1.setStatus(Syndication.STATUS_PENDING);
+    dummyDataStore.store(syndication1);
+
+    Article article2 = new Article();
+    article2.setDoi("info:doi/10.1371/journal.pone.0015784");
+    article2.setArchiveName("pone.0015784");
+    article2.setState(Article.STATE_UNPUBLISHED);
+    Long id2 = Long.valueOf(dummyDataStore.store(article2));
+
+    return new Object[][]{
+        {new String[]{article1.getDoi(), article2.getDoi()}, new Long[]{id1, id2}}
+    };
+  }
+
+  @Test(dataProvider = "articles")
+  public void testPublishAndSyndicate(String[] dois, Long[] ids) {
+    String[] syndicates = new String[dois.length];
+    for (int i = 0; i < dois.length; i++) {
+      syndicates[i] = dois[i] + "::FOO";
+    }
+    action.setArticles(dois);
+    action.setSyndicates(syndicates);
+    action.setAction("Publish and Syndicate");
+    assertEquals(action.processArticles(), Action.SUCCESS, "Action didn't return success");
+    for (Long id : ids) {
+      assertEquals(dummyDataStore.get(id, Article.class).getState(), Article.STATE_ACTIVE,
+          "Article didn't get state set to published");
+    }
+    for (String doi : dois) {
+      assertEquals(syndicationService.getSyndication(doi, "FOO").getStatus(), Syndication.STATUS_IN_PROGRESS,
+          "Syndication didn't get status updated");
+    }
+  }
+
+  @Test(dataProvider = "articles", dependsOnMethods = {"testPublishAndSyndicate"})
+  public void testDisableArticles(String[] dois, Long[] ids) {
+    action.setArticles(dois);
+    action.setAction("Disable and Revert Ingest");
+    assertEquals(action.processArticles(), Action.SUCCESS, "Action didn't return success");
+
+    //We already check moving files around in testDisableOneArticle(), so here we'll just check the db
+    for (Long id : ids) {
+      assertEquals(dummyDataStore.get(id, Article.class).getState(), Article.STATE_DISABLED, "Article didn't get disabled");
+    }
+  }
 
 }
