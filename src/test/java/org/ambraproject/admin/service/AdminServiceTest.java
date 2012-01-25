@@ -13,7 +13,6 @@
 
 package org.ambraproject.admin.service;
 
-import org.ambraproject.BaseTest;
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.models.Article;
 import org.apache.commons.lang.StringUtils;
@@ -28,9 +27,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * @author Alex Kudick  1/3/12
@@ -114,14 +111,14 @@ public class AdminServiceTest extends AdminBaseTest {
     expectedArticleList.add(URI.create("id:for-creating-issue3"));
 
     String articleCsv = StringUtils.join(expectedArticleList, ",");
-    
+
     return new Object[][]{
         {volume, URI.create("id:new-issue-uri"), article, "some new display name", articleCsv, expectedArticleList}
     };
   }
-  
+
   @Test(dataProvider = "createIssue")
-  public void testCreateIssue(Volume vol, URI issueURI, Article imageArticle, 
+  public void testCreateIssue(Volume vol, URI issueURI, Article imageArticle,
                               String displayName, String articleListCsv, List<URI> expectedArticleList) {
     Issue issue = adminService.createIssue(vol, issueURI, URI.create(imageArticle.getDoi()), displayName, articleListCsv);
     assertNotNull(issue, "created null issue");
@@ -141,5 +138,37 @@ public class AdminServiceTest extends AdminBaseTest {
     assertEquals(storedIssue.getDescription(), imageArticle.getDescription(), "storedIssue didn't get description updated from image article");
     assertEquals(storedIssue.getTitle(), imageArticle.getTitle(), "storedIssue didn't get title updated from article");
     assertEquals(storedIssue.getDisplayName(), displayName, "storedIssue had incorrect display name");
+  }
+
+  @DataProvider(name = "issueParents")
+  public Object[][] issueParents() {
+    URI issue1 = URI.create(dummyDataStore.store(new Issue()));
+
+    Volume volume1 = new Volume();
+    volume1.setIssueList(new ArrayList<URI>(1));
+    volume1.getIssueList().add(issue1);
+    URI volume1Uri = URI.create(dummyDataStore.store(volume1));
+
+    Volume volume2 = new Volume();
+    volume2.setIssueList(new ArrayList<URI>(1));
+    volume2.getIssueList().add(issue1);
+    URI volume2Uri = URI.create(dummyDataStore.store(volume2));
+
+
+    return new Object[][]{
+        {issue1, new URI[]{volume1Uri, volume2Uri}}
+    };
+  }
+
+  @Test(dataProvider = "issueParents")
+  public void testGetIssueParents(URI issueUri, URI[] expectedVolumeUris) {
+    List<Volume> volumes = adminService.getIssueParents(issueUri);
+    assertNotNull(volumes, "returned null list of volumes");
+    assertEquals(volumes.size(), expectedVolumeUris.length, "returned incorrect number of volumes");
+    URI[] actualVolumeUris = new URI[volumes.size()];
+    for (int i = 0; i < volumes.size(); i++) {
+      actualVolumeUris[i] = volumes.get(i).getId();
+    }
+    assertEqualsNoOrder(actualVolumeUris, expectedVolumeUris, "Returned incorrect volumes");
   }
 }

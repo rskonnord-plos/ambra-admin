@@ -800,7 +800,8 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     return (List<Volume>) hibernateTemplate.execute(new HibernateCallback() {
       public Object doInHibernate(Session session) throws HibernateException, SQLException {
 
-        List<Volume> volRslt = session.createQuery("from Volume v join v.issueList issues where issueUri = :issueURI")
+        List<Volume> volRslt = session.createQuery("from org.topazproject.ambra.models.Volume v " +
+            "join v.issueList issues where issueUri = :issueURI")
             .setParameter("issueURI", issueURI.toString())
             .list();
 
