@@ -94,7 +94,7 @@
 
     <global-results>
       <result name="role-insufficient" type="freemarker">
-        <param name="location">/templates/pageNotFound.ftl</param>
+        <param name="location">/templates/insufficientPrivileges.ftl</param>
       </result>
       <result name="error" type="freemarker">
         <param name="location">/templates/error.ftl</param>
@@ -105,7 +105,15 @@
       <exception-mapping exception="java.lang.Exception" result="error"/>
     </global-exception-mappings>
 
+    <action name="secureRedirect" class="org.ambraproject.action.RedirectAction">
+      <result type="redirect">
+        <param name="location">${goTo}</param>
+        <param name="prependServletContext">false</param>
+      </result>
+    </action>
+
     <action name="logout" class="org.ambraproject.action.LogoutAction">
+      <interceptor-ref name="minimalStack"/>
       <result name="success" type="redirectAction">
         <param name="actionName">adminTop</param>
       </result>

@@ -26,7 +26,10 @@
 <@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
 <@s.url id="manageCaches" namespace="/" action="manageCaches" />
 <@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
-<@s.url id="logout" namespace="/" action="logout" />
+<@s.url id="logout" includeParams="none" namespace="/user/secure" action="secureRedirect"
+  goTo="${freemarker_config.casLogoutURL}?" +
+  "service=${Request[freemarker_config.journalContextAttributeKey].baseUrl}/" +
+  "${request.contextPath}/logout.action"/>
 <#if journal??><@s.url id="crossPubManagement" namespace="/" action="crossPubManagement" journalKey="${journal.key}" journalEIssn="${journal.eIssn}" /></#if>
 <p style="text-align:center;">
   <@s.a href="${adminTop}">Admin Top</@s.a>&nbsp; |&nbsp;
