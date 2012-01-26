@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.topazproject.ambra.models.Issue;
+import org.topazproject.ambra.models.Journal;
 import org.topazproject.ambra.models.Volume;
 
 import java.net.URI;
@@ -170,5 +171,205 @@ public class AdminServiceTest extends AdminBaseTest {
       actualVolumeUris[i] = volumes.get(i).getId();
     }
     assertEqualsNoOrder(actualVolumeUris, expectedVolumeUris, "Returned incorrect volumes");
+  }
+
+  @DataProvider(name = "journalAndArticle")
+  public Object[][] getCrossPubArticle() {
+    Journal journal = new Journal();
+    journal.setKey("PLoSFakeJournal");
+    journal.setId(URI.create("id:journal-for-x-pub"));
+    dummyDataStore.store(journal);
+
+    Article article = new Article();
+    article.setDoi("id:article-to-x-pub");
+    dummyDataStore.store(article);
+
+    return new Object[][]{
+        {journal.getKey(), journal.getId(), URI.create(article.getDoi())}
+    };
+  }
+
+  @Test(dataProvider = "journalAndArticle")
+  public void testAddXPubArticles(String journalName, URI journalId, URI doi) throws Exception {
+    adminService.addXPubArticle(journalName, doi);
+    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    assertTrue(journal.getSimpleCollection().contains(doi), "doi didn't get added to journal");
+  }
+
+  @Test(dataProvider = "journalAndArticle", dependsOnMethods = {"testAddXPubArticles"}, alwaysRun = false)
+  public void testRemoveXPubArticle(String journalName, URI journalId, URI doi) throws Exception {
+    adminService.removeXPubArticle(journalName, doi);
+    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    assertFalse(journal.getSimpleCollection().contains(doi), "doi didn't get removed from journal");
+  }
+
+  @Test
+  public void testCreateVolume() throws URISyntaxException {
+    URI volumeUri = URI.create("id:volume_to_create");
+    String displayName = "Some Fake Display Name";
+    URI[] issueList = new URI[]{
+        URI.create("id:test-article1-for-vol"),
+        URI.create("id:test-article2-for-vol"),
+        URI.create("id:test-article3-for-vol")};
+
+    adminService.createVolume(
+        "journal", //default journal created by BaseTest
+        volumeUri,
+        displayName,
+        StringUtils.join(issueList, ",")
+    );
+
+    Volume volume = dummyDataStore.get(volumeUri, Volume.class);
+    assertNotNull(volume, "volume didn't get created");
+    assertEquals(volume.getId(), volumeUri, "volume didn't have correct uri");
+    assertEquals(volume.getDisplayName(), displayName, "volume didn't have correct display name");
+    assertEquals(volume.getIssueList().toArray(), issueList, "volume had incorrect issue list");
+  }
+
+  @Test(dataProvider = "journalAndArticle")
+  public void testSetJrnlIssueURI(String journalName, URI journalId, URI doi) {
+    adminService.setJrnlIssueURI(journalName, doi);
+    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    assertEquals(journal.getCurrentIssue(), doi, "journal didn't get current issue set");
+  }
+
+  @DataProvider(name = "volume")
+  public Object[][] getVolume() {
+    Volume volume = new Volume();
+    volume.setId(URI.create("id:volume-for-get-volume"));
+    volume.setImage(URI.create("id:test-image-article"));
+    volume.setDisplayName("Test Volume");
+    volume.setIssueList(new ArrayList<URI>(3));
+    volume.getIssueList().add(URI.create("id:issue-in-vol1"));
+    volume.getIssueList().add(URI.create("id:issue-in-vol2"));
+    volume.getIssueList().add(URI.create("id:issue-in-vol3"));
+    dummyDataStore.store(volume);
+
+    for (URI issueUri : volume.getIssueList()) {
+      Issue issue = new Issue();
+      issue.setId(issueUri);
+      dummyDataStore.store(issue);
+    }
+
+    Journal journal = new Journal();
+    journal.setId(URI.create("id:journal-for-testing-volumes"));
+    journal.setKey("Journal for testing volumes");
+    journal.setVolumes(new ArrayList<URI>(1));
+    journal.getVolumes().add(volume.getId());
+    dummyDataStore.store(journal);
+
+    return new Object[][]{
+        {journal, volume}
+    };
+  }
+
+  @Test(dataProvider = "volume")
+  public void testGetVolume(Journal journal, Volume expectedVolume) {
+    Volume actualVolume = adminService.getVolume(expectedVolume.getId());
+    assertNotNull(actualVolume, "returned null volume");
+    assertEquals(actualVolume.getId(), expectedVolume.getId(), "returned incorrect volume");
+    assertEquals(actualVolume.getDisplayName(), expectedVolume.getDisplayName(),
+        "Volume didn't have correct display name");
+    assertEquals(actualVolume.getImage(), expectedVolume.getImage(),
+        "Volume didn't have correct image uri");
+  }
+
+  @Test(dataProvider = "volume")
+  public void testGetIssuesByUri(Journal journal, Volume volume) {
+    List<Issue> issues = adminService.getIssues(volume.getId());
+    List<URI> issueUris = new ArrayList<URI>(issues.size());
+    for (Issue issue : issues) {
+      issueUris.add(issue.getId());
+    }
+    assertEquals(issueUris.toArray(), volume.getIssueList().toArray(), "returned incorrect issue list");
+  }
+
+  @Test(dataProvider = "volume")
+  public void testGetIssues(Journal journal, Volume volume) {
+    List<Issue> issues = adminService.getIssues(volume);
+    List<URI> issueUris = new ArrayList<URI>(issues.size());
+    for (Issue issue : issues) {
+      issueUris.add(issue.getId());
+    }
+    assertEquals(issueUris.toArray(), volume.getIssueList().toArray(), "returned incorrect issue list");
+  }
+
+  @Test(dataProvider = "volume")
+  public void testGetIssuesCSV(Journal journal, Volume volume) {
+    List<Issue> issues = adminService.getIssues(volume);
+    List<URI> issueUris = new ArrayList<URI>(issues.size());
+    for (Issue issue : issues) {
+      issueUris.add(issue.getId());
+    }
+    assertEquals(issueUris.toArray(), volume.getIssueList().toArray(), "returned incorrect issue list");
+  }
+
+  @Test(dataProvider = "volume", dependsOnMethods = {"testGetVolume", "testGetIssues", "testGetIssuesByUri"})
+  public void testUpdateVolume(Journal journal, Volume volume) throws URISyntaxException {
+    String newDisplayName = "Updated Display Name";
+    List<URI> newIssueList = new ArrayList<URI>(3);
+    newIssueList.add(URI.create("id:new-issue-for-update-volume1"));
+    newIssueList.add(URI.create("id:new-issue-for-update-volume2"));
+    newIssueList.add(URI.create("id:new-issue-for-update-volume3"));
+
+    adminService.updateVolume(volume, newDisplayName, newIssueList);
+    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertEquals(storedVolume.getDisplayName(), newDisplayName, "volume didn't get display name updated");
+    assertEquals(storedVolume.getIssueList().toArray(), newIssueList.toArray(), "Volume didn't have correct issue list");
+  }
+
+
+  @Test(dataProvider = "volume", dependsOnMethods = {"testGetVolume", "testGetIssues",
+      "testUpdateVolume", "testGetIssuesByUri"}, alwaysRun = true)
+  public void testDeleteVolume(Journal journal, Volume volume) {
+    adminService.deleteVolume(journal.getKey(), volume.getId());
+    assertNull(dummyDataStore.get(volume.getId(), Volume.class), "Volume didn't get deleted from the database");
+    Journal storedJournal = dummyDataStore.get(journal.getId(), Journal.class);
+    assertFalse(storedJournal.getVolumes().contains(volume.getId()), "Volume URI didn't get removed from journal list");
+  }
+
+  @DataProvider(name = "issue")
+  public Object[][] getIssue() {
+    Issue issue = new Issue();
+    issue.setId(URI.create("id:test-issue-id"));
+    issue.setTitle("The Thing You Love Most");
+    issue.setDescription("Regina does everything in her power to force Emma out of Storybrooke and out of her " +
+        "and Henry's lives forever. Meanwhile, the chilling circumstances of how the Evil Queen released the " +
+        "curse upon the fairytale world is revealed.");
+    dummyDataStore.store(issue);
+
+    Volume volume = new Volume();
+    volume.setId(URI.create("id:test-vol-for-issues1"));
+    volume.setIssueList(new ArrayList<URI>(1));
+    volume.getIssueList().add(issue.getId());
+    dummyDataStore.store(volume);
+
+    return new Object[][]{
+        {issue, volume}
+    };
+  }
+
+  @Test(dataProvider = "issue")
+  public void testGetIssue(Issue expectedIssue, Volume volume) {
+    Issue issue = adminService.getIssue(expectedIssue.getId());
+    assertNotNull(issue, "returned null issue");
+    assertEquals(issue.getTitle(), expectedIssue.getTitle(), "issue had incorrect title");
+    assertEquals(issue.getDescription(), expectedIssue.getDescription(), "issue had incorrect description");
+  }
+
+  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue"}, alwaysRun = true)
+  public void testDeleteIssue(Issue issue, Volume volume) {
+    adminService.deleteIssue(issue);
+    assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
+    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
+  }
+
+  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue"}, alwaysRun = true)
+  public void testDeleteIssueByUri(Issue issue, Volume volume) {
+    adminService.deleteIssue(issue.getId());
+    assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
+    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
   }
 }
