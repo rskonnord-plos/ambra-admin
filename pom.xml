@@ -28,7 +28,6 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <!--TODO: Update these to release versions, once available-->
     <ambra.version>2.2.1-SNAPSHOT</ambra.version>
     <conf-helper.version>2.2.1-SNAPSHOT</conf-helper.version>
   </properties>
