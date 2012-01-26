@@ -64,4 +64,10 @@
     <property name="request" ref="request"/>
   </bean>
 
+  <bean id="adminUserProfileAction" class="org.ambraproject.user.action.AdminUserProfileAction">
+    <property name="userService" ref="userService"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="request" ref="request"/>
+  </bean>
+
 </beans>
