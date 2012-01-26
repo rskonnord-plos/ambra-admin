@@ -26,7 +26,7 @@
 <@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
 <@s.url id="manageCaches" namespace="/" action="manageCaches" />
 <@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
-<@s.url id="logout" includeParams="none" namespace="/user/secure" action="secureRedirect"
+<@s.url id="logout" includeParams="none" namespace="/" action="secureRedirect"
   goTo="${freemarker_config.casLogoutURL}?" +
   "service=${Request[freemarker_config.journalContextAttributeKey].baseUrl}/" +
   "${request.contextPath}/logout.action"/>

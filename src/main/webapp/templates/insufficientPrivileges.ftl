@@ -20,9 +20,7 @@
 -->
 <!-- begin : main content wrapper -->
 <div id="content" class="pageerror">
-<@s.url action="logout" namespace="/" id="logout"/>
 <h1>Permission Denied</h1>
 	<p>Sorry, you do not have the privileges to view that page.</p>
-  <p>Click <a href="${logout}">here</a> to logout.</p>
 </div>
 <!-- end : main content wrapper -->
