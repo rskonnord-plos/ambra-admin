@@ -39,9 +39,17 @@ public class AdminUserProfileAction extends UserProfileAction {
 
     return ambraUser;
   }
+  
+  @Override
+  public String executeSaveUser() throws Exception {
+    String result = super.executeSaveUser();
+    if (SUCCESS.equals(result)) {
+      addActionMessage("Successfully changes to profile for " + getTopazId());
+    }
+    return result;
+  }
 
   @Override
-  @Transactional(readOnly = true)
   public String executeRetrieveUserProfile() throws Exception {
     final String status = super.executeRetrieveUserProfile();
     if (userIsHalfCreated) {
@@ -53,10 +61,5 @@ public class AdminUserProfileAction extends UserProfileAction {
   @Override
   protected String getUserIdToFetchEmailAddressFor() throws ApplicationException {
     return userService.getAuthenticationId(getTopazId());
-  }
-
-  /** Using by freemarker to indicate that the user profile is being edited by an admin */
-  public boolean getIsEditedByAdmin() {
-    return true;
   }
 }
