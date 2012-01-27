@@ -41,8 +41,10 @@
     <constructor-arg value="UTF-8"/>
   </bean>
 
+  <!--This is kind of a legacy property, but it's used to decide what kind of alerts to show to users.  Needs to be the same as ambra's
+      TODO: Refactor away the need for this-->
   <bean id="applicationId" class="java.lang.String">
-    <constructor-arg value="ambra-admin"/>
+    <constructor-arg value="topaz-ambra"/>
   </bean>
 
   <util:map id="otherConstants" map-class="java.util.HashMap">
