@@ -29,7 +29,22 @@
     <#include "includes/navigation.ftl">
     
     <@messages />
-
+    <#if topazUserIdList?exists>
+      <p>
+        <fieldset>
+          <legend><b>Edit User Profiles</b></legend>
+          <ul>
+            <#list topazUserIdList as topazId>
+              <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
+              <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
+              <li>
+                Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a> for ${topazId}
+              </li>
+            </#list>
+          </ul>
+        </fieldset>
+      </p>
+    </#if>
     <p>
       <fieldset>
           <legend><b>Find User by Authorization Id</b></legend>
@@ -69,24 +84,6 @@
           </@s.form>
       </fieldset>
     </p>
-
-    <#if topazUserIdList?exists>
-      <p>
-        <fieldset>
-          <legend><b>Edit User Profiles</b></legend>
-          <ul>
-            <#list topazUserIdList as topazId>
-              <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
-              <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
-              <li>
-                Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a> for ${topazId}
-              </li>
-            </#list>
-          </ul>
-        </fieldset>
-      </p>
-    </#if>
-
     <p>
       <fieldset>
         <legend><b>Assign Admin Role To User</b></legend>
