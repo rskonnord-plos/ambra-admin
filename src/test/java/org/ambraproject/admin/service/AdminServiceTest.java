@@ -232,6 +232,49 @@ public class AdminServiceTest extends AdminBaseTest {
     Journal journal = dummyDataStore.get(journalId, Journal.class);
     assertEquals(journal.getCurrentIssue(), doi, "journal didn't get current issue set");
   }
+  
+  
+  @Test
+  public void testGetVolumes() {
+    //create a journal and some volumes
+    Journal journal = new Journal();
+    journal.setKey("Fake Journal for get Volumes");
+    journal.setVolumes(new ArrayList<URI>());
+    
+    Volume volume1 = new Volume();
+    volume1.setDisplayName("Display name for volume 1");
+    volume1.setImage(URI.create("id:image-for-vol1"));
+    volume1.setId(URI.create(dummyDataStore.store(volume1)));
+    journal.getVolumes().add(volume1.getId());
+    
+    Volume volume2 = new Volume();
+    volume2.setDisplayName("Display name for volume 2");
+    volume2.setImage(URI.create("id:image-for-vol2"));
+    volume2.setId(URI.create(dummyDataStore.store(volume2)));
+    journal.getVolumes().add(volume2.getId());
+    
+    Volume volume3 = new Volume();
+    volume3.setDisplayName("Display name for volume 3");
+    volume3.setImage(URI.create("id:image-for-vol3"));
+    volume3.setId(URI.create(dummyDataStore.store(volume3)));
+    journal.getVolumes().add(volume3.getId());
+
+    dummyDataStore.store(journal);
+
+    List<Volume> result = adminService.getVolumes(journal.getKey());
+    assertNotNull(result, "returned null list of volumes");
+    assertEquals(result.size(), 3, "returned incorrect number of volumes");
+
+    assertEquals(result.get(0).getDisplayName(), volume1.getDisplayName(), "Volume 1 had incorrect display name");
+    assertEquals(result.get(0).getImage(), volume1.getImage(), "Volume 1 had incorrect image article");
+
+    assertEquals(result.get(1).getDisplayName(), volume2.getDisplayName(), "Volume 2 had incorrect display name");
+    assertEquals(result.get(1).getImage(), volume2.getImage(), "Volume 2 had incorrect image article");
+
+    assertEquals(result.get(2).getDisplayName(), volume3.getDisplayName(), "Volume 3 had incorrect display name");
+    assertEquals(result.get(2).getImage(), volume3.getImage(), "Volume 3 had incorrect image article");
+
+  }
 
   @DataProvider(name = "volume")
   public Object[][] getVolume() {
@@ -296,15 +339,27 @@ public class AdminServiceTest extends AdminBaseTest {
 
   @Test(dataProvider = "volume")
   public void testGetIssuesCSV(Journal journal, Volume volume) {
-    List<Issue> issues = adminService.getIssues(volume);
-    List<URI> issueUris = new ArrayList<URI>(issues.size());
-    for (Issue issue : issues) {
-      issueUris.add(issue.getId());
+    String issueCsv = adminService.getIssuesCSV(volume);
+    List<URI> issueUris = new ArrayList<URI>(volume.getIssueList().size());
+    for (String issue : issueCsv.split(",")) {
+      issueUris.add(URI.create(issue));
     }
     assertEquals(issueUris.toArray(), volume.getIssueList().toArray(), "returned incorrect issue list");
   }
 
-  @Test(dataProvider = "volume", dependsOnMethods = {"testGetVolume", "testGetIssues", "testGetIssuesByUri"})
+  @Test(dataProvider = "volume")
+  public void testGetIssuesCSVByUri(Journal journal, Volume volume) {
+    String issueCsv = adminService.getIssuesCSV(volume.getId());
+    List<URI> issueUris = new ArrayList<URI>(volume.getIssueList().size());
+    for (String issue : issueCsv.split(",")) {
+      issueUris.add(URI.create(issue));
+    }
+    assertEquals(issueUris.toArray(), volume.getIssueList().toArray(), "returned incorrect issue list");
+  }
+
+  @Test(dataProvider = "volume",
+      dependsOnMethods = {"testGetVolume", "testGetIssues", "testGetIssuesByUri",
+      "testGetIssuesCSV", "testGetIssuesCSVByUri"})
   public void testUpdateVolume(Journal journal, Volume volume) throws URISyntaxException {
     String newDisplayName = "Updated Display Name";
     List<URI> newIssueList = new ArrayList<URI>(3);
