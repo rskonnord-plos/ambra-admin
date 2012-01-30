@@ -52,6 +52,8 @@ import java.net.URI;
 import java.util.List;
 
 import static org.testng.Assert.assertEqualsNoOrder;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static org.testng.Assert.assertEquals;
@@ -99,10 +101,11 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
     article.setState(Article.STATE_ACTIVE);
     article.setDoi(articleUri2);
 
-    dummyDataStore.store(article);
+    Long id = Long.valueOf(dummyDataStore.store(article));
+    article.setID(id);
 
     return new Object[][] {
-      { articleUri2 }
+      { articleUri2, id }
     };
   }
 
@@ -195,7 +198,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   }
 
   @Test(dataProvider = "storedPublishedArticles")
-  void testDisable(String article) throws Exception
+  void testDisable(String article, Long articleId) throws Exception
   {
     final String file1 = FSIDMapper.doiTofsid(article + ".fileone", "txt");
     final String file2 = FSIDMapper.doiTofsid(article + ".filetwo", "txt");
@@ -239,15 +242,13 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   }
 
   @Test(dataProvider = "storedPublishedArticles")
-  void testDelete(String article) throws Exception
-  {
-    //TODO: SQL too complex for testing DB to understand.
-    //Refactor in the future
-    //documentManagementService.delete();
+  void testDelete(String article, Long articleId) throws Exception {
+    documentManagementService.delete(article, DEFAULT_ADMIN_AUTHID);
+    assertNull(dummyDataStore.get(articleId, Article.class),"didn't delete article");
   }
 
   @Test(dataProvider = "storedPublishedArticles", expectedExceptions = { SecurityException.class })
-  void testDeleteSecurity(String article) throws Exception
+  void testDeleteSecurity(String article, Long articleId) throws Exception
   {
     documentManagementService.delete(article, DEFUALT_USER_AUTHID);
   }
