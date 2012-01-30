@@ -159,6 +159,10 @@ public class AdminTopActionTest extends AdminWebTest {
   public void testIngestDuplicateArticle(ZipFile archive, Article article) throws Exception {
     String zipFileName = new File(archive.getName()).getName();
 
+    Article articleToStore = new Article();
+    articleToStore.setDoi(article.getDoi());
+    dummyDataStore.store(articleToStore);
+
     File destinationFile = new File(ingestedDir, zipFileName);
     File crossrefFile = new File(ingestedDir, crossrefFileName(article.getDoi()));
     try {
@@ -178,9 +182,7 @@ public class AdminTopActionTest extends AdminWebTest {
           //ignore
         }
       }
-      if (crossrefFile.exists()) {
-        FileUtils.deleteQuietly(crossrefFile);
-      }
+      articleService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
     }
   }
 
