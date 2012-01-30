@@ -50,7 +50,6 @@ import java.util.zip.ZipFile;
 public class AdminTopAction extends BaseAdminActionSupport {
 
   private static final Logger log = LoggerFactory.getLogger(AdminTopAction.class);
-  private static Boolean sync = false;
   private Collection<String> uploadableFiles;
   private List<Article> publishableArticles;
   private Map<String, List<Syndication>> syndicationMap;
@@ -579,15 +578,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
    */
   public Collection<String> getUploadableFiles() {
     return uploadableFiles;
-  }
-
-  /**
-   * Get the auto ingest sync state
-   *
-   * @return a true if auto ingest is in progress.
-   */
-  public Boolean getAutoIngesting() {
-    return sync;
   }
 
   /**
