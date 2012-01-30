@@ -129,6 +129,11 @@ public class AdminTopActionTest extends AdminWebTest {
     final Comparator<Article> dateAscending = new Comparator<Article>() {
       @Override
       public int compare(Article article, Article article1) {
+        if (article.getDate() == null) {
+          return article1.getDate() == null ? 0 : -1;
+        } else if (article1.getDate() == null) {
+          return 1;
+        }
         return article.getDate().compareTo(article1.getDate());
       }
     };
