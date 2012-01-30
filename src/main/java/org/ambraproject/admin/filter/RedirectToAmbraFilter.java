@@ -13,6 +13,7 @@
 
 package org.ambraproject.admin.filter;
 
+import org.ambraproject.web.VirtualJournalContext;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import org.ambraproject.web.VirtualJournalContext;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Filter used to redirect actions that should be handled by the associated ambra stack (e.g. fetching the image for an
@@ -40,7 +40,7 @@ import org.ambraproject.web.VirtualJournalContext;
 public class RedirectToAmbraFilter implements Filter {
   private static final Logger log = LoggerFactory.getLogger(RedirectToAmbraFilter.class);
 
-  private Map<String,String> journalUrls = new HashMap<String, String>(10);
+  private ConcurrentMap<String,String> journalUrls = new ConcurrentHashMap<String, String>(10);
   private String defaultJournalUrl;
 
   @Override
