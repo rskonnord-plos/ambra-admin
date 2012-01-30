@@ -31,6 +31,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Comparator;
 import java.util.zip.ZipFile;
 
 import static org.testng.Assert.assertEquals;
@@ -74,6 +76,7 @@ public class AdminTopActionTest extends AdminWebTest {
     Article publishableArticle = new Article();
     publishableArticle.setDoi("id:publishable-article-for-adminTopAction");
     publishableArticle.setState(Article.STATE_UNPUBLISHED);
+    publishableArticle.setDate(Calendar.getInstance().getTime());
     dummyDataStore.store(publishableArticle);
     //Add a syndication for the article
     Syndication syndication = new Syndication();
@@ -96,6 +99,76 @@ public class AdminTopActionTest extends AdminWebTest {
     assertTrue(foundCorrectArticle, "Action didn't correctly return a publishable article");
     assertEquals(action.getPublishableSyndications().get(publishableArticle.getDoi()).size(), 1,
         "Action didn't return publishable syndication");
+  }
+
+  @DataProvider(name = "articlesToSort")
+  public Object[][] getArticlesToSort() {
+    //some fake pub dates
+    Calendar oneYearAgo = Calendar.getInstance();
+    oneYearAgo.add(Calendar.YEAR, -1);
+    Calendar oneMonthAgo = Calendar.getInstance();
+    oneMonthAgo.add(Calendar.MONTH, -1);
+    Calendar today = Calendar.getInstance();
+
+    //Populate db w/ some articles
+    Article article1 = new Article();
+    article1.setDoi("id:article-for-sorting1");
+    article1.setDate(oneYearAgo.getTime());
+    dummyDataStore.store(article1);
+    
+    Article article2 = new Article();
+    article2.setDoi("id:article-for-sorting2");
+    article2.setDate(today.getTime());
+    dummyDataStore.store(article2);
+
+    Article article3 = new Article();
+    article3.setDoi("id:article-for-sorting3");
+    article3.setDate(oneMonthAgo.getTime());
+    dummyDataStore.store(article3);
+
+    final Comparator<Article> dateAscending = new Comparator<Article>() {
+      @Override
+      public int compare(Article article, Article article1) {
+        return article.getDate().compareTo(article1.getDate());
+      }
+    };
+    final Comparator<Article> dateDescending = new Comparator<Article>() {
+      @Override
+      public int compare(Article article, Article article1) {
+        return -1 * dateAscending.compare(article, article1);
+      }
+    };
+    final Comparator<Article> doiAscending = new Comparator<Article>() {
+      @Override
+      public int compare(Article article, Article article1) {
+        return article.getDoi().compareTo(article1.getDoi());
+      }
+    };
+    final Comparator<Article> doiDescending = new Comparator<Article>() {
+      @Override
+      public int compare(Article article, Article article1) {
+        return -1 * doiAscending.compare(article, article1);
+      }
+    };
+    return new Object[][]{
+        {"Sort by Pub Date Asc", dateAscending},
+        {"Sort by Pub Date Desc", dateDescending},
+        {"Sort by DOI Asc", doiAscending},
+        {"Sort by DOI Desc", doiDescending}
+    };
+  }
+
+  @Test(dependsOnMethods = "testBasicRequest", dataProvider = "articlesToSort", alwaysRun = true)
+  public void testSort(String directive, Comparator<Article> comparator) {
+    action.setAction(directive);
+    action.processArticles();
+
+    for (int i = 0; i < action.getPublishableArticles().size() - 1; i++) {
+      Article article = action.getPublishableArticles().get(i);
+      Article nextArticle = action.getPublishableArticles().get(i + 1);
+      assertTrue(comparator.compare(article, nextArticle) <= 0,
+          "Articles weren't in order when sorting by: '" + directive + "'");
+    }
   }
 
   private String crossrefFileName(String doi) {
