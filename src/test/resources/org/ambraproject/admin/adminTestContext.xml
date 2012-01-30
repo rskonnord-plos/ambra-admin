@@ -29,17 +29,21 @@
     <property name="sessionFactory" ref="sessionFactory"/>
   </bean>
 
+  <bean id="filestoreDir" class="java.lang.String">
+    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore" />
+  </bean>
+
   <bean id="fileStoreService" class="org.ambraproject.filestore.impl.FileSystemImpl">
-    <constructor-arg index="0" value="${project.basedir}/src/test/filestore"/>
+    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore"/>
     <constructor-arg index="1" value=""/>
   </bean>
 
   <bean class="java.lang.String" id="ingestDir">
-    <constructor-arg value="${project.basedir}/src/test/resources/ingest" />
+    <constructor-arg value="${project.basedir}/target/test-classes/ingest" />
   </bean>
 
   <bean class="java.lang.String" id="ingestedDir">
-    <constructor-arg value="${project.basedir}/src/test/resources/ingested" />
+    <constructor-arg value="${project.basedir}/target/test-classes/ingested" />
   </bean>
 
   <bean id="documentManagementService" class="org.ambraproject.admin.service.impl.DocumentManagementServiceImpl">
@@ -93,9 +97,6 @@
     <property name="configuration" ref="configuration"/>
   </bean>
 
-  <bean id="filestoreDir" class="java.lang.String">
-    <constructor-arg index="0" value="${project.basedir}/src/test/filestore" />
-  </bean>
 
   <bean id="ingester" class="org.ambraproject.article.service.IngesterImpl">
     <property name="ingestArchiveProcessor" ref="ingestArchiveProcessor"/>
