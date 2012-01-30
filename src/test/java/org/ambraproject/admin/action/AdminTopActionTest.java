@@ -33,7 +33,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.zip.ZipFile;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * @author Alex Kudlick 1/24/12
@@ -150,6 +154,36 @@ public class AdminTopActionTest extends AdminWebTest {
       articleService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
     }
   }
+
+  @Test(dataProviderClass = SampleArticleData.class, dataProvider = "sampleArticle")
+  public void testIngestDuplicateArticle(ZipFile archive, Article article) throws Exception {
+    String zipFileName = new File(archive.getName()).getName();
+
+    File destinationFile = new File(ingestedDir, zipFileName);
+    File crossrefFile = new File(ingestedDir, crossrefFileName(article.getDoi()));
+    try {
+      dummyDataStore.store(article);
+      action.setFilesToIngest(new String[]{zipFileName});
+      action.ingest();
+      assertNotNull(action.getActionErrors(), "nul list of errors");
+      assertTrue(action.getActionErrors().size() > 0, "didn't add an error for ingest");
+      assertFalse(destinationFile.exists(), "Zip file got moved to ingested dir");
+      assertFalse(crossrefFile.exists(), "Crossref file got created in ingest dir");
+
+    } finally {
+      if (destinationFile.exists()) {
+        try {
+          FileUtils.moveFile(destinationFile, new File(ingestDir, zipFileName));
+        } catch (IOException e) {
+          //ignore
+        }
+      }
+      if (crossrefFile.exists()) {
+        FileUtils.deleteQuietly(crossrefFile);
+      }
+    }
+  }
+
 
   @DataProvider(name = "articleToDisable")
   public Object[][] articleToDisable() throws IOException {
