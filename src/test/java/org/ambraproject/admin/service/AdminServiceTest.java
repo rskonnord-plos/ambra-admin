@@ -391,6 +391,13 @@ public class AdminServiceTest extends AdminBaseTest {
     issue.setDescription("Regina does everything in her power to force Emma out of Storybrooke and out of her " +
         "and Henry's lives forever. Meanwhile, the chilling circumstances of how the Evil Queen released the " +
         "curse upon the fairytale world is revealed.");
+    issue.setArticleList(new ArrayList<URI>(1));
+    
+    Article article = new Article();
+    article.setDoi("id:doi-for-issue-test");
+    dummyDataStore.store(article);
+
+    issue.getArticleList().add(URI.create(article.getDoi()));
     dummyDataStore.store(issue);
 
     Volume volume = new Volume();
@@ -412,7 +419,34 @@ public class AdminServiceTest extends AdminBaseTest {
     assertEquals(issue.getDescription(), expectedIssue.getDescription(), "issue had incorrect description");
   }
 
-  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue"}, alwaysRun = true)
+  @Test(dataProvider = "issue")
+  public void testRemoveArticle(Issue issue, Volume volume) {
+    URI articleDoi = issue.getArticleList().get(0);
+    //make sure the doi is in there to begin
+    Issue storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    assertTrue(storedIssue.getArticleList().contains(articleDoi),"Doi wasn't in issue list to start with");
+
+    adminService.removeArticle(issue, articleDoi);
+    storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    assertFalse(storedIssue.getArticleList().contains(articleDoi), "article doi didn't get removed from issue");
+  }
+  
+  @Test(dataProvider = "issue")
+  public void testAddArticle(Issue issue, Volume volume) {
+    //create an article and add it to the issue
+    URI articleDoi = URI.create("id:articleWhichWillBeAddedToAnIssue");
+    Article article = new Article();
+    article.setDoi(articleDoi.toString());
+    dummyDataStore.store(article);
+
+    adminService.addArticle(issue, articleDoi);
+
+    //make sure the article got added
+    Issue storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    assertTrue(storedIssue.getArticleList().contains(articleDoi), "article doi didn't get added toissue");
+  }
+
+  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue","testRemoveArticle"}, alwaysRun = true)
   public void testDeleteIssue(Issue issue, Volume volume) {
     adminService.deleteIssue(issue);
     assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
@@ -420,7 +454,7 @@ public class AdminServiceTest extends AdminBaseTest {
     assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
   }
 
-  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue"}, alwaysRun = true)
+  @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue","testRemoveArticle"}, alwaysRun = true)
   public void testDeleteIssueByUri(Issue issue, Volume volume) {
     adminService.deleteIssue(issue.getId());
     assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
