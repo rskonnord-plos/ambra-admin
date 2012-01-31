@@ -70,4 +70,10 @@
     <property name="request" ref="request"/>
   </bean>
 
+  <bean id="crossPubManagementAction" class="org.ambraproject.admin.action.CrossPubManagementAction">
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="command" value="foo"/>
+    <property name="request" ref="request"/>
+  </bean>
 </beans>
