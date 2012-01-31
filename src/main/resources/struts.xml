@@ -106,7 +106,6 @@
     </global-exception-mappings>
 
     <action name="secureRedirect" class="org.ambraproject.action.RedirectAction">
-      <interceptor-ref name="minimalStack"/>
       <result type="redirect">
         <param name="location">${goTo}</param>
         <param name="prependServletContext">false</param>
