@@ -77,6 +77,7 @@ public class AdminTopActionTest extends AdminWebTest {
     publishableArticle.setDoi("id:publishable-article-for-adminTopAction");
     publishableArticle.setState(Article.STATE_UNPUBLISHED);
     publishableArticle.setDate(Calendar.getInstance().getTime());
+    publishableArticle.seteIssn(defaultJournal.geteIssn());
     dummyDataStore.store(publishableArticle);
     //Add a syndication for the article
     Syndication syndication = new Syndication();
@@ -84,6 +85,17 @@ public class AdminTopActionTest extends AdminWebTest {
     syndication.setTarget("PMC");
     syndication.setStatus(Syndication.STATUS_PENDING);
     dummyDataStore.store(syndication);
+
+    Article failedSyndicationArticle = new Article();
+    failedSyndicationArticle.setDoi("id:article-with-failed-syndication-for-adminTop");
+    failedSyndicationArticle.seteIssn(defaultJournal.geteIssn());
+    dummyDataStore.store(failedSyndicationArticle);
+
+    Syndication failedSyndication = new Syndication();
+    failedSyndication.setDoi(failedSyndicationArticle.getDoi());
+    failedSyndication.setTarget("FOO");
+    failedSyndication.setStatus(Syndication.STATUS_FAILURE);
+    dummyDataStore.store(failedSyndication);
 
     //run execute()
     String result = action.execute();
@@ -99,6 +111,7 @@ public class AdminTopActionTest extends AdminWebTest {
     assertTrue(foundCorrectArticle, "Action didn't correctly return a publishable article");
     assertEquals(action.getPublishableSyndications().get(publishableArticle.getDoi()).size(), 1,
         "Action didn't return publishable syndication");
+    assertTrue(action.getIsFailedSyndications(), "Action didn't find failed syndications");
   }
 
   @DataProvider(name = "articlesToSort")
