@@ -14,6 +14,7 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.ArticleService;
@@ -25,7 +26,6 @@ import org.ambraproject.models.Syndication;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -64,11 +64,6 @@ public class AdminTopActionTest extends AdminWebTest {
   @Autowired
   @Qualifier("filestoreDir")
   protected String filestoreDir;
-
-  @BeforeMethod
-  public void setup() {
-    setupAdminContext();
-  }
 
   @Test
   public void testBasicRequest() throws Exception {
@@ -426,4 +421,8 @@ public class AdminTopActionTest extends AdminWebTest {
     }
   }
 
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
+  }
 }

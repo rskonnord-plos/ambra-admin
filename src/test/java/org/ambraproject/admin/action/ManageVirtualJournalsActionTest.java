@@ -14,6 +14,7 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.web.VirtualJournalContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -194,4 +195,8 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
         new ArrayList<String>());
   }
 
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
+  }
 }

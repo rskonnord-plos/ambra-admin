@@ -17,15 +17,15 @@
 package org.ambraproject.user.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.Constants;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
+import org.ambraproject.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseWebTest;
-import org.ambraproject.Constants;
 import org.topazproject.ambra.models.UserAccount;
 import org.topazproject.ambra.models.UserProfile;
-import org.ambraproject.user.service.UserService;
 
 import java.net.URI;
 
@@ -65,4 +65,8 @@ public class AssignAdminRoleActionTest extends AdminWebTest {
     assertEquals(userService.getRole(userId)[0], Constants.ADMIN_ROLE, "stored user didn't have admin role");
   }
 
+  @Override
+  protected BaseActionSupport getAction() {
+    return assignAdminRoleAction;
+  }
 }

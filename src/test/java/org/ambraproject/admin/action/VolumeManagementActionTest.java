@@ -14,6 +14,7 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,5 +231,10 @@ public class VolumeManagementActionTest extends AdminWebTest {
           "Issues weren't in correct order; element " + (i + 1) + " was incorrect");
     }
 
+  }
+
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
   }
 }

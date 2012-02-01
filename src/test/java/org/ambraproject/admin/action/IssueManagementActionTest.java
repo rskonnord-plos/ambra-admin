@@ -14,16 +14,14 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.article.action.TOCArticleGroup;
 import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.model.article.ArticleType;
 import org.ambraproject.models.Article;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.topazproject.ambra.models.Issue;
@@ -46,15 +44,10 @@ public class IssueManagementActionTest extends AdminWebTest {
   @Autowired
   protected IssueManagementAction action;
 
-  @Autowired
-  protected Configuration configuration; //makes sure the test configuration is loaded
-
-  @AfterMethod
-  public void clearMessages() {
-    action.setActionErrors(new HashSet<String>());
-    action.setActionMessages(new HashSet<String>());
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
   }
-
 
   @DataProvider(name = "basicInfo")
   public Object[][] getBasicInfo() {
@@ -122,7 +115,6 @@ public class IssueManagementActionTest extends AdminWebTest {
   @Test(dataProvider = "basicInfo")
   public void testExecute(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                           List<URI> orphans) throws Exception {
-    setupAdminContext();
     action.setVolumeURI(volumeURI);
     action.setIssueURI(issue.getId().toString());
 
@@ -167,7 +159,6 @@ public class IssueManagementActionTest extends AdminWebTest {
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testUpdateIssue(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                               List<URI> orphans) throws Exception {
-    setupAdminContext();
     List<URI> existingArticles = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
 
     String reorderedArticleCsv = StringUtils.join(existingArticles, ",");
@@ -242,7 +233,6 @@ public class IssueManagementActionTest extends AdminWebTest {
   public void testActionDoesNotAllowAddingArticleToCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                                                        List<URI> orphans) throws Exception {
     //execute the action to get the original csv
-    setupAdminContext();
     action.setVolumeURI(volumeURI);
     action.setIssueURI(issue.getId().toString());
     action.execute();
@@ -266,7 +256,6 @@ public class IssueManagementActionTest extends AdminWebTest {
   public void testActionDoesNotAllowRemovingArticleFromCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                                                            List<URI> orphans) throws Exception {
     //execute the action to get the original csv
-    setupAdminContext();
     action.setVolumeURI(volumeURI);
     action.setIssueURI(issue.getId().toString());
     action.execute();

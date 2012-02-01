@@ -21,11 +21,11 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseWebTest;
 import org.ambraproject.annotation.service.AnnotationService;
 import org.topazproject.ambra.models.Annotation;
 import org.topazproject.ambra.models.AnnotationBlob;
@@ -86,7 +86,6 @@ public class ProcessFlagsActionTest extends AdminWebTest {
 
   @Test(dataProvider = "commentWithFlags")
   public void testConvertToFormalCorrection(String annotationId, String[] flags) throws Exception {
-    setupAdminContext();
 
     action.setConvertToFormalCorrection(flags);
     action.setRequest(getDefaultRequestAttributes());
@@ -123,5 +122,10 @@ public class ProcessFlagsActionTest extends AdminWebTest {
         // success
       }
     }
+  }
+
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
   }
 }

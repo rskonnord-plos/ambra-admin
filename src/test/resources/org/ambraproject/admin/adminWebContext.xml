@@ -19,13 +19,10 @@
 
   <import resource="adminTestContext.xml" />
 
-  <bean id="request" class="org.ambraproject.BaseWebTest" factory-method="getDefaultRequestAttributes"/>
-
   <bean id="articleSyndicationHistory" class="org.ambraproject.admin.action.ArticleSyndicationHistory">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="syndicationService" ref="syndicationService"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="manageFlagsAction" class="org.ambraproject.admin.action.ManageFlagsAction">
@@ -36,20 +33,17 @@
     <property name="flagManagementService" ref="flagManagementService"/>
     <property name="adminService" ref="adminService"/>
     <property name="replyService" ref="replyService"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="assignAdminRoleAction" class="org.ambraproject.user.action.AssignAdminRoleAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="userService" ref="userService"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="searchUserAction" class="org.ambraproject.user.action.SearchUserAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="userService" ref="userService"/>
     <property name="adminService" ref="adminService"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="adminTopAction" class="org.ambraproject.admin.action.AdminTopAction">
@@ -61,34 +55,29 @@
     <property name="articleService" ref="articleService"/>
     <property name="ingester" ref="ingester"/>
     <property name="syndicationService" ref="syndicationService"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="adminUserProfileAction" class="org.ambraproject.user.action.AdminUserProfileAction">
     <property name="userService" ref="userService"/>
     <property name="ambraConfiguration" ref="configuration"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="crossPubManagementAction" class="org.ambraproject.admin.action.CrossPubManagementAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="manageVirtualJournalsAction" class="org.ambraproject.admin.action.ManageVirtualJournalsAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
-    <property name="request" ref="request"/>
   </bean>
 
   <bean id="volumeManagementAction" class="org.ambraproject.admin.action.VolumeManagementAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
-    <property name="request" ref="request"/>
     <property name="volumeURI" value=""/>
     <property name="issueURI" value=""/>
   </bean>
@@ -98,7 +87,6 @@
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
-    <property name="request" ref="request"/>
   </bean>
 
 </beans>

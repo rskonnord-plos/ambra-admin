@@ -14,12 +14,37 @@
 package org.ambraproject.admin;
 
 import org.ambraproject.BaseWebTest;
+import org.ambraproject.action.BaseActionSupport;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+
+import java.util.HashSet;
 
 /**
- * Common Base class for tests fo admin action classes. This allows us to specify a new config location for the context.xml
+ * Common Base class for tests fo admin action classes. This allows us to specify a new config location for the context.xml.
+ * Subclasses must override {@link #getAction()} so that this class can provide some default support for before/after tests.
+ * <p/>
+ * By default, it sets up an admin context, and sets the default request on the actions.  Tests that wish to use a user context (e.g. for checking
+ * that permissions get denied) must explicitly call {@link org.ambraproject.BaseWebTest#setupUserContext()}
+ *
  * @author Alex Kudick  1/11/12
  */
 @ContextConfiguration(locations = "adminWebContext.xml")
-public class AdminWebTest extends BaseWebTest {
+public abstract class AdminWebTest extends BaseWebTest {
+
+  protected abstract BaseActionSupport getAction();
+
+  @BeforeMethod
+  public void setDefaultRequest() {
+    setupAdminContext();
+    getAction().setRequest(getDefaultRequestAttributes());
+  }
+
+  @AfterMethod
+  public void clearMessages() {
+    getAction().setActionErrors(new HashSet<String>());
+    getAction().setActionErrors(new HashSet<String>());
+  }
+
 }

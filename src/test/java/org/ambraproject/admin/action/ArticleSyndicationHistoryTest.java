@@ -21,12 +21,12 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.models.Syndication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseWebTest;
 import org.ambraproject.models.Article;
 
 import java.util.ArrayList;
@@ -63,7 +63,6 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
 
   @Test(dataProvider = "syndicationHistory")
   public void testGetSyndicationHistory(String doi, List<String> expectedTargets) throws Exception {
-    setupAdminContext();
     actionClass.setRequest(getDefaultRequestAttributes());
     actionClass.setArticle(doi);
     actionClass.execute();
@@ -123,7 +122,6 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
   @Test(dataProvider = "finishedSyndications")
   public void testAlreadyCompletedSyndications(String doi, List<String> allTargets, List<String> completedTargets)
       throws Exception {
-    setupAdminContext();
     actionClass.setArticle(doi);
     actionClass.setRequest(getDefaultRequestAttributes());
     actionClass.execute();
@@ -161,7 +159,6 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
 
   @Test(dataProvider = "syndicationToMarkAsFailed")
   public void testMarkAsFailed(String doi, String target, Long originalId) throws Exception {
-    setupAdminContext();
     actionClass.setRequest(getDefaultRequestAttributes());
     actionClass.setArticle(doi);
     actionClass.setTarget(new String[]{target});
@@ -199,7 +196,6 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
 
   @Test(dataProvider = "syndicationsToResyndicate")
   public void testResyndicate(String doi, String target, Long originalId, int oldSubmissionCount) {
-    setupAdminContext();
     long testStart = new Date().getTime();
     actionClass.setRequest(getDefaultRequestAttributes());
     actionClass.setArticle(doi);
@@ -215,5 +211,10 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
     assertTrue(syndication.getLastSubmitTimestamp().getTime() >= testStart,
         "syndication didn't get submit timestamp set to be after test start");
 
+  }
+
+  @Override
+  protected BaseActionSupport getAction() {
+    return actionClass;
   }
 }

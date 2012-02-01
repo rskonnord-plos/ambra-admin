@@ -17,6 +17,7 @@
 package org.ambraproject.user.action;
 
 import com.opensymphony.xwork2.Action;
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
@@ -170,6 +171,11 @@ public class SearchUserActionTest extends AdminWebTest {
     assertEquals(savedUser.getResearchAreasText(), profile.getResearchAreasText(), "saved user didn't have correct research areas text");
     assertEquals(savedUser.getCity(), profile.getCity(), "saved user didn't have correct city");
     assertEquals(savedUser.getCountry(), profile.getCountry(), "saved user didn't have correct country");
+  }
+
+  @Override
+  protected BaseActionSupport getAction() {
+    return searchUserAction;
   }
 }
 

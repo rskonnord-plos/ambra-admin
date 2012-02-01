@@ -13,6 +13,7 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.models.Article;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +45,6 @@ public class CrossPubManagementActionTest extends AdminWebTest {
       dois[i] = URI.create(article.getDoi());
     }
 
-    setupAdminContext();
     action.setCommand("ADD_ARTICLES");
     action.setArticlesToAdd(StringUtils.join(dois, ","));
     action.execute();
@@ -70,7 +70,6 @@ public class CrossPubManagementActionTest extends AdminWebTest {
     }
     dummyDataStore.update(storedJournal);
 
-    setupAdminContext();
     action.setCommand("REMOVE_ARTICLES");
     action.setArticlesToRemove(dois);
     action.execute();
@@ -80,5 +79,9 @@ public class CrossPubManagementActionTest extends AdminWebTest {
       assertFalse(storedJournal.getSimpleCollection().contains(URI.create(doi)), "Article " + doi + " didn't get removed from journal");
     }
   }
-  
+
+  @Override
+  protected BaseActionSupport getAction() {
+    return action;
+  }
 }
