@@ -15,6 +15,7 @@ package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.admin.AdminWebTest;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -26,6 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Alex Kudlick 1/31/12
@@ -94,5 +99,136 @@ public class VolumeManagementActionTest extends AdminWebTest {
     }
   }
 
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testCreateIssue(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
 
+    String issueURI = "id:new-issue-to-create";
+    String displayName = "New Display Name";
+    String imageURI = "id:image-article-for-create-issue";
+
+    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    String expectedIssuesCSV = StringUtils.join(existingIssues, ",");
+    expectedIssuesCSV += ("," + issueURI);
+
+    action.setVolumeURI(volume.getId().toString());
+    action.setCommand("CREATE_ISSUE");
+    action.setIssueURI(issueURI);
+    action.setDisplayName(displayName);
+    action.setImageURI(imageURI);
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertEquals(action.getActionMessages().size(), 1, "Action didn't return message indicating success");
+
+    //check properties on action
+    assertEquals(action.getVolume().getId(), volume.getId(), "Action changed volumes after creating issue");
+    assertEquals(action.getIssuesCSV(), expectedIssuesCSV, "Action didn't return correct issues csv");
+    assertEquals(action.getIssues().size(), existingIssues.size() + 1, "action didn't add issue to list");
+
+    for (int i = 0; i < existingIssues.size(); i++) {
+      assertEquals(action.getIssues().get(i).getId(), existingIssues.get(i),
+          "Action reordered issues; issue " + (i + 1) + " changed");
+    }
+    Issue lastIssue = action.getIssues().get(action.getIssues().size() - 1);
+    assertEquals(lastIssue.getId().toString(), issueURI, "Issue didn't get created with correct URI");
+    assertEquals(lastIssue.getDisplayName(), displayName, "Issue didn't get created with correct display name");
+    assertEquals(lastIssue.getImage().toString(), imageURI, "Issue didn't get created with correct image URI");
+
+    //check what got added to the db
+    Issue storedIssue = dummyDataStore.get(URI.create(issueURI), Issue.class);
+    assertNotNull(storedIssue, "issue didn't get stored to the database");
+    assertEquals(storedIssue.getDisplayName(), displayName, "Issue didn't get stored with correct display name");
+    assertEquals(storedIssue.getImage(), URI.create(imageURI), "Issue didn't get stored with correct image URI");
+
+    List<URI> storedIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    assertEquals(storedIssues.size(), existingIssues.size() + 1, "issue didn't get added to volume in the database");
+    for (int i = 0; i < existingIssues.size(); i++) {
+      assertEquals(storedIssues.get(i), existingIssues.get(i),
+          "Issues got reordered in the database; issue " + (i + 1) + " changed");
+    }
+    assertEquals(storedIssues.get(storedIssues.size() - 1), URI.create(issueURI),
+        "Issue didn't get added to volume in the db");
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testDeleteIssues(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
+    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    String[] issuesToDelete = new String[]{existingIssues.get(0).toString(), existingIssues.get(1).toString()};
+    String expectedIssuesCSV = StringUtils.join(existingIssues.subList(2, existingIssues.size()), ",");
+
+    action.setVolumeURI(volume.getId().toString());
+    action.setCommand("REMOVE_ISSUES");
+    action.setIssuesToDelete(issuesToDelete);
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertEquals(action.getActionMessages().size(), 1, "Action didn't return message indicating success");
+
+    //check properties on action
+    assertEquals(action.getVolume().getId(), volume.getId(), "Action changed volumes after deleting issue");
+    assertEquals(action.getIssuesCSV(), expectedIssuesCSV, "Action didn't return correct issues csv");
+    assertEquals(action.getIssues().size(), existingIssues.size() - 2, "action didn't remove issues from list");
+
+    for (int i = 0; i < action.getIssues().size(); i++) {
+      assertEquals(action.getIssues().get(i).getId(), existingIssues.get(i + 2),
+          "Action reordered issues; issue " + (i + 1) + " changed");
+    }
+
+    //check what got added to the db
+    List<URI> storedIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    assertEquals(storedIssues.size(), existingIssues.size() - 2, "issues didn't get removed from volume in the database");
+    for (int i = 0; i < storedIssues.size(); i++) {
+      assertEquals(storedIssues.get(i), existingIssues.get(i + 2),
+          "Issues got reordered in the database; issue " + (i + 1) + " changed");
+    }
+    for (String issueURI : issuesToDelete) {
+      assertNull(dummyDataStore.get(URI.create(issueURI), Issue.class), "Issue didn't get deleted from the database");
+      assertFalse(storedIssues.contains(URI.create(issueURI)),
+          "Issue " + issueURI + " didn't get removed from volume in the database");
+    }
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testUpdateVolume(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
+    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    String csv = StringUtils.join(existingIssues, ",");
+
+    String reorderedCsv = csv;
+    String issueToReorder = csv.substring(0, csv.indexOf(","));
+    reorderedCsv = reorderedCsv.replaceFirst(issueToReorder + ",", "");
+    reorderedCsv += ("," + issueToReorder);
+    String displayName = "Fruit of the Poisonous Tree";
+
+    action.setCommand("UPDATE_VOLUME");
+    action.setDisplayName(displayName);
+    action.setIssuesToOrder(reorderedCsv);
+    action.setVolumeURI(volume.getId().toString());
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertTrue(action.getActionMessages().size() > 1, "Action didn't return message(s) indicating success");
+
+    assertEquals(action.getVolume().getId(), volume.getId(), "Action changed volume after updating");
+    assertEquals(action.getIssuesCSV(), reorderedCsv, "Action didn't return correct csv");
+    assertEquals(action.getVolume().getDisplayName(), displayName, "Action didn't have correct display name");
+
+    //check results in db
+    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertEquals(storedVolume.getDisplayName(), displayName, "Volume didn't get display name changed in the db");
+    String[] expectedIssues = reorderedCsv.split(",");
+    assertEquals(storedVolume.getIssueList().size(), expectedIssues.length, "Number of issues changed in the database");
+    assertEquals(storedVolume.getIssueList().size(), existingIssues.size(), "Number of issues changed in the database");
+
+    for (int i = 0; i < expectedIssues.length; i++) {
+      assertEquals(storedVolume.getIssueList().get(i), URI.create(expectedIssues[i]),
+          "Issues weren't in correct order; element " + (i + 1) + " was incorrect");
+    }
+
+  }
 }
