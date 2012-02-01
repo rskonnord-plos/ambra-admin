@@ -127,16 +127,22 @@ public class AdminTopActionTest extends AdminWebTest {
     Article article1 = new Article();
     article1.setDoi("id:article-for-sorting1");
     article1.setDate(oneYearAgo.getTime());
+    article1.setState(Article.STATE_UNPUBLISHED);
+    article1.seteIssn(defaultJournal.geteIssn());
     dummyDataStore.store(article1);
-    
+
     Article article2 = new Article();
     article2.setDoi("id:article-for-sorting2");
     article2.setDate(today.getTime());
+    article2.setState(Article.STATE_UNPUBLISHED);
+    article2.seteIssn(defaultJournal.geteIssn());
     dummyDataStore.store(article2);
 
     Article article3 = new Article();
     article3.setDoi("id:article-for-sorting3");
     article3.setDate(oneMonthAgo.getTime());
+    article3.setState(Article.STATE_UNPUBLISHED);
+    article3.seteIssn(defaultJournal.geteIssn());
     dummyDataStore.store(article3);
 
     final Comparator<Article> dateAscending = new Comparator<Article>() {
@@ -180,6 +186,8 @@ public class AdminTopActionTest extends AdminWebTest {
   public void testSort(String directive, Comparator<Article> comparator) {
     action.setAction(directive);
     action.processArticles();
+
+    assertTrue(action.getPublishableArticles().size() > 1, "action didn't have any publishable articles");
 
     for (int i = 0; i < action.getPublishableArticles().size() - 1; i++) {
       Article article = action.getPublishableArticles().get(i);
