@@ -49,7 +49,7 @@ public class CrossPubManagementActionTest extends AdminWebTest {
     action.setArticlesToAdd(StringUtils.join(dois, ","));
     action.execute();
 
-    Journal storedJournal = dummyDataStore.get(defaultJournal.getId(), Journal.class);
+    Journal storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
     for (URI doi : dois) {
       assertTrue(storedJournal.getSimpleCollection().contains(doi), "Article " + doi + " didn't get added to journal");
     }
@@ -57,7 +57,7 @@ public class CrossPubManagementActionTest extends AdminWebTest {
   
   @Test
   public void testRemoveArticles() throws Exception {
-    Journal storedJournal = dummyDataStore.get(defaultJournal.getId(), Journal.class);
+    Journal storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
     
     String[] dois = new String[3];
     for (int i = 0; i < 3; i++) {
@@ -75,7 +75,7 @@ public class CrossPubManagementActionTest extends AdminWebTest {
     action.setArticlesToRemove(dois);
     action.execute();
 
-    storedJournal = dummyDataStore.get(defaultJournal.getId(), Journal.class);
+    storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
     for (String doi : dois) {
       assertFalse(storedJournal.getSimpleCollection().contains(URI.create(doi)), "Article " + doi + " didn't get removed from journal");
     }

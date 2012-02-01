@@ -89,7 +89,7 @@ public class IngesterTest extends AdminBaseTest {
     Article ingestedArticle = ingester.ingest(ingestArchive, false);
     compareArticles(ingestedArticle, expectedArticle);
 
-    Article storedArticle = dummyDataStore.get(ingestedArticle.getID(), Article.class);
+    Article storedArticle = dummyDataStore.get(Article.class, ingestedArticle.getID());
     assertNotNull(storedArticle, "Article wasn't stored to the db");
     compareArticles(storedArticle, expectedArticle);
     assertNotNull(storedArticle.getCreated(), "Article didn't get create date set");
@@ -99,7 +99,7 @@ public class IngesterTest extends AdminBaseTest {
 
   private void checkRelatedArticles(Long[] otherArticleIds, Article ingestedArticle) {
     for (Long id : otherArticleIds) {
-      Article otherArticle = dummyDataStore.get(id, Article.class);
+      Article otherArticle = dummyDataStore.get(Article.class, id);
       boolean foundMatch = false;
       for (ArticleRelationship relationship : otherArticle.getRelatedArticles()) {
         if (relationship.getOtherArticleDoi().equals(ingestedArticle.getDoi())) {
@@ -166,7 +166,7 @@ public class IngesterTest extends AdminBaseTest {
 
 
     Long id = ingester.ingest(ingestArchive, true).getID();
-    Article storedArticle = dummyDataStore.get(id, Article.class);
+    Article storedArticle = dummyDataStore.get(Article.class, id);
     assertNotNull(storedArticle, "Article wasn't stored to the db");
     compareArticles(storedArticle, expectedArticle);
   }
@@ -197,7 +197,7 @@ public class IngesterTest extends AdminBaseTest {
 
     List<ArticleAsset> storedAssets = null;
     try {
-      storedAssets = dummyDataStore.get(article.getID(), Article.class).getAssets();
+      storedAssets = dummyDataStore.get(Article.class, article.getID()).getAssets();
     } catch (NullPointerException e) {
       fail("Article wasn't stored to the db");
     }
@@ -238,7 +238,7 @@ public class IngesterTest extends AdminBaseTest {
   @Test(dataProvider = "imageArticle", dependsOnMethods = {"testIngestWithForce", "testIngestDoesntCreateDuplicateCategories"})
   public void testReIngestImageArticle(ZipFile archive, URI issueId) throws DuplicateArticleIdException, IngestException {
     Article article = ingester.ingest(archive, true);
-    Issue issue = dummyDataStore.get(issueId, Issue.class);
+    Issue issue = dummyDataStore.get(Issue.class, issueId);
     assertEquals(issue.getDescription(), article.getDescription(),
         "issue for image article didn't have description updated");
   }
@@ -264,7 +264,7 @@ public class IngesterTest extends AdminBaseTest {
       fail("There was an error ingesting the altered archive", e);
     }
 
-    Article storedArticle = dummyDataStore.get(article.getID(), Article.class);
+    Article storedArticle = dummyDataStore.get(Article.class, article.getID());
 
     assertEquals(article.getAssets().size(), expectedPartsDois.size(), "stored incorrect number of parts");
     //get the parts' ids into a list to compare them

@@ -99,7 +99,7 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testCreateVolume(Journal journal, String currentIssue, List<Volume> volumes) throws Exception {
-    int initialNumberOfVolumes = dummyDataStore.get(journal.getId(), Journal.class).getVolumes().size();
+    int initialNumberOfVolumes = dummyDataStore.get(Journal.class, journal.getId()).getVolumes().size();
     String volumeUri = "id:new-volume-for-create-volume";
     String volumeDisplayName = "That Still Small Voice";
     //set properties on the action
@@ -124,7 +124,7 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
 
     //check values stored to the database
-    Journal storedJournal = dummyDataStore.get(journal.getId(), Journal.class);
+    Journal storedJournal = dummyDataStore.get(Journal.class, journal.getId());
     assertEquals(storedJournal.getVolumes().size(), initialNumberOfVolumes + 1,
         "journal didn't get volume added in the database");
 
@@ -134,7 +134,7 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testRemoveVolumes(Journal journal, String currentIssue, List<Volume> volumes) throws Exception {
-    List<URI> initialVolumes = dummyDataStore.get(journal.getId(), Journal.class).getVolumes();
+    List<URI> initialVolumes = dummyDataStore.get(Journal.class, journal.getId()).getVolumes();
     String[] volumesToDelete = new String[]{initialVolumes.get(0).toString(), initialVolumes.get(1).toString()};
 
 
@@ -153,10 +153,10 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
 
 
-    List<URI> storedVolumes = dummyDataStore.get(journal.getId(), Journal.class).getVolumes();
+    List<URI> storedVolumes = dummyDataStore.get(Journal.class, journal.getId()).getVolumes();
     for (String deletedVol : volumesToDelete) {
       assertFalse(storedVolumes.contains(URI.create(deletedVol)), "Volume " + deletedVol + " didn't get removed from journal");
-      assertNull(dummyDataStore.get(URI.create(deletedVol), Volume.class), "Volume didn't get removed from the database");
+      assertNull(dummyDataStore.get(Volume.class, URI.create(deletedVol)), "Volume didn't get removed from the database");
     }
   }
 
@@ -176,7 +176,7 @@ public class ManageVirtualJournalsActionTest extends AdminWebTest {
 
     assertEquals(action.getJournal().getCurrentIssue(), currentIssueURI, "action didn't have correct issue uri");
 
-    String storedIssueUri = dummyDataStore.get(journal.getId(), Journal.class).getCurrentIssue().toString();
+    String storedIssueUri = dummyDataStore.get(Journal.class, journal.getId()).getCurrentIssue().toString();
 
     assertEquals(storedIssueUri, currentIssueURI, "issue uri didn't get stored to the database");
 

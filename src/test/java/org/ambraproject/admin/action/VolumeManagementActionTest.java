@@ -106,7 +106,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
     String displayName = "New Display Name";
     String imageURI = "id:image-article-for-create-issue";
 
-    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    List<URI> existingIssues = dummyDataStore.get(Volume.class, volume.getId()).getIssueList();
     String expectedIssuesCSV = StringUtils.join(existingIssues, ",");
     expectedIssuesCSV += ("," + issueURI);
 
@@ -137,12 +137,12 @@ public class VolumeManagementActionTest extends AdminWebTest {
     assertEquals(lastIssue.getImage().toString(), imageURI, "Issue didn't get created with correct image URI");
 
     //check what got added to the db
-    Issue storedIssue = dummyDataStore.get(URI.create(issueURI), Issue.class);
+    Issue storedIssue = dummyDataStore.get(Issue.class, URI.create(issueURI));
     assertNotNull(storedIssue, "issue didn't get stored to the database");
     assertEquals(storedIssue.getDisplayName(), displayName, "Issue didn't get stored with correct display name");
     assertEquals(storedIssue.getImage(), URI.create(imageURI), "Issue didn't get stored with correct image URI");
 
-    List<URI> storedIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    List<URI> storedIssues = dummyDataStore.get(Volume.class, volume.getId()).getIssueList();
     assertEquals(storedIssues.size(), existingIssues.size() + 1, "issue didn't get added to volume in the database");
     for (int i = 0; i < existingIssues.size(); i++) {
       assertEquals(storedIssues.get(i), existingIssues.get(i),
@@ -154,7 +154,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testDeleteIssues(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
-    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    List<URI> existingIssues = dummyDataStore.get(Volume.class, volume.getId()).getIssueList();
     String[] issuesToDelete = new String[]{existingIssues.get(0).toString(), existingIssues.get(1).toString()};
     String expectedIssuesCSV = StringUtils.join(existingIssues.subList(2, existingIssues.size()), ",");
 
@@ -179,14 +179,14 @@ public class VolumeManagementActionTest extends AdminWebTest {
     }
 
     //check what got added to the db
-    List<URI> storedIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    List<URI> storedIssues = dummyDataStore.get(Volume.class, volume.getId()).getIssueList();
     assertEquals(storedIssues.size(), existingIssues.size() - 2, "issues didn't get removed from volume in the database");
     for (int i = 0; i < storedIssues.size(); i++) {
       assertEquals(storedIssues.get(i), existingIssues.get(i + 2),
           "Issues got reordered in the database; issue " + (i + 1) + " changed");
     }
     for (String issueURI : issuesToDelete) {
-      assertNull(dummyDataStore.get(URI.create(issueURI), Issue.class), "Issue didn't get deleted from the database");
+      assertNull(dummyDataStore.get(Issue.class, URI.create(issueURI)), "Issue didn't get deleted from the database");
       assertFalse(storedIssues.contains(URI.create(issueURI)),
           "Issue " + issueURI + " didn't get removed from volume in the database");
     }
@@ -194,7 +194,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testUpdateVolume(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
-    List<URI> existingIssues = dummyDataStore.get(volume.getId(), Volume.class).getIssueList();
+    List<URI> existingIssues = dummyDataStore.get(Volume.class, volume.getId()).getIssueList();
     String csv = StringUtils.join(existingIssues, ",");
 
     String reorderedCsv = csv;
@@ -219,7 +219,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
     assertEquals(action.getVolume().getDisplayName(), displayName, "Action didn't have correct display name");
 
     //check results in db
-    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    Volume storedVolume = dummyDataStore.get(Volume.class, volume.getId());
     assertEquals(storedVolume.getDisplayName(), displayName, "Volume didn't get display name changed in the db");
     String[] expectedIssues = reorderedCsv.split(",");
     assertEquals(storedVolume.getIssueList().size(), expectedIssues.length, "Number of issues changed in the database");

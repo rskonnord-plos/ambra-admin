@@ -244,7 +244,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   @Test(dataProvider = "storedPublishedArticles")
   void testDelete(String article, Long articleId) throws Exception {
     documentManagementService.delete(article, DEFAULT_ADMIN_AUTHID);
-    assertNull(dummyDataStore.get(articleId, Article.class),"didn't delete article");
+    assertNull(dummyDataStore.get(Article.class, articleId),"didn't delete article");
   }
 
   @Test(dataProvider = "storedPublishedArticles", expectedExceptions = { SecurityException.class })

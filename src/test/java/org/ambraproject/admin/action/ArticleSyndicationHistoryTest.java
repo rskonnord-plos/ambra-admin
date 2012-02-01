@@ -167,7 +167,7 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
     actionClass.setTarget(new String[]{target});
     actionClass.markSyndicationAsFailed();
 
-    Syndication syndication = dummyDataStore.get(originalId, Syndication.class);
+    Syndication syndication = dummyDataStore.get(Syndication.class, originalId);
 
     assertNotNull(syndication, "syndication wasn't in the database");
     assertEquals(syndication.getStatus(), Syndication.STATUS_FAILURE, "syndication had incorrect status");
@@ -206,7 +206,7 @@ public class ArticleSyndicationHistoryTest extends AdminWebTest  {
     actionClass.setTarget(new String[]{target});
     actionClass.resyndicate();
 
-    Syndication syndication = dummyDataStore.get(originalId, Syndication.class);
+    Syndication syndication = dummyDataStore.get(Syndication.class, originalId);
 
     assertNotNull(syndication, "syndication wasn't in the database");
     assertEquals(syndication.getStatus(), Syndication.STATUS_IN_PROGRESS, "syndication had incorrect status");

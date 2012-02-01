@@ -323,7 +323,7 @@ public class AdminTopActionTest extends AdminWebTest {
       action.setArticle(doi);
       String result = action.disableArticle();
       assertEquals(result, Action.SUCCESS);
-      assertEquals(dummyDataStore.get(articleId, Article.class).getState(),
+      assertEquals(dummyDataStore.get(Article.class, articleId).getState(),
           Article.STATE_DISABLED, "Article didn't get correct state set");
 
       assertFalse(new File(filestoreDir, FSIDMapper.doiTofsid(doi, "xml")).exists(), "article didn't get deleted from the filestore");
@@ -349,7 +349,7 @@ public class AdminTopActionTest extends AdminWebTest {
       action.setArticle(doi);
       String result = action.unpublish();
       assertEquals(result, Action.SUCCESS);
-      assertEquals(dummyDataStore.get(articleId, Article.class).getState(),
+      assertEquals(dummyDataStore.get(Article.class, articleId).getState(),
           Article.STATE_UNPUBLISHED, "Article didn't get correct state set");
 
       assertTrue(new File(filestoreDir, FSIDMapper.doiTofsid(doi, "xml")).exists(), "article was deleted from the filestore");
@@ -405,7 +405,7 @@ public class AdminTopActionTest extends AdminWebTest {
     action.setAction("Publish and Syndicate");
     assertEquals(action.processArticles(), Action.SUCCESS, "Action didn't return success");
     for (Long id : ids) {
-      assertEquals(dummyDataStore.get(id, Article.class).getState(), Article.STATE_ACTIVE,
+      assertEquals(dummyDataStore.get(Article.class, id).getState(), Article.STATE_ACTIVE,
           "Article didn't get state set to published");
     }
     for (String doi : dois) {
@@ -422,7 +422,7 @@ public class AdminTopActionTest extends AdminWebTest {
 
     //We already check moving files around in testDisableOneArticle(), so here we'll just check the db
     for (Long id : ids) {
-      assertEquals(dummyDataStore.get(id, Article.class).getState(), Article.STATE_DISABLED, "Article didn't get disabled");
+      assertEquals(dummyDataStore.get(Article.class, id).getState(), Article.STATE_DISABLED, "Article didn't get disabled");
     }
   }
 

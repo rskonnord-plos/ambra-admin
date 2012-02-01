@@ -86,7 +86,7 @@ public class AdminServiceTest extends AdminBaseTest {
     assertEquals(result.getRespectOrder(), respectOrder, "issue had incorrect respectOrder attribute");
 
     //check the properties on the issue from the db
-    Issue storedIssue = dummyDataStore.get(issueId, Issue.class);
+    Issue storedIssue = dummyDataStore.get(Issue.class, issueId);
     assertEquals(storedIssue.getArticleList().toArray(), articleList.toArray(), "issue with incorrect id");
     assertEquals(storedIssue.getImage(), URI.create(imageArticle.getDoi()), "issue had incorrect image uri");
     assertEquals(storedIssue.getDescription(), imageArticle.getDescription(), "issue didn't get description updated from image article");
@@ -130,10 +130,10 @@ public class AdminServiceTest extends AdminBaseTest {
     assertEquals(issue.getTitle(), imageArticle.getTitle(), "issue didn't get title updated from article");
     assertEquals(issue.getDisplayName(), displayName, "issue had incorrect display name");
 
-    Volume storedVolume = dummyDataStore.get(vol.getId(), Volume.class);
+    Volume storedVolume = dummyDataStore.get(Volume.class, vol.getId());
     assertTrue(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get added to volume");
 
-    Issue storedIssue = dummyDataStore.get(issueURI, Issue.class);
+    Issue storedIssue = dummyDataStore.get(Issue.class, issueURI);
     assertEquals(storedIssue.getArticleList().toArray(), expectedArticleList.toArray(), "storedIssue had incorrect article list");
     assertEquals(storedIssue.getImage(), URI.create(imageArticle.getDoi()), "storedIssue had incorrect image uri");
     assertEquals(storedIssue.getDescription(), imageArticle.getDescription(), "storedIssue didn't get description updated from image article");
@@ -192,14 +192,14 @@ public class AdminServiceTest extends AdminBaseTest {
   @Test(dataProvider = "journalAndArticle")
   public void testAddXPubArticles(String journalName, URI journalId, URI doi) throws Exception {
     adminService.addXPubArticle(journalName, doi);
-    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    Journal journal = dummyDataStore.get(Journal.class, journalId);
     assertTrue(journal.getSimpleCollection().contains(doi), "doi didn't get added to journal");
   }
 
   @Test(dataProvider = "journalAndArticle", dependsOnMethods = {"testAddXPubArticles"}, alwaysRun = false)
   public void testRemoveXPubArticle(String journalName, URI journalId, URI doi) throws Exception {
     adminService.removeXPubArticle(journalName, doi);
-    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    Journal journal = dummyDataStore.get(Journal.class, journalId);
     assertFalse(journal.getSimpleCollection().contains(doi), "doi didn't get removed from journal");
   }
 
@@ -219,7 +219,7 @@ public class AdminServiceTest extends AdminBaseTest {
         StringUtils.join(issueList, ",")
     );
 
-    Volume volume = dummyDataStore.get(volumeUri, Volume.class);
+    Volume volume = dummyDataStore.get(Volume.class, volumeUri);
     assertNotNull(volume, "volume didn't get created");
     assertEquals(volume.getId(), volumeUri, "volume didn't have correct uri");
     assertEquals(volume.getDisplayName(), displayName, "volume didn't have correct display name");
@@ -229,7 +229,7 @@ public class AdminServiceTest extends AdminBaseTest {
   @Test(dataProvider = "journalAndArticle")
   public void testSetJrnlIssueURI(String journalName, URI journalId, URI doi) {
     adminService.setJrnlIssueURI(journalName, doi);
-    Journal journal = dummyDataStore.get(journalId, Journal.class);
+    Journal journal = dummyDataStore.get(Journal.class, journalId);
     assertEquals(journal.getCurrentIssue(), doi, "journal didn't get current issue set");
   }
   
@@ -368,7 +368,7 @@ public class AdminServiceTest extends AdminBaseTest {
     newIssueList.add(URI.create("id:new-issue-for-update-volume3"));
 
     adminService.updateVolume(volume, newDisplayName, newIssueList);
-    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    Volume storedVolume = dummyDataStore.get(Volume.class, volume.getId());
     assertEquals(storedVolume.getDisplayName(), newDisplayName, "volume didn't get display name updated");
     assertEquals(storedVolume.getIssueList().toArray(), newIssueList.toArray(), "Volume didn't have correct issue list");
   }
@@ -378,8 +378,8 @@ public class AdminServiceTest extends AdminBaseTest {
       "testUpdateVolume", "testGetIssuesByUri"}, alwaysRun = true)
   public void testDeleteVolume(Journal journal, Volume volume) {
     adminService.deleteVolume(journal.getKey(), volume.getId());
-    assertNull(dummyDataStore.get(volume.getId(), Volume.class), "Volume didn't get deleted from the database");
-    Journal storedJournal = dummyDataStore.get(journal.getId(), Journal.class);
+    assertNull(dummyDataStore.get(Volume.class, volume.getId()), "Volume didn't get deleted from the database");
+    Journal storedJournal = dummyDataStore.get(Journal.class, journal.getId());
     assertFalse(storedJournal.getVolumes().contains(volume.getId()), "Volume URI didn't get removed from journal list");
   }
 
@@ -423,11 +423,11 @@ public class AdminServiceTest extends AdminBaseTest {
   public void testRemoveArticle(Issue issue, Volume volume) {
     URI articleDoi = issue.getArticleList().get(0);
     //make sure the doi is in there to begin
-    Issue storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    Issue storedIssue = dummyDataStore.get(Issue.class, issue.getId());
     assertTrue(storedIssue.getArticleList().contains(articleDoi),"Doi wasn't in issue list to start with");
 
     adminService.removeArticle(issue, articleDoi);
-    storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    storedIssue = dummyDataStore.get(Issue.class, issue.getId());
     assertFalse(storedIssue.getArticleList().contains(articleDoi), "article doi didn't get removed from issue");
   }
   
@@ -442,23 +442,23 @@ public class AdminServiceTest extends AdminBaseTest {
     adminService.addArticle(issue, articleDoi);
 
     //make sure the article got added
-    Issue storedIssue = dummyDataStore.get(issue.getId(), Issue.class);
+    Issue storedIssue = dummyDataStore.get(Issue.class, issue.getId());
     assertTrue(storedIssue.getArticleList().contains(articleDoi), "article doi didn't get added toissue");
   }
 
   @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue","testRemoveArticle"}, alwaysRun = true)
   public void testDeleteIssue(Issue issue, Volume volume) {
     adminService.deleteIssue(issue);
-    assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
-    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertNull(dummyDataStore.get(Issue.class, issue.getId()), "Issue didn't get removed from the database");
+    Volume storedVolume = dummyDataStore.get(Volume.class, volume.getId());
     assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
   }
 
   @Test(dataProvider = "issue", dependsOnMethods = {"testGetIssue","testRemoveArticle"}, alwaysRun = true)
   public void testDeleteIssueByUri(Issue issue, Volume volume) {
     adminService.deleteIssue(issue.getId());
-    assertNull(dummyDataStore.get(issue.getId(), Issue.class), "Issue didn't get removed from the database");
-    Volume storedVolume = dummyDataStore.get(volume.getId(), Volume.class);
+    assertNull(dummyDataStore.get(Issue.class, issue.getId()), "Issue didn't get removed from the database");
+    Volume storedVolume = dummyDataStore.get(Volume.class, volume.getId());
     assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
   }
 }
