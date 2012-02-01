@@ -92,4 +92,13 @@
     <property name="volumeURI" value=""/>
     <property name="issueURI" value=""/>
   </bean>
+
+  <bean id="issueManagementAction" class="org.ambraproject.admin.action.IssueManagementAction">
+    <property name="browseService" ref="browseService"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="command" value="foo"/>
+    <property name="request" ref="request"/>
+  </bean>
+
 </beans>
