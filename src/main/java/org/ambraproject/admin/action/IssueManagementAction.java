@@ -171,12 +171,12 @@ public class IssueManagementAction extends BaseAdminActionSupport {
           issue = adminService.updateIssue(issueURI,imageURI,displayName,issueURIs,respectOrder);
 
       } catch (Exception e) {
-        addActionMessage("Issue not updated due to the following error.");
-        addActionMessage(e.toString());
+        addActionError("Issue not updated due to the following error.");
+        addActionError(e.toString());
         log.error("Update Issue Failed.", e);
       }
     } else {
-      addActionMessage("Invalid Issue URI");
+      addActionError("Invalid Issue URI");
     }
     repopulate();
   }
@@ -252,16 +252,16 @@ public class IssueManagementAction extends BaseAdminActionSupport {
   private Boolean validateCSV(List<URI> issueURIs, List<URI> articleList) throws URISyntaxException {
 
     if (issueURIs.size() != articleList.size()) {
-      addActionMessage("Issue not updated due to the following error.");
-      addActionMessage("There has been an addition or deletion in the Article URI List.");
+      addActionError("Issue not updated due to the following error.");
+      addActionError("There has been an addition or deletion in the Article URI List.");
 
       return false;
     }
 
     for(URI uri : articleList) {
       if (!issueURIs.contains(uri)) {
-        addActionMessage("Issue not updated due to the following error.");
-        addActionMessage("One of the URI's in the Article URI List has changed.");
+        addActionError("Issue not updated due to the following error.");
+        addActionError("One of the URI's in the Article URI List has changed.");
 
         return false;
       }
