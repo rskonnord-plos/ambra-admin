@@ -27,6 +27,9 @@ import java.util.HashSet;
  * <p/>
  * By default, it sets up an admin context, and sets the default request on the actions.  Tests that wish to use a user context (e.g. for checking
  * that permissions get denied) must explicitly call {@link org.ambraproject.BaseWebTest#setupUserContext()}
+ * <p/>
+ * <b>Note:</b> Since we clear out messages after methods, the action class tests are NOT threadsafe. In order to be threadsafe, a test
+ * would have to create an instance of the action within each test method.
  *
  * @author Alex Kudick  1/11/12
  */
@@ -43,7 +46,7 @@ public abstract class AdminWebTest extends BaseWebTest {
 
   @AfterMethod
   public void clearMessages() {
-    getAction().setActionErrors(new HashSet<String>());
+    getAction().setActionMessages(new HashSet<String>());
     getAction().setActionErrors(new HashSet<String>());
   }
 
