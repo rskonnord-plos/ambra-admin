@@ -295,6 +295,34 @@ public class IssueManagementActionTest extends AdminWebTest {
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testActionDoesNotAllowChangingArticlesInCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
+                                                          List<URI> orphans) throws Exception {
+    //execute the action to get the original csv
+    action.setVolumeURI(volumeURI);
+    action.setIssueURI(issue.getId().toString());
+    action.execute();
+    String originalCsv = action.getArticleOrderCSV();
+
+    String changedCsv = originalCsv.substring(originalCsv.indexOf(",") + 1);
+    changedCsv = "id:this-article-was-not-in-original-csv," + changedCsv;
+
+    assertEquals(changedCsv.split(",").length, originalCsv.split(",").length,
+        "test added or removed articles instead of just changing one");
+
+
+    action.setCommand("UPDATE_ISSUE");
+    action.setArticleListCSV(changedCsv);
+    action.setRespectOrder(true);
+    action.setDisplayName(issue.getDisplayName());
+    action.setImageURI(issue.getImage().toString());
+
+    //should fail
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+    assertTrue(action.getActionErrors().size() > 1, "Action didn't return error messages");
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testAddArticle(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                              List<URI> orphans) throws Exception {
     String articlesToAddCsv = "id:new-article-for-adding-to-issue1,id:new-article-for-adding-to-issue2";
@@ -344,7 +372,7 @@ public class IssueManagementActionTest extends AdminWebTest {
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testRemoveArticles(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                                List<URI> orphans) throws Exception {
+                                 List<URI> orphans) throws Exception {
     List<URI> articlesToDelete = dummyDataStore.get(Issue.class, issue.getId()).getArticleList().subList(0, 3);
     String[] articlesToDeleteArray = new String[3];
     for (int i = 0; i < 3; i++) {
