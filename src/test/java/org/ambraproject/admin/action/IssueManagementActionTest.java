@@ -17,6 +17,8 @@ import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.article.action.TOCArticleGroup;
+import org.ambraproject.article.service.ArticleService;
+import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.model.article.ArticleType;
 import org.ambraproject.models.Article;
@@ -34,7 +36,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * @author Alex Kudlick 2/1/12
@@ -43,6 +47,9 @@ public class IssueManagementActionTest extends AdminWebTest {
 
   @Autowired
   protected IssueManagementAction action;
+
+  @Autowired
+  protected ArticleService articleService; //just using this to get articles by doi and check that they didn't get deleted
 
   @Override
   protected BaseActionSupport getAction() {
@@ -159,9 +166,16 @@ public class IssueManagementActionTest extends AdminWebTest {
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
   public void testUpdateIssue(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
                               List<URI> orphans) throws Exception {
+    //execute the action to get the current CSV
+    action.setCommand("foo");
+    action.setVolumeURI(volumeURI);
+    action.setIssueURI(issue.getId().toString());
+    action.execute();
+    clearMessages();
+
     List<URI> existingArticles = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
 
-    String reorderedArticleCsv = StringUtils.join(existingArticles, ",");
+    String reorderedArticleCsv = action.getArticleOrderCSV();
     String articleToReorder = reorderedArticleCsv.substring(0, reorderedArticleCsv.indexOf(","));
     reorderedArticleCsv = reorderedArticleCsv.replaceFirst(articleToReorder + ",", "");
     reorderedArticleCsv += ("," + articleToReorder);
@@ -171,15 +185,19 @@ public class IssueManagementActionTest extends AdminWebTest {
     List<String> orderedArticlesForCSV = new ArrayList<String>(existingArticles.size());
     for (ArticleType type : ArticleType.getOrderedListForDisplay()) {
       for (String article : orderedArticlesForDb) {
-        if (article.indexOf(type.getHeading().replace(" ", "_")) > 0) {
-          orderedArticlesForCSV.add(article);
+        try {
+          if (articleService.getArticle(article, DEFAULT_ADMIN_AUTHID)
+              .getTypes().contains(type.getUri().toString())) {
+            orderedArticlesForCSV.add(article);
+          }
+        } catch (NoSuchArticleIdException e) {
+          //suppress
         }
       }
     }
-
-    for (String other : orderedArticlesForDb) {
-      if (!orderedArticlesForCSV.contains(other)) {
-        orderedArticlesForCSV.add(other);
+    for (String article : orderedArticlesForDb) {
+      if (!orderedArticlesForCSV.contains(article)) {
+        orderedArticlesForCSV.add(article);
       }
     }
 
@@ -276,4 +294,91 @@ public class IssueManagementActionTest extends AdminWebTest {
     assertTrue(action.getActionErrors().size() > 1, "Action didn't return error messages");
   }
 
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testAddArticle(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
+                             List<URI> orphans) throws Exception {
+    String articlesToAddCsv = "id:new-article-for-adding-to-issue1,id:new-article-for-adding-to-issue2";
+    Article article = new Article();
+    article.setDoi(articlesToAddCsv.split(",")[0]);
+    article.setTypes(new HashSet<String>(1));
+    article.getTypes().add(ArticleType.getOrderedListForDisplay().get(0).getUri().toString());
+    article.setDate(Calendar.getInstance().getTime());
+    dummyDataStore.store(article);
+
+
+    action.setCommand("ADD_ARTICLE");
+    action.setIssueURI(issue.getId().toString());
+    action.setVolumeURI(volumeURI);
+    action.setArticleURI(articlesToAddCsv);
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertEquals(action.getActionMessages().size(), 2, "Action didn't return messages indicating success");
+
+    for (String doi : articlesToAddCsv.split(",")) {
+      assertTrue(action.getArticleOrderCSV().contains(doi), "Article " + doi + " didn't get added to action's csv");
+      assertTrue(action.getIssue().getArticleList().contains(URI.create(doi)),
+          "Article " + doi + " didn't get added to action's issue");
+    }
+    //the first article should be in the first TOC group
+    boolean foundMatch = false;
+    for (ArticleInfo articleInfo : action.getArticleGrps().get(0).getArticles()) {
+      if (articleInfo.getId().toString().equals(article.getDoi())) {
+        foundMatch = true;
+        break;
+      }
+    }
+    assertTrue(foundMatch, "New article didn't get added to correct group");
+    //the second article should be an orphan
+    assertTrue(action.getOrphans().contains(URI.create(articlesToAddCsv.split(",")[1])),
+        "Non existent article didn't get added to orphan list");
+
+    //check the values that got stored to the database
+    List<URI> storedArticles = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
+    for (String doi : articlesToAddCsv.split(",")) {
+      assertTrue(storedArticles.contains(URI.create(doi)), "Article " + doi + " didn't get added to the issue in the database");
+    }
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testRemoveArticles(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
+                                List<URI> orphans) throws Exception {
+    List<URI> articlesToDelete = dummyDataStore.get(Issue.class, issue.getId()).getArticleList().subList(0, 3);
+    String[] articlesToDeleteArray = new String[3];
+    for (int i = 0; i < 3; i++) {
+      articlesToDeleteArray[i] = articlesToDelete.get(i).toString();
+    }
+
+
+    action.setCommand("REMOVE_ARTICLES");
+    action.setVolumeURI(volumeURI);
+    action.setIssueURI(issue.getId().toString());
+    action.setArticlesToRemove(articlesToDeleteArray);
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertEquals(action.getActionMessages().size(), 3, "Action didn't return messages indicating success");
+
+    for (URI doi : articlesToDelete) {
+      assertFalse(action.getIssue().getArticleList().contains(doi),
+          "Article " + doi + " didn't get removed from action's issue list");
+      assertFalse(action.getArticleOrderCSV().contains(doi.toString()),
+          "Article " + doi + " didn't get removed from action's csv");
+    }
+
+    //check the values in the db
+    List<URI> storedArticleList = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
+    for (URI doi : articlesToDelete) {
+      assertFalse(storedArticleList.contains(doi), "Article " + doi + " didn't get removed from issue in the database");
+      try {
+        articleService.getArticle(doi.toString(), DEFAULT_ADMIN_AUTHID);
+      } catch (NoSuchArticleIdException e) {
+        fail("Article " + doi + " got deleted from the database instead of just being removed from the issue");
+      }
+    }
+  }
 }
