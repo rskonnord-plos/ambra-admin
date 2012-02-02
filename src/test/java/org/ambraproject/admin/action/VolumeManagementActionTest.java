@@ -167,7 +167,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
-    assertEquals(action.getActionMessages().size(), 1, "Action didn't return message indicating success");
+    assertEquals(action.getActionMessages().size(), 2, "Action didn't return message indicating success");
 
     //check properties on action
     assertEquals(action.getVolume().getId(), volume.getId(), "Action changed volumes after deleting issue");
@@ -213,7 +213,7 @@ public class VolumeManagementActionTest extends AdminWebTest {
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
-    assertTrue(action.getActionMessages().size() > 1, "Action didn't return message(s) indicating success");
+    assertEquals(action.getActionMessages().size(), 1, "Action didn't return message(s) indicating success");
 
     assertEquals(action.getVolume().getId(), volume.getId(), "Action changed volume after updating");
     assertEquals(action.getIssuesCSV(), reorderedCsv, "Action didn't return correct csv");

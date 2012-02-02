@@ -116,15 +116,15 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
         if (i != null) {
           addActionMessage("Created Issue: " + i.getId());
         } else {
-          addActionMessage("Duplicate Issue URI, " + issueURI);
+          addActionError("Duplicate Issue URI, " + issueURI);
         }
       } catch (Exception e) {
-        addActionMessage("Issue not created due to the following error.");
-        addActionMessage(e.getMessage());
+        addActionError("Issue not created due to the following error.");
+        addActionError(e.getMessage());
         log.error("Create ISsue Failed.", e);
       }
     } else {
-      addActionMessage("Invalid Issue URI");
+      addActionError("Invalid Issue URI");
     }
     repopulate();
   }
@@ -137,12 +137,13 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
        * Make sure the only changes to the articleListCSV
        * are ordering.
        */
-      if (validateCSV(volume, issueURIs))
+      if (validateCSV(volume, issueURIs)) {
         volume = adminService.updateVolume(volume, displayName, issueURIs);
-
+        addActionMessage("Successfully updated volume "  + volumeURI);
+      }
      } catch (Exception e) {
-       addActionMessage("Volume was not updated due to the following error.");
-       addActionMessage(e.getMessage());
+       addActionError("Volume was not updated due to the following error.");
+       addActionError(e.getMessage());
        log.error("Update Volume Failed.", e);
     }
     repopulate();
@@ -150,11 +151,13 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
 
   private void remove_Issues() {
     try {
-      for(String issurURI : issuesToDelete)
+      for(String issurURI : issuesToDelete){
         adminService.deleteIssue(URI.create(issurURI));
+        addActionMessage("Deleted issue " + issurURI);
+      }
     } catch (Exception e) {
-      addActionMessage("Issue not removed due to the following error.");
-      addActionMessage(e.getMessage());
+      addActionError("Issue not removed due to the following error.");
+      addActionError(e.getMessage());
       log.error("Remove Issue Failed.", e);
     }
     repopulate();
