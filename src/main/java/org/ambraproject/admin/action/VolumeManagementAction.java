@@ -182,16 +182,16 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
     List<URI> curList = volume.getIssueList();
 
     if (issueURIs.size() != curList.size()) {
-      addActionMessage("Issue not updated due to the following error.");
-      addActionMessage("There has been an addition or deletion in the Issue URI List.");
+      addActionError("Issue not updated due to the following error.");
+      addActionError("There has been an addition or deletion in the Issue URI List.");
 
       return false;
     }
 
     for(URI uri : curList) {
       if (!issueURIs.contains(uri)) {
-        addActionMessage("Issue not updated due to the following error.");
-        addActionMessage("One of the URI's in the Issue URI List has changed.");
+        addActionError("Issue not updated due to the following error.");
+        addActionError("One of the URI's in the Issue URI List has changed.");
 
         return false;
       }

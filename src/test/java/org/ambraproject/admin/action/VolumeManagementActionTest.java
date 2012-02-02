@@ -31,7 +31,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * @author Alex Kudlick 1/31/12
@@ -231,6 +230,59 @@ public class VolumeManagementActionTest extends AdminWebTest {
           "Issues weren't in correct order; element " + (i + 1) + " was incorrect");
     }
 
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testActionDoesNotAllowAdditionsToCsv(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
+    String existingIssuesCSV = StringUtils.join(dummyDataStore.get(Volume.class, volume.getId()).getIssueList(), ",");
+
+    action.setCommand("UPDATE_VOLUME");
+    action.setVolumeURI(volume.getId().toString());
+    action.setIssuesToOrder(existingIssuesCSV + ",id:new-issue-in-csv");
+
+    action.execute();
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 2, "Action didn't return error messages");
+    assertEquals(action.getActionMessages().size(), 0, "Action returned message");
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testActionDoesNotAllowRemovalsFromCsv(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
+    String existingIssuesCSV = StringUtils.join(dummyDataStore.get(Volume.class, volume.getId()).getIssueList(), ",");
+
+    action.setCommand("UPDATE_VOLUME");
+    action.setVolumeURI(volume.getId().toString());
+    action.setIssuesToOrder(existingIssuesCSV.substring(existingIssuesCSV.indexOf(",") + 1));
+
+    action.execute();
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 2, "Action didn't return error messages");
+    assertEquals(action.getActionMessages().size(), 0, "Action returned message");
+  }
+
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
+  public void testActionDoesNotAllowChangesInCsv(Volume volume, List<Issue> issues, String issuesCSV) throws Exception {
+    String existingIssuesCSV = StringUtils.join(dummyDataStore.get(Volume.class, volume.getId()).getIssueList(), ",");
+    existingIssuesCSV = existingIssuesCSV.substring(existingIssuesCSV.indexOf(",") + 1);
+    existingIssuesCSV = "id:this-issue-was-not-in-list," + existingIssuesCSV;
+
+    assertEquals(dummyDataStore.get(Volume.class, volume.getId()).getIssueList().size(),
+        existingIssuesCSV.split(",").length, "Test added/removed an issue instead of just changing one");
+
+    action.setCommand("UPDATE_VOLUME");
+    action.setVolumeURI(volume.getId().toString());
+    action.setIssuesToOrder(existingIssuesCSV);
+
+    action.execute();
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+
+    assertEquals(action.getActionErrors().size(), 2, "Action didn't return error messages");
+    assertEquals(action.getActionMessages().size(), 0, "Action returned message");
   }
 
   @Override
