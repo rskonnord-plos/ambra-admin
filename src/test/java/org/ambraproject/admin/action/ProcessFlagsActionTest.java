@@ -35,6 +35,7 @@ import org.topazproject.ambra.models.Comment;
 import org.topazproject.ambra.models.FormalCorrection;
 import org.topazproject.ambra.models.MinorCorrection;
 import org.topazproject.ambra.models.Reply;
+import org.topazproject.ambra.models.ReplyThread;
 import org.topazproject.ambra.models.Retraction;
 
 import java.lang.reflect.Method;
@@ -73,6 +74,7 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     Comment flag = new Comment();
     flag.setId(URI.create("id:flag-for-" + testMethod.getName()));
     flag.setTitle("The flag");
+    flag.setAnnotates(comment.getId());
     flag.setBody(new AnnotationBlob());
     flag.getBody().setBody(
         ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -80,6 +82,13 @@ public class ProcessFlagsActionTest extends AdminWebTest {
             "<comment>Note created and flagged as a correction</comment>" +
             "</flag>").getBytes());
     dummyDataStore.store(flag);
+
+    Reply reply = new ReplyThread();
+    reply.setId(URI.create("id:reply-for-" + testMethod.getName()));
+    reply.setInReplyTo(comment.getId().toString());
+    reply.setRoot(comment.getId().toString());
+    reply.setType(Reply.RDF_TYPE);
+    dummyDataStore.store(reply);
 
     return new Object[][]{
         {comment.getId(), Annotea.WEB_TYPE_COMMENT, new String[]{flag.getId() + "_" + comment.getId()}}
