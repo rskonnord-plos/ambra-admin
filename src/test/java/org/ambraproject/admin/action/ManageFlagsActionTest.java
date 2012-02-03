@@ -20,6 +20,7 @@ import org.ambraproject.admin.service.FlaggedCommentRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.topazproject.ambra.models.Annotation;
 import org.topazproject.ambra.models.AnnotationBlob;
 import org.topazproject.ambra.models.Comment;
 import org.topazproject.ambra.models.Reply;
@@ -61,6 +62,9 @@ public class ManageFlagsActionTest extends AdminWebTest {
 
   @DataProvider(name = "flags")
   public Object[][] getFlags() {
+    //make sure there are no flags left over from other tests
+    dummyDataStore.deleteAll(Annotation.class);
+
     Comment comment = new Comment();
     comment.setId(URI.create("id:test-comment-for-manage-flags"));
     comment.setTitle("The Marriage Plot");
@@ -126,7 +130,7 @@ public class ManageFlagsActionTest extends AdminWebTest {
     flag3.getBody().setBody(
         ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<flag kajsd< > some broken xml"
-            ).getBytes());
+        ).getBytes());
     Calendar created3 = Calendar.getInstance();
     created3.add(Calendar.HOUR, 1);
     flag3.setCreated(created3.getTime());
