@@ -65,6 +65,7 @@
     <property name="annotationConverter" ref="annotationConverter"/>
     <property name="annotationService" ref="annotationService"/>
     <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="replyService" ref="replyService"/>
   </bean>
 
   <bean id="syndicationService" class="org.ambraproject.admin.service.impl.SyndicationServiceImpl">
