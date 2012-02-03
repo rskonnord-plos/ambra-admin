@@ -23,22 +23,29 @@ package org.ambraproject.admin.action;
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
+import org.ambraproject.models.Article;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.annotation.service.AnnotationService;
 import org.topazproject.ambra.models.Annotation;
 import org.topazproject.ambra.models.AnnotationBlob;
-import org.topazproject.ambra.models.Citation;
+import org.topazproject.ambra.models.Annotea;
 import org.topazproject.ambra.models.Comment;
 import org.topazproject.ambra.models.FormalCorrection;
-import org.topazproject.ambra.models.Journal;
-import org.ambraproject.models.Article;
+import org.topazproject.ambra.models.MinorCorrection;
+import org.topazproject.ambra.models.Reply;
+import org.topazproject.ambra.models.Retraction;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Dragisa Krsmanovic
@@ -47,82 +54,166 @@ import static org.testng.Assert.*;
 public class ProcessFlagsActionTest extends AdminWebTest {
   @Autowired
   protected ManageFlagsAction action;
-  @Autowired
-  protected AnnotationService annotationService; //Just using annotation service to check the annotation in the db
 
   @DataProvider(name = "commentWithFlags")
-  public Object[][] getCommentWithFlags() throws URISyntaxException {
-    String annotationId = "info:doi/123.456/annotation1";
-    String flag1Id = "info:doi/123.456/flag1";
-
-    Journal j = new Journal();
-    j.setKey("journal");
-    j.seteIssn("journaleIssn");
-    dummyDataStore.store(j);
-
-    Comment oldAnnotation = new Comment();
-    oldAnnotation.setAnnotates(URI.create("articleId"));
-    oldAnnotation.setId(URI.create(annotationId));
-    oldAnnotation.setBody(new AnnotationBlob());
-    dummyDataStore.store(oldAnnotation);
-
-    Comment flag1 = new Comment();
-    flag1.setId(URI.create(flag1Id));
-    flag1.setBody(new AnnotationBlob());
-    dummyDataStore.store(flag1);
-
+  public Object[][] getCommentWithFlags(Method testMethod) throws URISyntaxException {
     Article article = new Article();
-    article.setDoi(oldAnnotation.getAnnotates().toString());
+    article.setDoi("id:articleToAnnotate");
     dummyDataStore.store(article);
 
-    Citation articleCitation = new Citation();
-    articleCitation.setCitationType("cit-type");
-    dummyDataStore.store(articleCitation);
+    Comment comment = new Comment();
+    comment.setId(URI.create("id:comment-for-" + testMethod.getName()));
+    comment.setAnnotates(URI.create(article.getDoi()));
+    comment.setTitle("Original Comment");
+    comment.setType(Comment.RDF_TYPE);
+    comment.setBody(new AnnotationBlob());
+    comment.getBody().setBody("Some comment text".getBytes());
+    dummyDataStore.store(comment);
+
+    Comment flag = new Comment();
+    flag.setId(URI.create("id:flag-for-" + testMethod.getName()));
+    flag.setTitle("The flag");
+    flag.setBody(new AnnotationBlob());
+    flag.getBody().setBody(
+        ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+            "<flag reasonCode=\"Create Correction\">" +
+            "<comment>Note created and flagged as a correction</comment>" +
+            "</flag>").getBytes());
+    dummyDataStore.store(flag);
 
     return new Object[][]{
-      {annotationId, new String[]{flag1Id + "_" + annotationId}}
+        {comment.getId(), Annotea.WEB_TYPE_COMMENT, new String[]{flag.getId() + "_" + comment.getId()}}
     };
   }
 
   @Test(dataProvider = "commentWithFlags")
-  public void testConvertToFormalCorrection(String annotationId, String[] flags) throws Exception {
+  public void testConvertToFormalCorrection(URI annotationId, String type, String[] flags) throws Exception {
 
+    action.setCommentsToUnflag(null);
+    action.setCommentsToDelete(null);
     action.setConvertToFormalCorrection(flags);
-    action.setRequest(getDefaultRequestAttributes());
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(null);
 
-    assertFalse(annotationService.getAnnotation(annotationId) instanceof FormalCorrection,
+    assertFalse(dummyDataStore.get(Annotation.class, annotationId) instanceof FormalCorrection,
         "Annotation to convert was already a formal correction");
-    String result = null;
-    try {
-      result = action.processFlags();
-    } catch (Exception e) {
-      String message = "Action invocation threw exception";
-      for (String error : action.getActionErrors()) {
-        message += "\n*" + error;
-      }
-      fail(message, e);
-    }
-    assertEquals(result, Action.SUCCESS,
-        "action to convert formal correction with " + flags.length + " flags didn't succeed");
+    String result = action.processFlags();
+    assertEquals(result, Action.SUCCESS, "action to convert formal correction with " + flags.length + " flags didn't succeed");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    Annotation storedAnnotation = dummyDataStore.get(Annotation.class, annotationId);
+    assertTrue(storedAnnotation instanceof FormalCorrection, "Annotation wasn't converted to formal correction");
+    assertEquals(storedAnnotation.getType(), FormalCorrection.RDF_TYPE, "Annotation didn't get correct type");
 
     for (String paramStr : flags) {
-      String[] tokens = paramStr.split("_");
-
-      Annotation newAnnotation = annotationService.getAnnotation(tokens[1]);
-
-      assertTrue(newAnnotation instanceof FormalCorrection,
-          "Annotation wasn't converted to formal correction");
-      assertEquals(newAnnotation.getType(),FormalCorrection.RDF_TYPE,"Annotation didn't get correct type");
-
-      try {
-        // make sure the flag is deleted
-        Annotation flag = annotationService.getAnnotation(tokens[0]);
-        fail("The flag " + tokens[0] + " should have been deleted.");
-      } catch (IllegalArgumentException e) {
-        // success
-      }
+      String flagId = paramStr.split("_")[0];
+      assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "flag didn't get deleted");
     }
   }
+
+  @Test(dataProvider = "commentWithFlags")
+  public void testConvertToMinorCorrection(URI annotationId, String type, String[] flags) throws Exception {
+    action.setCommentsToUnflag(null);
+    action.setCommentsToDelete(null);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(flags);
+    action.setConvertToRetraction(null);
+
+    assertFalse(dummyDataStore.get(Annotation.class, annotationId) instanceof MinorCorrection,
+        "Annotation to convert was already a minor correction");
+
+    String result = action.processFlags();
+    assertEquals(result, Action.SUCCESS, "action to convert formal correction with " + flags.length + " flags didn't succeed");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    Annotation storedAnnotation = dummyDataStore.get(Annotation.class, annotationId);
+    assertTrue(storedAnnotation instanceof MinorCorrection, "Annotation wasn't converted to minor correction");
+    assertEquals(storedAnnotation.getType(), MinorCorrection.RDF_TYPE, "Annotation didn't get correct type");
+
+    for (String paramStr : flags) {
+      String flagId = paramStr.split("_")[0];
+      assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "flag didn't get deleted");
+    }
+  }
+
+  @Test(dataProvider = "commentWithFlags")
+  public void testConvertToRetraction(URI annotationId, String type, String[] flags) throws Exception {
+    action.setCommentsToUnflag(null);
+    action.setCommentsToDelete(null);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(flags);
+
+    assertFalse(dummyDataStore.get(Annotation.class, annotationId) instanceof Retraction,
+        "Annotation to convert was already a retraction");
+
+    String result = action.processFlags();
+    assertEquals(result, Action.SUCCESS, "action to convert formal correction with " + flags.length + " flags didn't succeed");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    Annotation storedAnnotation = dummyDataStore.get(Annotation.class, annotationId);
+    assertTrue(storedAnnotation instanceof Retraction, "Annotation wasn't converted to retraction");
+    assertEquals(storedAnnotation.getType(), Retraction.RDF_TYPE, "Annotation didn't get correct type");
+
+    for (String paramStr : flags) {
+      String flagId = paramStr.split("_")[0];
+      assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "flag didn't get deleted");
+    }
+  }
+
+  @Test(dataProvider = "commentWithFlags")
+  public void testUnflag(URI annotationId, String type, String[] flags) throws Exception {
+    //for Unflag and delete comments, the params in the flag string are reversed
+    String[] commentsToUnflag = new String[flags.length];
+    for (int i = 0; i < flags.length; i++) {
+      String[] tokens = flags[i].split("_");
+      commentsToUnflag[i] = tokens[1] + "_" + tokens[0];
+    }
+
+    action.setCommentsToUnflag(commentsToUnflag);
+    action.setCommentsToDelete(null);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(null);
+
+    String result = action.processFlags();
+
+    assertEquals(result, Action.SUCCESS, "action to unflag with " + flags.length + " flags didn't succeed");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    assertNotNull(dummyDataStore.get(Annotation.class, annotationId), "Annotation got deleted");
+
+    assertEquals(result, Action.SUCCESS, "action to unflag " + flags.length + " flags didn't succeed");
+
+    for (String paramStr : flags) {
+      String flagId = paramStr.split("_")[0];
+      assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "Flag didn't get deleted");
+    }
+  }
+
+  @Test(dataProvider = "commentWithFlags")
+  public void testDeleteComment(URI annotationId, String type, String[] flags) throws Exception {
+    //for delete comments, the params in the flag string are weird
+    String[] commentsToDelete = new String[flags.length];
+    for (int i = 0; i < flags.length; i++) {
+      String[] tokens = flags[i].split("_");
+      commentsToDelete[i] = "_" + tokens[1] + "_" + type;
+    }
+
+    action.setCommentsToUnflag(null);
+    action.setCommentsToDelete(commentsToDelete);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(null);
+
+    String result = action.processFlags();
+
+    assertEquals(result, Action.SUCCESS, "action to delete comment didn't succeed");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    assertNull(dummyDataStore.get(Annotation.class, annotationId), "Annotation didn't get deleted");
+  }
+
 
   @Override
   protected BaseActionSupport getAction() {
