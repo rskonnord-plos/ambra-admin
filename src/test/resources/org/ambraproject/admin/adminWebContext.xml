@@ -94,4 +94,9 @@
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
   </bean>
+
+  <bean id="adminUserAlertsAction" class="org.ambraproject.user.action.AdminUserAlertsAction">
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="userService" ref="userService"/>
+  </bean>
 </beans>
