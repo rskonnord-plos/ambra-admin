@@ -41,6 +41,7 @@ import org.topazproject.ambra.models.Retraction;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -192,8 +193,6 @@ public class ProcessFlagsActionTest extends AdminWebTest {
 
     assertNotNull(dummyDataStore.get(Annotation.class, annotationId), "Annotation got deleted");
 
-    assertEquals(result, Action.SUCCESS, "action to unflag " + flags.length + " flags didn't succeed");
-
     for (String paramStr : flags) {
       String flagId = paramStr.split("_")[0];
       assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "Flag didn't get deleted");
@@ -221,6 +220,54 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
 
     assertNull(dummyDataStore.get(Annotation.class, annotationId), "Annotation didn't get deleted");
+  }
+
+  @DataProvider(name = "flaggedReply")
+  public Object[][] getFlaggedReply() {
+    Comment comment = new Comment();
+    dummyDataStore.store(comment);
+
+    ReplyThread root = new ReplyThread();
+    root.setRoot(comment.getId().toString());
+    root.setInReplyTo(comment.getId().toString());
+    root.setReplies(new ArrayList<ReplyThread>(1));
+    dummyDataStore.store(root);
+
+    ReplyThread reply = new ReplyThread();
+    dummyDataStore.store(reply);
+    root.addReply(reply);
+    dummyDataStore.update(root);
+
+
+    Comment flag = new Comment();
+    flag.setAnnotates(reply.getId());
+    dummyDataStore.store(flag);
+    
+    return new Object[][]{
+        {reply.getId(), new String[] {reply.getId() + "_" + flag.getId() + "_" + Annotea.WEB_TYPE_REPLY}}
+    };
+  }
+  
+  
+  @Test(dataProvider = "flaggedReply")
+  public void testUnflagReply(URI replyId, String[] paramStrings) {
+    action.setCommentsToUnflag(paramStrings);
+    action.setCommentsToDelete(null);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(null);
+
+    String result = action.processFlags();
+
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    assertNotNull(dummyDataStore.get(Reply.class, replyId), "Reply got deleted");
+
+    for (String paramStr : paramStrings) {
+      String flagId = paramStr.split("_")[0];
+      assertNull(dummyDataStore.get(Annotation.class, URI.create(flagId)), "Flag didn't get deleted");
+    }
   }
 
 
