@@ -130,6 +130,11 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
   </filter-mapping>
 
   <filter-mapping>
+    <filter-name>RedirectToAmbraFilter</filter-name>
+    <url-pattern>/rate/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
     <filter-name>DummySSOFilter</filter-name>
     <url-pattern>/*</url-pattern>
     <dispatcher>REQUEST</dispatcher>
