@@ -94,4 +94,9 @@
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
   </bean>
+
+  <bean id="viewRatingAction" class="org.ambraproject.admin.action.ViewRatingAction">
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ratingsService" ref="ratingsService"/>
+  </bean>
 </beans>
