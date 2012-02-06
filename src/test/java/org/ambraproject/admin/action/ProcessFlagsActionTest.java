@@ -237,10 +237,17 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     dummyDataStore.store(reply);
     root.addReply(reply);
     dummyDataStore.update(root);
+    dummyDataStore.update(reply);
 
 
     Comment flag = new Comment();
     flag.setAnnotates(reply.getId());
+    flag.setBody(new AnnotationBlob());
+    flag.getBody().setBody(
+        ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        "<flag reasonCode=\"spam\">" +
+            "<comment>test concern</comment>" +
+         "</flag>").getBytes());
     dummyDataStore.store(flag);
     
     return new Object[][]{
@@ -270,6 +277,30 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     }
   }
 
+  @Test(dataProvider = "flaggedReply")
+  public void testDeleteReply(URI replyId, String[] paramStrings) {
+    final String root = dummyDataStore.get(Reply.class, replyId).getRoot();
+
+    String[] deleteParams = new String[paramStrings.length];
+    for (int i = 0; i < paramStrings.length; i++) {
+      deleteParams[i] = root + "_" + paramStrings[i].split("_")[0] + "_" + paramStrings[i].split("_")[2];
+    }
+
+
+    action.setCommentsToUnflag(null);
+    action.setCommentsToDelete(deleteParams);
+    action.setConvertToFormalCorrection(null);
+    action.setConvertToMinorCorrection(null);
+    action.setConvertToRetraction(null);
+
+    String result = action.processFlags();
+
+    assertEquals(result, Action.SUCCESS, "Action didn't return success");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned errors: " + StringUtils.join(action.getActionErrors(), ","));
+
+    assertNull(dummyDataStore.get(Reply.class, replyId), "Reply didn't get deleted");
+    assertNotNull(dummyDataStore.get(Annotation.class, URI.create(root)), "Root annotation got deleted");
+  }
 
   @Override
   protected BaseActionSupport getAction() {
