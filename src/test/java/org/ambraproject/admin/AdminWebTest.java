@@ -38,16 +38,10 @@ public abstract class AdminWebTest extends BaseWebTest {
 
   protected abstract BaseActionSupport getAction();
 
-  @BeforeMethod
+  @Override
   public void setDefaultRequest() {
     setupAdminContext();
     getAction().setRequest(getDefaultRequestAttributes());
-  }
-
-  @AfterMethod
-  public void clearMessages() {
-    getAction().setActionMessages(new HashSet<String>());
-    getAction().setActionErrors(new HashSet<String>());
   }
 
 }
