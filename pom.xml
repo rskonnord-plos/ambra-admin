@@ -66,9 +66,9 @@
   </repositories>
 
   <scm>
-    <developerConnection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/tags/ambra-admin-1.0</developerConnection>
-    <connection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/tags/ambra-admin-1.0</connection>
-    <url>http://www.ambraproject.org/trac/browser/head/tags/ambra-admin-1.0</url>
+    <developerConnection>scm:svn:http://ambraproject.org/svn/ambra-admin/</developerConnection>
+    <connection>scm:svn:http://ambraproject.org/svn/ambra-admin/</connection>
+    <url>http://www.ambraproject.org/trac/browser/ambra-admin/</url>
   </scm>
 
   <distributionManagement>
