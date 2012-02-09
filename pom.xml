@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ambraproject</groupId>
   <artifactId>ambra-admin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>war</packaging>
   <name>Ambra Administration</name>
 
@@ -28,8 +27,8 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <ambra.version>2.2.1-SNAPSHOT</ambra.version>
-    <conf-helper.version>2.2.1-SNAPSHOT</conf-helper.version>
+    <ambra.version>2.2.1</ambra.version>
+    <conf-helper.version>2.2.1</conf-helper.version>
   </properties>
 
   <repositories>
@@ -67,9 +66,9 @@
   </repositories>
 
   <scm>
-    <developerConnection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/</developerConnection>
-    <connection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/</connection>
-    <url>http://www.ambraproject.org/trac/browser/head</url>
+    <developerConnection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/tags/ambra-admin-1.0</developerConnection>
+    <connection>scm:svn:http://svn.ambraproject.org/svn/ambra-admin/head/tags/ambra-admin-1.0</connection>
+    <url>http://www.ambraproject.org/trac/browser/head/tags/ambra-admin-1.0</url>
   </scm>
 
   <distributionManagement>
