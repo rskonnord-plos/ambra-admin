@@ -99,4 +99,12 @@
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="ratingsService" ref="ratingsService"/>
   </bean>
+
+  <bean id="manageAnnotationAction" class="org.ambraproject.admin.action.ManageAnnotationAction">
+    <property name="adminService" ref="adminService"/>
+    <property name="annotationService" ref="annotationService"/>
+    <property name="citationService" ref="citationService"/>
+    <property name="annotationConverter" ref="annotationConverter"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+  </bean>
 </beans>
