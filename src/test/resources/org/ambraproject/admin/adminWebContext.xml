@@ -64,6 +64,10 @@
     <property name="profanityCheckingService" ref="profanityCheckingService"/>
   </bean>
 
+  <bean id="adminUserAlertsAction" class="org.ambraproject.user.action.AdminUserAlertsAction">
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="userService" ref="userService"/>
+  </bean>
   <bean id="crossPubManagementAction" class="org.ambraproject.admin.action.CrossPubManagementAction">
     <property name="ambraConfiguration" ref="configuration"/>
     <property name="adminService" ref="adminService"/>
