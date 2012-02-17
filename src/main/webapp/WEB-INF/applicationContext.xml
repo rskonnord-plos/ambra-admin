@@ -81,9 +81,10 @@
 
   <bean id="userService" class="org.ambraproject.user.service.UserServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
-    <property name="emailAddressUrl" value="${ambra.services.cas.url.base}/email?guid="/>
-    <property name="applicationId" ref="applicationId"/>
     <property name="permissionsService" ref="permissionsService"/>
+    <property name="configuration" ref="ambraConfiguration"/>
+    <property name="emailAddressUrl" value="${ambra.services.cas.url.base}/email"/>
+    <property name="authIdParam" value="guid"/>
   </bean>
 
   <bean id="annotationConverter" class="org.ambraproject.annotation.service.AnnotationConverterImpl">
@@ -235,6 +236,9 @@
     </property>
   </bean>
 
+  <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+  </bean>
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
     <property name="documentBuilder" ref="documentBuilder"/>
     <property name="xslStyleSheet" value="${ambra.services.ingest.xsl}"/>
@@ -306,12 +310,6 @@
       <list>
         <!--OLD HBMS-->
         <value>WEB-INF/hibernateMappings/CustomTypes.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/UserProfile.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/UserAccount.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/UserRole.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/UserPreferences.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/UserPreference.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/AuthenticationId.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/Citation.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/Annotation.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/ByteArrayBlob.hbm.xml</value>
@@ -320,7 +318,6 @@
         <value>WEB-INF/hibernateMappings/RatingSummaryContent.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/Reply.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/Aggregations.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/EditorialBoard.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/CitedPerson.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/ArticleContributor.hbm.xml</value>
 

@@ -22,7 +22,7 @@
 <#if displayName?exists && displayName?length gt 0>
   <#assign addressingUser = displayName +"'s" >
 <#else>
-  <#assign addressingUser = "User's" >
+  <#assign addressingUser = "User" >
 </#if>
 <#function isFound collection value>
   <#list collection as element>
@@ -47,10 +47,10 @@
 
 <div id="container" class="profile">
 
-<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
-<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
+<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
+<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
   Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a>
-  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${topazId}</strong>
+  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
   <br/>
 
 
@@ -103,7 +103,7 @@ method="post" title="Alert Form" name="userAlerts">
     </ol>
     <br clear="all"/>
 
-    <@s.hidden name="topazId"/>
+    <@s.hidden name="userAuthId"/>
     <@s.submit value="Submit" tabindex="99"/>
 
   </fieldset>

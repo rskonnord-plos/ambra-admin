@@ -21,65 +21,74 @@ package org.ambraproject.user.action;
 
 import com.opensymphony.xwork2.validator.annotations.RequiredStringValidator;
 
+import org.ambraproject.action.BaseActionSupport;
+import org.ambraproject.admin.service.AdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.ambraproject.ApplicationException;
-import org.ambraproject.Constants;
+import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Creates a new admin user in Topaz. User must be logged in already.
  */
-public class AssignAdminRoleAction extends UserActionSupport {
+public class AssignAdminRoleAction extends BaseActionSupport {
   private static final Logger log = LoggerFactory.getLogger(AssignAdminRoleAction.class);
-  private String topazId;
+  private Long userId;
+  private AdminService adminService;
 
   /**
-   * Assign the given topazId an admin role.
+   * Assign the given userId an admin role.
    * @return status code from webwork
    * @throws Exception Exception
    */
   public String execute() throws Exception {
-    return assignAdminRole(topazId);
-  }
-
-  private String assignAdminRole(final String topazId) throws ApplicationException {
-    try {
-      userService.setRole(topazId, Constants.ADMIN_ROLE, getAuthId());
-
-      final String successMessage = "Topaz ID: " + topazId + " successfully assigned the role: " +
-                                    Constants.ADMIN_ROLE;
-      addActionMessage(successMessage);
-      if (log.isDebugEnabled()) { log.debug(successMessage); }
-
-      return SUCCESS;
-    } catch(ApplicationException ex) {
-      log.info("Could not assign admin role to Topaz ID: {}", topazId);
-      log.info(ex.getMessage(), ex);
-
-      addActionError("Could not assign admin role to Topaz ID: " + topazId);
-      addActionError(ex.getMessage());
-
-      return ERROR;
+    if (userId == null) {
+      addFieldError("userId", "Id is required");
+      return INPUT;
     }
+    try {
+      adminService.assignAdminRole(userId);
+      addActionMessage("Assigned Admin Role to user with id: " + userId);
+      //clear the user id so it doesn't show up in the form
+      userId = null;
+    } catch (ApplicationException e) {
+      log.error("Error assigning admin role", e);
+      addActionError("Error assigning admin role; " + getMessage(e));
+    }
+    return SUCCESS;
+  }
+
+  private String getMessage(Exception e) {
+    String message = e.getMessage();
+    Throwable cause = e.getCause();
+    while (cause != null) {
+      message += ("; " + cause.getMessage());
+      cause = cause.getCause();
+    }
+    return message;
   }
 
   /**
-   * Struts setter for topazId.
+   * Struts setter for userId.
    * 
-   * @param topazId Value to set for topazId.
+   * @param userId Value to set for userId.
    */
-  @RequiredStringValidator(message = "Id is required.")
-  public void setTopazId(final String topazId) {
-    this.topazId = topazId;
+  public void setUserId(final Long userId) {
+    this.userId = userId;
   }
 
   /**
-   * Struts getter for topazId.
-   * 
+   * Struts getter for userId.
+   *
    * @return Topaz Id.
    */
-  public String getTopazId() {
-    return topazId;
+  public Long getUserId() {
+    return userId;
+  }
+
+  @Required
+  public void setAdminService(AdminService adminService) {
+    this.adminService = adminService;
   }
 }

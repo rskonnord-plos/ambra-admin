@@ -19,6 +19,7 @@ import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.annotation.service.WebAnnotation;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAuthor;
+import org.ambraproject.models.UserProfile;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
@@ -31,8 +32,6 @@ import org.topazproject.ambra.models.Comment;
 import org.topazproject.ambra.models.FormalCorrection;
 import org.topazproject.ambra.models.MinorCorrection;
 import org.topazproject.ambra.models.Retraction;
-import org.topazproject.ambra.models.UserAccount;
-import org.topazproject.ambra.models.UserProfile;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -74,10 +73,8 @@ public class ManageAnnotationActionTest extends AdminWebTest {
 
   @DataProvider(name = "annotation")
   public Object[][] getAnnotation() {
-    UserAccount user = new UserAccount();
-    user.setProfile(new UserProfile());
-    user.getProfile().setDisplayName("EmmaSwan");
-    dummyDataStore.store(user.getProfile());
+    UserProfile user = new UserProfile();
+    user.setDisplayName("EmmaSwan");
     dummyDataStore.store(user);
 
     Comment comment = new Comment();
@@ -86,12 +83,12 @@ public class ManageAnnotationActionTest extends AdminWebTest {
         "the son she gave up 10 years ago, arrives on her doorstep.").getBytes());
     comment.setType(Comment.RDF_TYPE);
     comment.setCreated(Calendar.getInstance().getTime());
-    comment.setCreator(user.getId().toString());
+    comment.setCreator(user.getAccountUri());
     comment.setAnnotates(URI.create("id:fake-article-to-annotate"));
     comment.setContext("fakecontext");
     dummyDataStore.store(comment);
     WebAnnotation commentWebAnnotation = new WebAnnotation(comment,
-        user.getProfile().getDisplayName(), new String(comment.getBody().getBody()));
+        user.getDisplayName(), new String(comment.getBody().getBody()));
 
     Article articleToRetract = new Article();
     articleToRetract.setDoi("id:test-article-to-retract");
@@ -124,7 +121,7 @@ public class ManageAnnotationActionTest extends AdminWebTest {
         "befriends an \"asset\" during the mission.").getBytes());
     retraction.setType(MinorCorrection.RDF_TYPE);
     retraction.setCreated(Calendar.getInstance().getTime());
-    retraction.setCreator(user.getId().toString());
+    retraction.setCreator(user.getAccountUri());
     retraction.setAnnotates(URI.create(articleToRetract.getDoi()));
     retraction.setContext("someFakeContext");
 
@@ -149,7 +146,7 @@ public class ManageAnnotationActionTest extends AdminWebTest {
     dummyDataStore.store(retraction);
 
     WebAnnotation retractionWebAnnotation = new WebAnnotation(retraction,
-        user.getProfile().getDisplayName(), new String(retraction.getBody().getBody()));
+        user.getDisplayName(), new String(retraction.getBody().getBody()));
 
 
     return new Object[][]{

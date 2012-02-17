@@ -17,17 +17,14 @@
 package org.ambraproject.user.action;
 
 import com.opensymphony.xwork2.Action;
-import org.ambraproject.Constants;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
-import org.ambraproject.user.service.UserService;
+import org.ambraproject.models.UserProfile;
+import org.ambraproject.models.UserRole;
+import org.ambraproject.permission.service.PermissionsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.topazproject.ambra.models.UserAccount;
-import org.topazproject.ambra.models.UserProfile;
-
-import java.net.URI;
 
 import static org.testng.Assert.assertEquals;
 
@@ -39,30 +36,31 @@ public class AssignAdminRoleActionTest extends AdminWebTest {
   @Autowired
   protected AssignAdminRoleAction assignAdminRoleAction;
 
-  @Autowired
-  protected UserService userService;
 
   @DataProvider(name = "savedUser")
   public Object[][] getSavedUser() {
     UserProfile userProfile = new UserProfile();
-    userProfile.setId(URI.create("id:test-user-123"));
+    userProfile.setEmail("email@AssignAdminRoleActionTest.org");
+    userProfile.setDisplayName("displayNameForAssignAdminRoleActionTest.org");
+    userProfile.setAuthId("authIdForAssignAdminRoleActionTest.org");
     dummyDataStore.store(userProfile);
-    UserAccount userAccount = new UserAccount();
-    userAccount.setProfile(userProfile);
-    userAccount.setId(URI.create("id:test-user-account-123"));
-    dummyDataStore.store(userAccount);
 
     return new Object[][]{
-        {userAccount.getId().toString()}
+        {userProfile.getID()}
     };
   }
 
   @Test(dataProvider = "savedUser")
-  public void testAssignAdminRoleAction(String userId) throws Exception {
-    setupAdminContext();
-    assignAdminRoleAction.setTopazId(userId);
+  public void testAssignAdminRoleAction(Long userId) throws Exception {
+    assignAdminRoleAction.setUserId(userId);
     assertEquals(assignAdminRoleAction.execute(), Action.SUCCESS, "execute didn't return success");
-    assertEquals(userService.getRole(userId)[0], Constants.ADMIN_ROLE, "stored user didn't have admin role");
+    assertEquals(assignAdminRoleAction.getActionErrors().size(), 0, "action had error messages");
+    assertEquals(assignAdminRoleAction.getActionMessages().size(), 1, "Action didn't return a success message");
+
+    UserProfile storedUser = dummyDataStore.get(UserProfile.class, userId);
+    assertEquals(storedUser.getRoles().size(), 1, "User didn't get a role added");
+    UserRole role = storedUser.getRoles().iterator().next();
+    assertEquals(role.getRoleName(), PermissionsService.ADMIN_ROLE, "Role didn't have correct name");
   }
 
   @Override

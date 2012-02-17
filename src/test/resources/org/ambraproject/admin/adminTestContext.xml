@@ -115,4 +115,7 @@
     <property name="ambraConfiguration" ref="configuration"/>
   </bean>
 
+  <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
 </beans>

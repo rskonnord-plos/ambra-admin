@@ -29,16 +29,18 @@
     <#include "includes/navigation.ftl">
     
     <@messages />
-    <#if topazUserIdList?exists>
+    <#if users?exists && users?has_content>
       <p>
         <fieldset>
           <legend><b>Edit User Profiles</b></legend>
           <ul>
-            <#list topazUserIdList as topazId>
-              <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
-              <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
+            <#list users as user>
+              <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${user.authId}" includeParams="none"/>
+              <@s.url id="assignAdminRoleToUser" action="assignAdminRole" namespace="/" userId="${user.ID}" includeParams="none"/>
               <li>
-                Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a> for ${topazId}
+                User: {Id: <b>${user.ID}</b>; User name: <b>${user.displayName}</b>; Email: <b>${user.email}</b>}
+                <@s.a href="%{editProfileByAdminURL}">Edit profile</@s.a>&nbsp;
+                <@s.a href="%{assignAdminRoleToUser}">Assign Admin Role</@s.a>
               </li>
             </#list>
           </ul>
@@ -49,7 +51,7 @@
       <fieldset>
           <legend><b>Find User by Authorization Id</b></legend>
           <@s.form name="findUserByUserIdForm" action="findUserByAuthId" namespace="/" method="post">
-            <@s.textfield name="authId" label="Auth Id" required="true"/>
+            <@s.textfield name="userAuthId" label="Auth Id" required="true"/>
             <@s.submit value="Find Auth Id" />
           </@s.form>
       </fieldset>
@@ -88,7 +90,7 @@
       <fieldset>
         <legend><b>Assign Admin Role To User</b></legend>
         <@s.form name="assignAdminRoleForm" action="assignAdminRole" namespace="/" method="post">
-          <@s.textfield name="topazId" label="Id" required="true"/>
+          <@s.textfield name="userId" label="Id" required="true"/>
           &nbsp;
           <@s.submit value="Assign Admin Role"/>
         </@s.form>

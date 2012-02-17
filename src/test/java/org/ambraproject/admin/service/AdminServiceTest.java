@@ -15,6 +15,9 @@ package org.ambraproject.admin.service;
 
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.UserProfile;
+import org.ambraproject.models.UserRole;
+import org.ambraproject.permission.service.PermissionsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
@@ -460,5 +463,21 @@ public class AdminServiceTest extends AdminBaseTest {
     assertNull(dummyDataStore.get(Issue.class, issue.getId()), "Issue didn't get removed from the database");
     Volume storedVolume = dummyDataStore.get(Volume.class, volume.getId());
     assertFalse(storedVolume.getIssueList().contains(issue.getId()), "issue didn't get removed from volume");
+  }
+
+  @Test
+  public void testAssignAdminRole() throws Exception {
+    UserProfile user = new UserProfile();
+    user.setAuthId("authIdForAssignAdminRoleInAdminServiceTest");
+    user.setDisplayName("displayNameForAssignAdminRoleInAdminServiceTest");
+    user.setEmail("email@AssignAdminRoleInAdminServiceTest");
+    Long id = Long.valueOf(dummyDataStore.store(user));
+    
+    adminService.assignAdminRole(id);
+    
+    UserProfile storedUser = dummyDataStore.get(UserProfile.class, id);
+    assertEquals(storedUser.getRoles().size(), 1, "User didn't get a role added");
+    UserRole role = storedUser.getRoles().iterator().next();
+    assertEquals(role.getRoleName(), PermissionsService.ADMIN_ROLE, "Role didn't have correct name");
   }
 }

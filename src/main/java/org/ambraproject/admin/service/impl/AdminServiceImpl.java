@@ -21,10 +21,15 @@
 
 package org.ambraproject.admin.service.impl;
 
+import org.ambraproject.ApplicationException;
+import org.ambraproject.Constants;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.journal.JournalService;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.UserProfile;
+import org.ambraproject.models.UserRole;
+import org.ambraproject.permission.service.PermissionsService;
 import org.ambraproject.service.HibernateServiceImpl;
 import org.ambraproject.util.UriUtil;
 import org.hibernate.Criteria;
@@ -36,6 +41,7 @@ import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
 import org.topazproject.ambra.models.Issue;
@@ -43,6 +49,7 @@ import org.topazproject.ambra.models.Journal;
 import org.topazproject.ambra.models.Volume;
 import org.topazproject.otm.criterion.DetachedCriteria;
 
+import javax.management.relation.Role;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
@@ -89,6 +96,34 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     }
 
     return volStr;
+  }
+
+  @Override
+  public void assignAdminRole(Long userId) throws ApplicationException {
+    UserProfile user = (UserProfile) hibernateTemplate.get(UserProfile.class, userId);
+    if (user == null) {
+      throw new ApplicationException("Attempting to assign admin role to non-existent user");
+    }
+    boolean alreadyHasAdmin = false;
+    for (UserRole role : user.getRoles()) {
+      if (PermissionsService.ADMIN_ROLE.equals(role.getRoleName())) {
+        alreadyHasAdmin = true;
+        break;
+      }
+    }
+    if (!alreadyHasAdmin) {
+      log.debug("Assigning admin role to user: {}", userId);
+      try {
+        UserRole adminRole = (UserRole) hibernateTemplate.findByCriteria(
+            org.hibernate.criterion.DetachedCriteria.forClass(UserRole.class)
+                .add(Restrictions.eq("roleName", PermissionsService.ADMIN_ROLE)),
+            0, 1).get(0);
+        user.getRoles().add(adminRole);
+        hibernateTemplate.update(user);
+      } catch (Exception e) {
+        throw new ApplicationException("Error assigning admin role to user: " + userId);
+      }
+    }
   }
 
   /**

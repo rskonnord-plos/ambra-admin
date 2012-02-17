@@ -19,33 +19,33 @@
  */
 package org.ambraproject.user.action;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Required;
-
-import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.AdminService;
+import org.ambraproject.models.UserProfile;
+import org.ambraproject.search.service.SearchUserService;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
 
 /**
  * Search a user based on a criteria
  */
 public class SearchUserAction extends UserActionSupport {
-  private static final Logger log = LoggerFactory.getLogger(SearchUserAction.class);
 
-  private String authId;
+  private String userAuthId;
   private String accountId;
   private String emailAddress;
   private String name;
-  private String[] topazUserIdList;
+  private UserProfile[] users;
 
   private AdminService adminService;
+  private SearchUserService searchUserService;
   // Fields Used by template
   private AdminService.JournalInfo journalInfo;
 
   /**
    * Just display search page.
+   *
    * @return webwork status
    */
   @Override
@@ -57,142 +57,100 @@ public class SearchUserAction extends UserActionSupport {
 
   /**
    * Find user with a given auth id
+   *
    * @return webwork status
    * @throws Exception Exception
    */
   @Transactional(readOnly = true)
   public String executeFindUserByAuthId() throws Exception {
-
     // create a faux journal object for template
     journalInfo = adminService.createJournalInfo(getCurrentJournal());
 
-    try {
-      if (log.isDebugEnabled()) {
-        log.debug("Finding user with AuthID: " + authId);
-      }
-      final String topazUserId = userService.lookUpUserByAuthId(authId);
-      if (null == topazUserId) {
-        throw new ApplicationException("No user found with the authid:" + authId);
-      }
-      topazUserIdList = new String[]{topazUserId};
-    } catch (final ApplicationException ex) {
-      addFieldError("authId", ex.getMessage());
+    final UserProfile user = userService.getUserByAuthId(userAuthId);
+    if (null == user) {
+      addActionError("No user for the given auth id");
       return INPUT;
     }
+    users = new UserProfile[]{user};
 
     return SUCCESS;
   }
 
   /**
    * Find user with a given account id
+   *
    * @return webwork status
    * @throws Exception Exception
    */
   @Transactional(readOnly = true)
   public String executeFindUserByAccountId() throws Exception {
-
     // create a faux journal object for template
     journalInfo = adminService.createJournalInfo(getCurrentJournal());
 
-    try {
-      if (log.isDebugEnabled()) {
-        log.debug("Finding user with AccountID: " + accountId);
-      }
-      final String userId = userService.lookUpUserByAccountId(accountId);
-      if (null == userId) {
-        throw new ApplicationException("No user found with the accounid:" + accountId);
-      }
-      topazUserIdList = new String[]{userId};
-    } catch (final ApplicationException ex) {
-      addFieldError("accountId", ex.getMessage());
+    final UserProfile userId = userService.getUserByAccountUri(accountId);
+    if (null == userId) {
+      addActionError("No user found with the accounid:" + accountId);
       return INPUT;
     }
+    users = new UserProfile[]{userId};
 
     return SUCCESS;
   }
 
   /**
-   * Find user with a given name
+   * Find user with a given display name
+   *
    * @return webwork status
    * @throws Exception Exception
    */
   @Transactional(readOnly = true)
   public String executeFindUserByName() throws Exception {
-
     // create a faux journal object for template
     journalInfo = adminService.createJournalInfo(getCurrentJournal());
 
-    try {
-      if (log.isDebugEnabled()) {
-        log.debug("Finding user with name: " + name);
-      }
-      final String userId = userService.lookUpUserByDisplayName(name);
-      if (null == userId) {
-        throw new ApplicationException("No user found with the name:" + name);
-      }
-      topazUserIdList = new String[]{userId};
-    } catch (final ApplicationException ex) {
-      addFieldError("name", ex.getMessage());
+    final List<UserProfile> userList = searchUserService.findUsersByDisplayName(name);
+    if (userList.isEmpty()) {
+      addActionError("No user(s) found with the username:" + name);
       return INPUT;
     }
+    users = userList.toArray(new UserProfile[userList.size()]);
 
     return SUCCESS;
   }
 
   /**
    * Find user with a given email address
+   *
    * @return webwork status
    * @throws Exception Exception
    */
   @Transactional(readOnly = true)
   public String executeFindUserByEmailAddress() throws Exception {
-
     // create a faux journal object for template
     journalInfo = adminService.createJournalInfo(getCurrentJournal());
 
-    try {
-      if (log.isDebugEnabled()) {
-        log.debug("Finding user with email: " + emailAddress);
-      }
-      final String topazUserId = userService.lookUpUserByEmailAddress(emailAddress);
-      if (null == topazUserId) {
-        throw new ApplicationException("No user found with the email address:" + emailAddress);
-      }
-      topazUserIdList = new String[]{topazUserId};
-    } catch (final ApplicationException ex) {
-      addFieldError("emailAddress", ex.getMessage());
+    final List<UserProfile> userList = searchUserService.findUsersByEmail(emailAddress);
+    if (userList.isEmpty()) {
+      addActionError("No user(s) found with the email:" + emailAddress);
       return INPUT;
     }
+    users = userList.toArray(new UserProfile[userList.size()]);
 
     return SUCCESS;
   }
 
   /**
-   * Getter for authId.
-   * @return Value of authId.
+   * Setter for userAuthId.
+   *
+   * @param userAuthId Value to set for userAuthId.
    */
-  public String getAuthId() {
-    return authId;
-  }
-
-  /**
-   * Setter for authId.
-   * @param authId Value to set for authId.
-   */
-  public void setAuthId(final String authId) {
-    this.authId = authId;
-  }
-
-  /**
-   * Getter for accountId.
-   * @return Value of accountId.
-   */
-  public String getAccountId() {
-    return accountId;
+  public void setUserAuthId(final String userAuthId) {
+    this.userAuthId = userAuthId;
   }
 
   /**
    * Setter for accountId.
+   *
    * @param accountId Value to set for accountId.
    */
   public void setAccountId(String accountId) {
@@ -200,15 +158,8 @@ public class SearchUserAction extends UserActionSupport {
   }
 
   /**
-   * Getter for emailAddress.
-   * @return Value of emailAddress.
-   */
-  public String getEmailAddress() {
-    return emailAddress;
-  }
-
-  /**
    * Setter for emailAddress.
+   *
    * @param emailAddress Value to set for emailAddress.
    */
   public void setEmailAddress(final String emailAddress) {
@@ -216,15 +167,8 @@ public class SearchUserAction extends UserActionSupport {
   }
 
   /**
-   * Getter for displayName.
-   * @return Value of displayName.
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
    * Setter for displayName
+   *
    * @param name Value to set for displayName.
    */
   public void setName(String name) {
@@ -232,11 +176,12 @@ public class SearchUserAction extends UserActionSupport {
   }
 
   /**
-   * Getter for topazUserIdList.
-   * @return Value of topazUserIdList.
+   * Getter for users.
+   *
+   * @return Value of users.
    */
-  public String[] getTopazUserIdList() {
-    return topazUserIdList;
+  public UserProfile[] getUsers() {
+    return users;
   }
 
   public AdminService.JournalInfo getJournal() {
@@ -250,6 +195,9 @@ public class SearchUserAction extends UserActionSupport {
   public void setAdminService(AdminService adminService) {
     this.adminService = adminService;
   }
-  
 
+  @Required
+  public void setSearchUserService(SearchUserService searchUserService) {
+    this.searchUserService = searchUserService;
+  }
 }

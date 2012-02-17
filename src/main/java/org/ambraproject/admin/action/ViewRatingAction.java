@@ -35,7 +35,7 @@ public class ViewRatingAction extends BaseSessionAwareActionSupport {
   @Override
   @Transactional(readOnly = true)
   public String execute() throws Exception {
-    rating = getRatingsService().getRating(ratingId, getCurrentUser());
+    rating = getRatingsService().getRating(ratingId);
     return SUCCESS;
   }
 

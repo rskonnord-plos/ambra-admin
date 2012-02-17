@@ -12,54 +12,19 @@
  */
 package org.ambraproject.user.action;
 
-import org.springframework.transaction.annotation.Transactional;
-
-import org.ambraproject.ApplicationException;
-import org.ambraproject.user.AmbraUser;
-
 /**
  * User Profile Action to be used by the admin to update the profile of any member user
  * (distinct from the one that might be called by member user themselves to edit their profile)
  */
 public class AdminUserProfileAction extends UserProfileAction {
-  private boolean userIsHalfCreated = false;
+  private String userAuthId;
 
   @Override
-  protected AmbraUser getAmbraUserToUse() throws ApplicationException {
-    final AmbraUser ambraUser = userService.getUserById(getTopazId());
-
-    //To be used to fix the partial created user profile for a user
-    if ("".equals(ambraUser.getEmail())) {
-      setDisplayNameRequired(false);
-      userIsHalfCreated = true;
-    } else if ("".equals(ambraUser.getDisplayName())) {
-      setDisplayNameRequired(false);
-      setIsDisplayNameSet(false);
-    }
-
-    return ambraUser;
-  }
-  
-  @Override
-  public String executeSaveUser() throws Exception {
-    String result = super.executeSaveUser();
-    if (SUCCESS.equals(result)) {
-      addActionMessage("Successfully changes to profile for " + getTopazId());
-    }
-    return result;
+  public String getUserAuthId() {
+    return userAuthId;
   }
 
-  @Override
-  public String executeRetrieveUserProfile() throws Exception {
-    final String status = super.executeRetrieveUserProfile();
-    if (userIsHalfCreated) {
-      setEmail(fetchUserEmailAddress());
-    }
-    return status;
-  }
-
-  @Override
-  protected String getUserIdToFetchEmailAddressFor() throws ApplicationException {
-    return userService.getAuthenticationId(getTopazId());
+  public void setUserAuthId(String userAuthId) {
+    this.userAuthId = userAuthId;
   }
 }

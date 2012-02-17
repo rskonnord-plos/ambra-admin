@@ -17,13 +17,12 @@ import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.annotation.service.AnnotationConverter;
 import org.ambraproject.annotation.service.Flag;
+import org.ambraproject.models.UserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.topazproject.ambra.models.AnnotationBlob;
 import org.topazproject.ambra.models.Comment;
-import org.topazproject.ambra.models.UserAccount;
-import org.topazproject.ambra.models.UserProfile;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -46,15 +45,10 @@ public class FlagManagementServiceTest extends AdminBaseTest {
   @DataProvider(name = "listFlag")
   public Object[][] listFlag() throws MalformedURLException {
     UserProfile creator = new UserProfile();
-    creator.setId(URI.create("id:test-id-for-creator"));
+    creator.setAccountUri("id:test-id-for-creator");
     creator.setRealName("realname");
     creator.setDisplayName("displayname");
     dummyDataStore.store(creator);
-
-    UserAccount userAccount = new UserAccount();
-    userAccount.setId(URI.create("testid2"));
-    userAccount.setProfile(creator);
-    dummyDataStore.store(userAccount);
 
     Comment originalComment = new Comment();
     originalComment.setId(URI.create("id://test-id"));
@@ -75,7 +69,7 @@ public class FlagManagementServiceTest extends AdminBaseTest {
     Comment flag = new Comment();
     flag.setId(URI.create("id://test-id-2"));
     flag.setAnnotates(originalComment.getId());
-    flag.setCreator(creator.getId().toString());
+    flag.setCreator(creator.getAccountUri());
     flag.setContext("context2");
     flag.setCreator("testid2");
     flag.setCreated(new Date());

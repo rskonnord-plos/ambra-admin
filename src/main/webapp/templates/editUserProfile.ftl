@@ -20,9 +20,9 @@
 -->
 <#include "includes/globals.ftl">
 <#if displayName?exists && displayName?length gt 0>
-  <#assign addressingUser = displayName +"'s" >
+  <#assign addressingUser = displayName >
 <#else>
-  <#assign addressingUser = "User's" >
+  <#assign addressingUser = "User" >
 </#if>
 <#if orgVisibility == "public" >
   <#assign checkedValue = true>
@@ -43,10 +43,10 @@
 
 <div id="container" class="profile">
 
-<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
-<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" topazId="${topazId}" includeParams="none"/>
+<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
+<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
   Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a>
-  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${topazId}</strong>
+  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
   <br/>
 
 <@s.form name="userForm" id="userForm" action="saveProfileByAdmin" namespace="/"
@@ -55,9 +55,15 @@ method="post" title="User Information Form" cssClass="ambra-form" enctype="multi
   <fieldset>
     <legend><b>Public Information</b> <span class="note">( <span class="required">*</span> are required)</span></legend>
     <ol>
-      <#if !isDisplayNameSet>
-        <@s.textfield name="displayName" label="Username" required="true" tabindex="1" maxlength="18" after="<p class='note'>(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)</p>" />
-      </#if>
+      <@s.hidden name="email"/>
+
+      <#if displayName??>
+      <#--store the display name on the page so that it gets set on the action when we go back to save-->
+        <@s.hidden name="displayName"/>
+      <#else>
+        <!--after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)"-->
+          <@s.textfield name="displayName" label="Username" required="true" tabindex="1" maxlength="18" after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)" />
+  	  </#if>
       <@s.select label="Title" name="title" value="title" col=true list="%{#selectList.allTitles}" tabindex="10" />
       <@s.textfield name="givenNames" label="First Name" col=true required="true" tabindex="2" />
       <@s.textfield name="surnames" label="Last Name" col=true required="true" tabindex="3"/>
@@ -84,9 +90,9 @@ method="post" title="User Information Form" cssClass="ambra-form" enctype="multi
       <#else>
         <input type="checkbox" name="orgVisibility" id="orgVisibility" value="private" onclick="changeHidden();"/>
       </#if>
-      <label for="orgVisibility">Display ${addressingUser} Additional Information publicly.</label>
+      <label for="orgVisibility">Display ${addressingUser}'s Additional Information publicly.</label>
     </fieldset>
-    <@s.hidden name="topazId"/>
+    <@s.hidden name="userAuthId"/>
     <@s.submit value="Submit" tabindex="99"/>
   </fieldset>
 </@s.form>

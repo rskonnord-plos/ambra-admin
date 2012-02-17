@@ -20,6 +20,7 @@
 
 package org.ambraproject.admin.service;
 
+import org.ambraproject.ApplicationException;
 import org.ambraproject.journal.JournalService;
 import org.topazproject.ambra.models.Issue;
 import org.topazproject.ambra.models.Volume;
@@ -33,6 +34,8 @@ import java.util.List;
  * actions.
  */
 public interface AdminService {
+
+  public void assignAdminRole(Long userId) throws ApplicationException;
 
 
   /**************************************************

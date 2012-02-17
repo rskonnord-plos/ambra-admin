@@ -42,30 +42,6 @@ public interface CitationService {
   public void updateCitation(String citationId, String title, String displayYear, String journal,
                              String volume, String issue, String eLocationId, String doi);
   /**
-   * Add author to citation.
-   * @param citationId Citation ID
-   * @param surnames Author surname
-   * @param givenNames Author given name
-   * @param suffix Author suffix
-   * @return New author ID
-   */
-  public String addAuthor(String citationId, String surnames, String givenNames, String suffix);
-  /**
-   * Delete author from citation
-   * @param citationId Citation ID
-   * @param authorId Author ID that is being deleted
-   */
-  public void deleteAuthor(String citationId, String authorId);
-
-  /**
-   * Update author
-   * @param authorId Author ID
-   * @param surnames Author surname
-   * @param givenNames Author given name
-   * @param suffix Author suffix
-   */
-  public void updateAuthor(String authorId, String surnames, String givenNames, String suffix);
-  /**
    * Add collaborative author
    * @param citationId Citation ID
    * @param collaborativeAuthor Collaborative author

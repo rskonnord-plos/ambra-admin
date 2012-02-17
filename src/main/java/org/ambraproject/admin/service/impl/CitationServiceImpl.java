@@ -21,13 +21,13 @@
 
 package org.ambraproject.admin.service.impl;
 
+import org.ambraproject.admin.service.CitationService;
+import org.ambraproject.service.HibernateServiceImpl;
 import org.hibernate.HibernateException;
 import org.springframework.transaction.annotation.Transactional;
-import org.ambraproject.admin.service.CitationService;
 import org.topazproject.ambra.models.ArticleContributor;
 import org.topazproject.ambra.models.Citation;
-import org.topazproject.ambra.models.UserProfile;
-import org.ambraproject.service.HibernateServiceImpl;
+
 import java.net.URI;
 
 /**
@@ -62,77 +62,6 @@ public class CitationServiceImpl extends HibernateServiceImpl implements Citatio
     citation.setDoi(emptyStringToNull(doi));
 
     hibernateTemplate.update(citation);
-  }
-
-  /**
-   * Add author to citation.
-   * @param citationId Citation ID
-   * @param surnames Author surname
-   * @param givenNames Author given name
-   * @param suffix Author suffix
-   * @return New author ID
-   */
-  @Transactional(rollbackFor = { Throwable.class })
-  public String addAuthor(String citationId, String surnames, String givenNames, String suffix) {
-
-    Citation citation = getCitation(citationId);
-
-    UserProfile newAuthor = new UserProfile();
-
-    newAuthor.setSurnames(emptyStringToNull(surnames));
-    newAuthor.setGivenNames(emptyStringToNull(givenNames));
-    newAuthor.setSuffix(emptyStringToNull(suffix));
-
-    hibernateTemplate.save(newAuthor);
-
-    citation.getAuthors().add(newAuthor);
-
-    hibernateTemplate.update(citation);
-
-    return newAuthor.getId().toString();
-  }
-
-  /**
-   * Delete author from citation
-   * @param citationId Citation ID
-   * @param authorId Author ID that is being deleted
-   */
-  @Transactional(rollbackFor = { Throwable.class })
-  public void deleteAuthor(String citationId, String authorId) {
-    Citation citation = getCitation(citationId);
-    UserProfile author = getAuthor(authorId);
-
-    for (UserProfile up : citation.getAuthors())
-    {
-      if(up.getId().equals(author.getId())) {
-        citation.getAuthors().remove(up);
-
-        hibernateTemplate.update(citation);
-        hibernateTemplate.delete(author);
-
-        return;
-      }
-    }
-
-    throw new HibernateException("Author <" + authorId + "> not found in citation <" + citationId + ">.");
-  }
-
-  /**
-   * Update author
-   * @param authorId Author ID
-   * @param surnames Author surname
-   * @param givenNames Author given name
-   * @param suffix Author suffix
-   */
-  @Transactional(rollbackFor = { Throwable.class })
-  public void updateAuthor(String authorId, String surnames, String givenNames, String suffix) {
-    UserProfile author = getAuthor(authorId);
-
-    author.setSurnames(emptyStringToNull(surnames));
-    author.setGivenNames(emptyStringToNull(givenNames));
-    author.setSuffix(emptyStringToNull(suffix));
-
-    hibernateTemplate.update(author);
   }
 
   /**
@@ -175,15 +104,6 @@ public class CitationServiceImpl extends HibernateServiceImpl implements Citatio
       citation.getCollaborativeAuthors().set(authorIndex, collaborativeAuthor.trim());
       hibernateTemplate.update(citation);
     }
-  }
-
-  private UserProfile getAuthor(String authorId) {
-    UserProfile author = (UserProfile)hibernateTemplate.get(UserProfile.class, URI.create(authorId));
-
-    if (author == null)
-      throw new HibernateException("Author <" + authorId + "> not found.");
-
-    return author;
   }
 
   private Citation getCitation(String citationId) {

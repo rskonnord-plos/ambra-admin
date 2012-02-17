@@ -17,23 +17,20 @@ import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.admin.service.FlaggedCommentRecord;
+import org.ambraproject.models.UserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.topazproject.ambra.models.Annotation;
 import org.topazproject.ambra.models.AnnotationBlob;
 import org.topazproject.ambra.models.Comment;
-import org.topazproject.ambra.models.Reply;
 import org.topazproject.ambra.models.ReplyThread;
-import org.topazproject.ambra.models.UserAccount;
-import org.topazproject.ambra.models.UserProfile;
 
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -78,10 +75,8 @@ public class ManageFlagsActionTest extends AdminWebTest {
 
     UserProfile profile1 = new UserProfile();
     profile1.setDisplayName("Voldemort");
+    profile1.setAccountUri("id:accountUriForCommentToFlag");
     dummyDataStore.store(profile1);
-    UserAccount account1 = new UserAccount();
-    account1.setProfile(profile1);
-    dummyDataStore.store(account1);
     Calendar created = Calendar.getInstance();
     created.add(Calendar.YEAR, -1);
 
@@ -95,15 +90,13 @@ public class ManageFlagsActionTest extends AdminWebTest {
             "<comment>Note created and flagged as a correction</comment>" +
             "</flag>").getBytes());
     flag1.setCreated(created.getTime());
-    flag1.setCreator(account1.getId().toString());
+    flag1.setCreator(profile1.getAccountUri());
     dummyDataStore.store(flag1);
 
     UserProfile profile2 = new UserProfile();
     profile2.setDisplayName("MyCoolUserN4m3");
+    profile2.setAccountUri("id:accountUriForCommentToFlag2");
     dummyDataStore.store(profile2);
-    UserAccount account2 = new UserAccount();
-    account2.setProfile(profile2);
-    dummyDataStore.store(account2);
 
     Comment flag2 = new Comment();
     flag2.setAnnotates(reply.getId());
@@ -114,15 +107,13 @@ public class ManageFlagsActionTest extends AdminWebTest {
             "<comment>flagging for elevation</comment>" +
             "</flag>").getBytes());
     flag2.setCreated(Calendar.getInstance().getTime());
-    flag2.setCreator(account2.getId().toString());
+    flag2.setCreator(profile2.getAccountUri());
     dummyDataStore.store(flag2);
 
     UserProfile profile3 = new UserProfile();
     profile3.setDisplayName("Harry Potter");
+    profile3.setAccountUri("id:accountUriForCommentToFlag3");
     dummyDataStore.store(profile3);
-    UserAccount account3 = new UserAccount();
-    account3.setProfile(profile3);
-    dummyDataStore.store(account3);
 
     Comment flag3 = new Comment();
     flag3.setAnnotates(reply.getId());
@@ -134,7 +125,7 @@ public class ManageFlagsActionTest extends AdminWebTest {
     Calendar created3 = Calendar.getInstance();
     created3.add(Calendar.HOUR, 1);
     flag3.setCreated(created3.getTime());
-    flag3.setCreator(account3.getId().toString());
+    flag3.setCreator(profile3.getAccountUri());
     dummyDataStore.store(flag3);
 
     List<FlaggedCommentRecord> flags = new ArrayList<FlaggedCommentRecord>(2);
@@ -146,7 +137,7 @@ public class ManageFlagsActionTest extends AdminWebTest {
             "Note created and flagged as a correction",
             dateFormatter.format(flag1.getCreated()),
             profile1.getDisplayName(),
-            account1.getId().toString(),
+            profile1.getAccountUri(),
             null,
             "Create Correction",
             comment.getWebType(),
@@ -162,7 +153,7 @@ public class ManageFlagsActionTest extends AdminWebTest {
             "flagging for elevation",
             dateFormatter.format(flag2.getCreated()),
             profile2.getDisplayName(),
-            account2.getId().toString(),
+            profile2.getAccountUri(),
             comment.getId().toString(),
             "other",
             reply.getWebType(),
@@ -178,7 +169,7 @@ public class ManageFlagsActionTest extends AdminWebTest {
             "-missing-",
             dateFormatter.format(flag3.getCreated()),
             profile3.getDisplayName(),
-            account3.getId().toString(),
+            profile3.getAccountUri(),
             comment.getId().toString(),
             "-missing-",
             reply.getWebType(),

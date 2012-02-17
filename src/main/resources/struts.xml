@@ -44,7 +44,6 @@
 
     <interceptors>
       <interceptor name="ensureAdmin" class="org.ambraproject.user.EnsureRoleInterceptor"/>
-      <interceptor name="ambraUserLookup" class="org.ambraproject.user.UserAccountsInterceptor"/>
       <interceptor name="transactionInterceptor" class="org.ambraproject.struts2.TransactionInterceptor"/>
 
       <interceptor-stack name="strutsBaseStack">
@@ -77,7 +76,6 @@
 
       <interceptor-stack name="ambraAdminStack">
         <interceptor-ref name="strutsBaseStack"/>
-        <interceptor-ref name="ambraUserLookup"/>
         <interceptor-ref name="ensureAdmin"/>
         <interceptor-ref name="transactionInterceptor"/>
       </interceptor-stack>
@@ -295,8 +293,7 @@
       </result>
     </action>
 
-    <action name="editProfileByAdmin" class="org.ambraproject.user.action.AdminUserProfileAction"
-            method="executeRetrieveUserProfile">
+    <action name="editProfileByAdmin" class="org.ambraproject.user.action.AdminUserProfileAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/editUserProfile.ftl</param>
       </result>
