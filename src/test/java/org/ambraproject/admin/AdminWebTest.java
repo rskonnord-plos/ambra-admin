@@ -13,8 +13,10 @@
 
 package org.ambraproject.admin;
 
+import com.opensymphony.xwork2.ActionContext;
 import org.ambraproject.BaseWebTest;
 import org.ambraproject.action.BaseActionSupport;
+import org.apache.struts2.interceptor.SessionAware;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -41,7 +43,12 @@ public abstract class AdminWebTest extends BaseWebTest {
   @Override
   public void setDefaultRequest() {
     setupAdminContext();
-    getAction().setRequest(getDefaultRequestAttributes());
+    if (getAction() != null) {
+      getAction().setRequest(getDefaultRequestAttributes());
+      if (getAction() instanceof SessionAware) {
+        ((SessionAware) getAction()).setSession(ActionContext.getContext().getSession());
+      }
+    }
   }
 
 }

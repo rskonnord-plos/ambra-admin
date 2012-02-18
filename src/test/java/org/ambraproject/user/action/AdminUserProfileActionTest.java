@@ -44,7 +44,6 @@ public class AdminUserProfileActionTest extends AdminWebTest {
   public Object[][] getUser() {
     UserProfile user = new UserProfile();
     user.setEmail("userActionTest@topazproject.org");
-    user.setRealName("Test User");
     user.setDisplayName("TEST_USERNAME");
     user.setGivenNames("my GIVENNAMES");
     user.setSurname("my Surnames");
@@ -77,8 +76,7 @@ public class AdminUserProfileActionTest extends AdminWebTest {
 
   @BeforeMethod
   public void resetAction() {
-//    action.setEmail(null);
-    action.setRealName(null);
+    action.setEmail(null);
     action.setDisplayName(null);
     action.setGivenNames(null);
     action.setSurnames(null);
@@ -134,7 +132,6 @@ public class AdminUserProfileActionTest extends AdminWebTest {
     assertEquals(action.getActionMessages().size(), 0, "Action returned messages: " + StringUtils.join(action.getActionErrors(), ";"));
 
     assertEquals(action.getEmail(), user.getEmail(), "action didn't have correct email");
-    assertEquals(action.getRealName(), user.getRealName(), "action didn't have correct real name");
     assertEquals(action.getDisplayName(), user.getDisplayName(), "action didn't have correct display name");
     assertEquals(action.getGivenNames(), user.getGivenNames(), "action didn't have correct given names");
     assertEquals(action.getSurnames(), user.getSurname(), "action didn't have correct surnames");
@@ -159,7 +156,6 @@ public class AdminUserProfileActionTest extends AdminWebTest {
     action.setOrgVisibility("public");
 
     action.setEmail(user.getEmail());
-    action.setRealName(user.getRealName());
     action.setDisplayName(user.getDisplayName());
     action.setGivenNames(user.getGivenNames());
     action.setSurnames(user.getSurname());
@@ -182,7 +178,7 @@ public class AdminUserProfileActionTest extends AdminWebTest {
 
     //make sure none of the other properties got changed
     assertEquals(savedUser.getEmail(), user.getEmail(), "user's email changed");
-    assertEquals(savedUser.getRealName(), user.getRealName(), "user's real name changed");
+    assertEquals(savedUser.getRealName(), user.getGivenNames() + " " + user.getSurname(), "user's real name changed");
     assertEquals(savedUser.getDisplayName(), user.getDisplayName(), "user's display name changed");
     assertEquals(savedUser.getGivenNames(), user.getGivenNames(), "user's given names changed");
     assertEquals(savedUser.getSurname(), user.getSurname(), "user's surnames changed");

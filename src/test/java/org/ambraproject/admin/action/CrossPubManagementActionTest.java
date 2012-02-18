@@ -45,6 +45,7 @@ public class CrossPubManagementActionTest extends AdminWebTest {
       dois[i] = URI.create(article.getDoi());
     }
 
+    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
     action.setCommand("ADD_ARTICLES");
     action.setArticlesToAdd(StringUtils.join(dois, ","));
     action.execute();
@@ -70,6 +71,7 @@ public class CrossPubManagementActionTest extends AdminWebTest {
     }
     dummyDataStore.update(storedJournal);
 
+    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
     action.setCommand("REMOVE_ARTICLES");
     action.setArticlesToRemove(dois);
     action.execute();

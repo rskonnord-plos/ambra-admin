@@ -57,6 +57,7 @@ public class DeleteArticleActionTest extends AdminWebTest {
 
   @Test
   public void testExecute() throws Exception {
+    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
     action.setArticle(null);
     String result = action.execute();
 
@@ -104,6 +105,7 @@ public class DeleteArticleActionTest extends AdminWebTest {
     dummyDataStore.store(reply);
 
 
+    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
     action.setArticle(article.getDoi());
     String result = action.deleteArticle();
 
