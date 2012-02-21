@@ -48,7 +48,7 @@
   Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a>
   or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
   <br/>
-
+Email: <b>${email}</b>
 <@s.form name="userForm" id="userForm" action="saveProfileByAdmin" namespace="/"
 method="post" title="User Information Form" cssClass="ambra-form" enctype="multipart/form-data">
   <@s.action name="selectList" namespace="/" id="selectList"/>
