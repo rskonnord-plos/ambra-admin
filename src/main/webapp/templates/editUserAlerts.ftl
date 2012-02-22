@@ -53,7 +53,6 @@
   or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
   <br/>
 
-Email: <b>${email}</b>
 <@s.form action="saveAlertsByAdmin" namespace="/" method="post" cssClass="ambra-form"
 method="post" title="Alert Form" name="userAlerts">
   <fieldset id="alert-form">

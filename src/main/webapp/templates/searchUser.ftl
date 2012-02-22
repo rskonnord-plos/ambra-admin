@@ -38,7 +38,7 @@
               <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${user.authId}" includeParams="none"/>
               <@s.url id="assignAdminRoleToUser" action="assignAdminRole" namespace="/" userId="${user.ID}" includeParams="none"/>
               <li>
-                User: {Id: <b>${user.ID}</b>; User name: <b>${user.displayName}</b>; Email: <b>${user.email}</b>}
+                User: {Id: <b>${user.ID}</b>; User name: <b>${user.displayName!}</b>; Email: <b>${user.email!}</b>}
                 <@s.a href="%{editProfileByAdminURL}">Edit profile</@s.a>&nbsp;
                 <@s.a href="%{assignAdminRoleToUser}">Assign Admin Role</@s.a>
               </li>
