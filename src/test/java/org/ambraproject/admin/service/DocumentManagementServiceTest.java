@@ -75,10 +75,10 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   final String articleUri = "info:doi/10.1371/journal.pone.0000202";
   final String articleUri2 = "info:doi/10.1371/journal.pone.0000203";
   final String articleUri3 = "info:doi/10.1371/journal.pone.0000204";
-  final String crossRefArticleXML = "pone.0000008.xml";
+  final String crossRefArticleXML = "sample-article.xml";
   final String crossRefArticleDOI = "info:doi/10.1371/journal.pone.0000008";
   final String crossRefArticleResultXML = "info_doi_10_1371_journal_pone_0000008.xml";
-  final String crossRefArticleResultTestXML = "pone.0000008.crossref.xml";
+  final String crossRefArticleResultTestXML = "sample-crossref.xml";
 
   @DataProvider(name = "storedUnpublishedArticles")
   public Object[][] getStoredUnpublishedArticles()
