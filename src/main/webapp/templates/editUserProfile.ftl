@@ -82,6 +82,7 @@ method="post" title="User Information Form" cssClass="ambra-form" enctype="multi
     <legend><b>Additional Information</b></legend>
     <ol>
       <@s.select label="Organization Type" name="organizationType" value="organizationType" list="%{#selectList.allOrganizationTypes}" tabindex="9" col=true />
+      <@s.textfield name="organizationName" label="Organization Name" cols="50" col=true tabindex="11" />
       <@s.textarea name="postalAddress" col=true row=true label="Organization Address" rows="5" cols="50" tabindex="6" />
       <@s.select label="Your Role" name="positionType" value="positionType" list="%{#selectList.allPositionTypes}" col=true tabindex="11" />
     </ol>
