@@ -40,7 +40,7 @@
       <table width="100%">
         <tr><td width="100px">&nbsp;</td><td/></tr>
         <tr><td nowrap="nowrap">In Response to</td><td><a href="${freemarker_config.context}/annotation/listThread.action?inReplyTo=${reply.root}&root=${reply.root}">${reply.root}</a></td></tr>
-        <tr><td nowrap="nowrap">Creator</td><td><a href="${freemarker_config.context}/user/showUser.action?userId=${reply.creator}">${reply.creatorName}</a></td></tr>
+        <tr><td nowrap="nowrap">Creator</td><td><a href="${freemarker_config.context}/user/showUser.action?userAccountUri=${reply.creator}">${reply.creatorName}</a></td></tr>
         <tr><td nowrap="nowrap">Created</td><td>${reply.createdAsDate?datetime}</td></tr>
         <tr><td nowrap="nowrap">Reply Id</td><td>${reply.id}</td></tr>
         <tr>

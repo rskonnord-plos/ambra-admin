@@ -40,7 +40,7 @@
 	<table width="100%">
           <tr><td width="100px">&nbsp;</td><td/></tr>
           <tr><td nowrap="nowrap">Annotates</td><td><a href="${freemarker_config.context}/article/${annotation.annotates}">${annotation.annotates}</a></td></tr>
-          <tr><td nowrap="nowrap">Creator</td><td><a href="${freemarker_config.context}/user/showUser.action?userId=${annotation.creator}">${annotation.creatorName}</a></td></tr>
+          <tr><td nowrap="nowrap">Creator</td><td><a href="${freemarker_config.context}/user/showUser.action?userAccountUri=${annotation.creator}">${annotation.creatorName}</a></td></tr>
           <tr><td nowrap="nowrap">Created</td><td>${annotation.createdAsDate?datetime}</td></tr>
           <tr><td nowrap="nowrap">Annotation Id</td><td><a href="${freemarker_config.context}/annotation/listThread.action?inReplyTo=${annotation.id}&root=${annotation.id}">${annotation.id}</a></td></tr>
           <tr>

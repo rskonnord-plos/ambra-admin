@@ -60,7 +60,7 @@
               <tr>
                 <td>${flaggedComment.created}</td>
                 <td width="20%">${flaggedComment.flagComment!}</td>
-                <td><a href="../user/displayUser.action?userId=${flaggedComment.creatorid}"/>${flaggedComment.creator}</a></td>
+                <td><a href="../user/showUser.action?userAccountUri=${flaggedComment.creatorid}"/>${flaggedComment.creator}</a></td>
                 <td width="20%"><a href="${flagURL}">${targetTitle}</a></td>
                 <td>${flaggedComment.reasonCode!}</td>
                 <td>

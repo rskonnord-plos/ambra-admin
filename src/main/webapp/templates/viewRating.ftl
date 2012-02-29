@@ -63,7 +63,7 @@
         </tr>
         <tr><td>Title</td><td>${commentTitle!}</td></tr>
         <tr><td>Created</td><td>${rating.created?datetime}</td></tr>
-        <tr><td>Creator</td><td><a href="../user/showUser.action?userId=${rating.creator}">${rating.creator}</a></td></tr>
+        <tr><td>Creator</td><td><a href="../user/showUser.action?userAccountUri=${rating.creator}">${rating.creator}</a></td></tr>
         <tr><td>Body</td><td>${commentText!}</td></tr>
         <tr>
           <td>Conflict of Interest</td>

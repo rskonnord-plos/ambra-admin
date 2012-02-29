@@ -76,7 +76,7 @@
           <tr><td><b>Created</b></td>
             <td>${annotation.createdAsDate?string("EEEE, MMMM dd, yyyy, hh:mm:ss a '('zzz')'")!"No Creation Date"}</td></tr>
           <tr><td><b>Creator</b></td>
-            <@s.url id="showUser" namespace="/user" action="showUser" userId="${annotation.creator!}"/>
+            <@s.url id="showUser" namespace="/user" action="showUser" userAccountUri="${annotation.creator!}"/>
             <td><@s.a href="${showUser}">${annotation.creator!"No Creator"}</@s.a></td></tr>
           <tr><td><b>Annotates</b></td>
             <td><a href="${freemarker_config.context}/article/${annotation.annotates!}">${annotation.annotates!"No Annotates value"}</a></td></tr>
