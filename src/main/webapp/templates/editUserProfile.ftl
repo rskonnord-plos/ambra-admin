@@ -57,7 +57,9 @@ method="post" title="User Information Form" cssClass="ambra-form" enctype="multi
   <fieldset>
     <legend><b>Public Information</b> <span class="note">( <span class="required">*</span> are required)</span></legend>
     <ol>
+      <#--Store email and alerts journals so they can be passed back to the action when we do a save-->
       <@s.hidden name="email"/>
+      <@s.hidden name="alertsJournals"/>
 
       <#if displayName??>
       <#--store the display name on the page so that it gets set on the action when we go back to save-->
