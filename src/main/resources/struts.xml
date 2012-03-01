@@ -300,6 +300,13 @@
       <result name="input" type="freemarker">
         <param name="location">/templates/editUserProfile.ftl</param>
       </result>
+      <!--These are necessary in case you're editing an old user profile with no display name-->
+      <result name="update-profile" type="freemarker">
+        <param name="location">/templates/editUserProfile.ftl</param>
+      </result>
+      <result name="new-profile" type="freemarker">
+        <param name="location">/templates/editUserProfile.ftl</param>
+      </result>
     </action>
 
     <action name="saveProfileByAdmin" class="org.ambraproject.user.action.AdminUserProfileAction"
