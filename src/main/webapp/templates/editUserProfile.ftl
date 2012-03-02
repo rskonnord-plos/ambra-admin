@@ -61,7 +61,7 @@ method="post" title="User Information Form" cssClass="ambra-form" enctype="multi
       <@s.hidden name="email"/>
       <@s.hidden name="alertsJournals"/>
 
-      <#if displayName?has_content>
+      <#if displayName?has_content && !showDisplayName>
       <#--store the display name on the page so that it gets set on the action when we go back to save-->
         <@s.hidden name="displayName"/>
       <#else>
