@@ -95,7 +95,7 @@
     <dependency>
       <groupId>org.ambraproject</groupId>
       <artifactId>ambra-webapp</artifactId>
-      <version>2.2.3-SNAPSHOT</version>
+      <version>${ambra.version}</version>
       <type>warpath</type>
       <exclusions>
         <!--These are some easy wins for reducing the size of the admin war, we don't need these libraries in admin-->
