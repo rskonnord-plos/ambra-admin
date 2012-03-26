@@ -2,7 +2,7 @@
 * $HeadURL$
 * $Id$
 *
-* Copyright (c) 2006-2011 by Public Library of Science
+* Copyright (c) 2006-2012 by Public Library of Science
 * http://plos.org
 * http://ambraproject.org
 *
@@ -23,6 +23,8 @@ package org.ambraproject.article.service;
 
 import net.sf.saxon.Controller;
 import net.sf.saxon.TransformerFactoryImpl;
+import net.sf.saxon.serialize.Emitter;
+import net.sf.saxon.serialize.MessageWarner;
 import org.ambraproject.article.ArchiveProcessException;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAsset;
@@ -33,6 +35,7 @@ import org.ambraproject.models.Category;
 import org.ambraproject.models.CitedArticle;
 import org.ambraproject.models.CitedArticleAuthor;
 import org.ambraproject.models.CitedArticleEditor;
+import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
@@ -49,13 +52,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.ErrorListener;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.URIResolver;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -68,21 +65,19 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
  * {@link IngestArchiveProcessor} that uses an xsl stylesheet to format the article xml into an easy to parse xml
  *
+ * @author Bill OConnor
  * @author Alex Kudlick Date: 6/20/11
  *         <p/>
  *         org.ambraproject.article.service
@@ -92,10 +87,10 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
   private DocumentBuilder documentBuilder;
   private TransformerFactory transformerFactory;
-  private String xslStyleSheet;
+  private InputStream xslDefaultTemplate;
+  private Map<String, String> xslTemplateMap;
   private Configuration configuration;
   private XPathUtil xPathUtil;
-
 
   public XslIngestArchiveProcessor() {
     transformerFactory = new TransformerFactoryImpl();
@@ -192,13 +187,26 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
   }
 
   /**
-   * Set the xsl style sheet to use
+   * Setter for XSL Templates.  Takes in a string as the filename and searches for it in resource
+   * path and then as a URI.
    *
-   * @param xslStyleSheet - The classpath-relative location of an xsl stylesheet to use to process the article xml
+   * @param xslTemplate The xslTemplate to set.
+   * @throws java.net.URISyntaxException
    */
   @Required
-  public void setXslStyleSheet(String xslStyleSheet) {
-    this.xslStyleSheet = xslStyleSheet;
+  public void setXslDefaultTemplate(String xslTemplate)  throws URISyntaxException {
+    InputStream s = getAsStream(xslTemplate);
+    this.xslDefaultTemplate = s;
+  }
+
+  /**
+   * Set the xsl style sheet to use
+   *
+   * @param xslTemplateMap - A map of classpath-relative location of an xsl stylesheets to use to process the article xml
+   */
+  @Required
+  public void setXslTemplateMap(Map<String, String> xslTemplateMap) {
+    this.xslTemplateMap = xslTemplateMap;
   }
 
   /**
@@ -221,11 +229,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     InputStream xsl = null;
     try {
       String zipInfo = describeZip(archive);
-      xsl = getClass().getClassLoader().getResourceAsStream(xslStyleSheet);
-      if (xsl == null) {
-        throw new ArchiveProcessException("Couldn't open stylesheet: " + xslStyleSheet);
-      }
-      Document transformedXml = transformZip(archive, zipInfo, xsl,
+
+      Document transformedXml = transformZip(archive, zipInfo, articleXml,
           configuration.getString("ambra.platform.doiUrlPrefix", null));
 
       Article article = parseTransformedXml(transformedXml);
@@ -242,6 +247,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       throw new ArchiveProcessException("Error parsing a date in the xml", e);
     } catch (XPathExpressionException e) {
       throw new ArchiveProcessException("Error parsing transformed xml", e);
+    } catch (URISyntaxException e) {
+      throw new ArchiveProcessException("Error malformed uri", e);
     } finally {
       if (xsl != null) {
         try {
@@ -640,15 +647,15 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
    *
    * @param zip          the zip archive containing the items to ingest
    * @param zipInfo      the document describing the zip archive (adheres to zip.dtd)
-   * @param handler      the stylesheet to run on <var>zipInfo</var>; this is the main script
+   * @param articleXml      the stylesheet to run on <var>zipInfo</var>; this is the main script
    * @param doiUrlPrefix DOI URL prefix
    * @return a document describing the fedora objects to create (must adhere to fedora.dtd)
    * @throws javax.xml.transform.TransformerException
    *          if an error occurs during the processing
    */
-  private Document transformZip(ZipFile zip, String zipInfo, InputStream handler, String doiUrlPrefix)
-      throws TransformerException {
-    Transformer t = transformerFactory.newTransformer(new StreamSource(handler));
+  private Document transformZip(ZipFile zip, String zipInfo, Document articleXml, String doiUrlPrefix)
+      throws TransformerException, URISyntaxException {
+    Transformer t = getTranslet(articleXml);
     t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
     t.setURIResolver(new ZipURIResolver(zip));
 
@@ -661,9 +668,9 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
      * t.setErrorListener(), but Saxon does not forward <xls:message>'s to the error listener.
      * Hence we need to use Saxon's API's in order to get at those messages.
      */
-    final StringWriter msgs = new StringWriter();
-    ((Controller) t).makeMessageEmitter();
-    ((Controller) t).getMessageEmitter().setWriter(msgs);
+    final StringWriter msgs = new StringWriter(); 
+    MessageWarner em = new MessageWarner();
+    ((Controller) t).setMessageEmitter(em);   
     t.setErrorListener(new ErrorListener() {
       public void warning(TransformerException te) {
         log.warn("Warning received while processing zip", te);
@@ -686,14 +693,14 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     try {
       t.transform(inp, res);
     } catch (TransformerException te) {
-      if (msgs.getBuffer().length() > 0)
+      if (msgs.getBuffer().length() > 0) {
+        log.error(msgs.getBuffer().toString());
         throw new TransformerException(msgs.toString(), te);
-      else
+      } else
         throw te;
     }
     if (msgs.getBuffer().length() > 0)
       throw new TransformerException(msgs.toString());
-
     return (Document) res.getNode();
   }
 
@@ -824,5 +831,40 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       log.error("Error converting dom to string", te);
       return "";
     }
+  }
+
+  /**
+   * @param filenameOrURL filenameOrURL
+   * @throws java.net.URISyntaxException URISyntaxException
+   * @return the local or remote file or url as a java.io.File
+   */
+  public InputStream getAsStream(final String filenameOrURL) throws URISyntaxException {
+    return  getClass().getClassLoader().getResourceAsStream(filenameOrURL);
+  }
+
+  /**
+   * Get a translet, compiled stylesheet, for the xslTemplate. If the doc is null
+   * use the default template. If the doc is not null then get the DTD version.
+   * IF the DTD version does not exist use the default template else use the
+   * template associated with that version.
+   *
+   * @param  doc  the dtd version of document
+   * @return Translet for the xslTemplate.
+   * @throws javax.xml.transform.TransformerException TransformerException.
+   */
+  private Transformer getTranslet(Document doc) throws TransformerException, URISyntaxException {
+    final TransformerFactory tFactory = TransformerFactory.newInstance();    // key is "" if the Attribute does not exist
+    InputStream templateStream;
+
+    String key =  doc.getDocumentElement().getAttribute("dtd-version").trim();
+    if ((doc == null) || (!xslTemplateMap.containsKey(key)) || (key.equalsIgnoreCase(""))) {
+      templateStream = xslDefaultTemplate;
+    } else {
+      String templateName = xslTemplateMap.get(key);
+      templateStream = getAsStream(templateName);
+    }
+
+    Templates translet = tFactory.newTemplates(new StreamSource(templateStream));
+    return translet.newTransformer();
   }
 }

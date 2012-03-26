@@ -41,6 +41,7 @@ public abstract class AdminWebTest extends BaseWebTest {
   protected abstract BaseActionSupport getAction();
 
   @Override
+  @BeforeMethod
   public void setDefaultRequest() {
     setupAdminContext();
     if (getAction() != null) {

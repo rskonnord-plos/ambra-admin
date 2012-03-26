@@ -239,9 +239,21 @@
   <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
+
+  <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
+  <util:map id="xslTemplateMap">
+    <entry key="default"
+           value="${ambra.services.ingest.default}"/>
+    <entry key="2.0"
+           value="${ambra.services.ingest.dtd_2_3}"/>
+    <entry key="3.0"
+           value="${ambra.services.ingest.dtd_3_0}"/>
+  </util:map>
+
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
     <property name="documentBuilder" ref="documentBuilder"/>
-    <property name="xslStyleSheet" value="${ambra.services.ingest.xsl}"/>
+    <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
+    <property name="xslTemplateMap" ref="xslTemplateMap"/>
     <property name="configuration" ref="ambraConfiguration"/>
   </bean>
 
@@ -259,6 +271,16 @@
     <property name="annotationService" ref="annotationService"/>
     <property name="annotationConverter" ref="annotationConverter"/>
   </bean>
+
+  <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
+  <util:map id="xslXrefTemplateMap">
+    <entry key="default"
+           value="${ambra.services.xreftransform.default}"/>
+    <entry key="2.0"
+           value="${ambra.services.xreftransform.dtd_2_3}"/>
+    <entry key="3.0"
+           value="${ambra.services.xreftransform.dtd_3_0}"/>
+  </util:map>
 
   <bean id="documentManagementService"
         class="org.ambraproject.admin.service.impl.DocumentManagementServiceImpl">
@@ -283,7 +305,8 @@
         <ref bean="articleIndexingService"/>
       </list>
     </property>
-    <property name="crossrefXslTemplate" value="crossref.xsl"/>
+    <property name="xslDefaultTemplate" value="${ambra.services.xreftransform.default}"/>
+    <property name="xslTemplateMap" ref="xslXrefTemplateMap"/>
   </bean>
 
 

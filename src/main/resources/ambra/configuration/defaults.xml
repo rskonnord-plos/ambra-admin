@@ -98,9 +98,31 @@
     </virtualJournals>
 
     <services>
+
       <ingest>
-        <xsl>org/ambraproject/article/service/pmc2obj.xslt</xsl>
+        <default>org/ambraproject/article/service/pmc2obj.xslt</default>
+        <dtd_2_3>org/ambraproject/article/service/pmc2obj.xslt</dtd_2_3>
+        <dtd_3_0>org/ambraproject/article/service/pmc2obj-v3.xslt</dtd_3_0>
       </ingest>
+
+      <articletransform>
+        <default>/articleTransform.xsl</default>
+        <dtd_2_3>/articleTransform.xsl</dtd_2_3>
+        <dtd_3_0>/articleTransform-v3.xsl</dtd_3_0>
+      </articletransform>
+
+      <fulldoitransform>
+        <default>/fullDOI.xsl</default>
+        <dtd_2_3>/fullDOI.xsl</dtd_2_3>
+        <dtd_3_0>/fullDOI.xsl</dtd_3_0>
+      </fulldoitransform>
+
+      <objinfotransform>
+        <default>/objInfo.xsl</default>
+        <dtd_2_3>/objInfo.xsl</dtd_2_3>
+        <dtd_3_0>/objInfo-v3.xsl</dtd_3_0>
+      </objinfotransform>
+      
       <!-- URLs to access the CAS Single Signon Server.
         login: the login page
         logout: the logout page
@@ -140,6 +162,11 @@
         </url>
       </registration>
 
+      <xreftransform>
+        <default>/crossref.xsl</default>
+        <dtd_2_3>/crossref.xsl</dtd_2_3>
+        <dtd_3_0>/crossref_v3.xsl</dtd_3_0>
+      </xreftransform>
 
       <!-- crossref information - set parameters and sendToXref to true to turn on -->
       <crossref>

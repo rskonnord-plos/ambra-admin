@@ -38,16 +38,14 @@ import org.topazproject.ambra.models.Journal;
 import org.ambraproject.permission.service.PermissionsService;
 import org.w3c.dom.Document;
 
+import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -75,7 +73,19 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
 
   private List<OnPublishListener> onPublishListeners;
   private List<OnDeleteListener> onDeleteListeners;
-  private String crossrefXslTemplate;
+  private String xslDefaultTemplate;
+  private Map<String, String> xslTemplateMap;
+
+
+  /**
+   * Set the xsl style sheet to use
+   *
+   * @param xslTemplateMap - A map of classpath-relative location of an xsl stylesheets to use to process the article xml
+   */
+  @Required
+  public void setXslTemplateMap(Map<String, String> xslTemplateMap) {
+    this.xslTemplateMap = xslTemplateMap;
+  }
 
   @Required
   public void setArticleService(final ArticleService articleService) {
@@ -124,30 +134,15 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
   }
 
   /**
-   * Set the Xsl template used to create the crossref info doc.  This should be capable of transforming an article xml
-   * file.
+   * Setter for XSL Templates.  Takes in a string as the filename and searches for it in resource
+   * path and then as a URI.
    *
-   * @param crossrefXslTemplate - the name of a classpath accessible xsl template to use in creating the crossref info
-   *                            doc
+   * @param xslTemplate The xslTemplate to set.
+   * @throws java.net.URISyntaxException
    */
   @Required
-  public void setCrossrefXslTemplate(String crossrefXslTemplate) {
-    this.crossrefXslTemplate = crossrefXslTemplate;
-  }
-
-  /**
-   * @param filenameOrURL filenameOrURL
-   * @return the local or remote file or url as a java.io.File
-   * @throws java.net.URISyntaxException when URL is malformed
-   */
-  private File getAsFile(final String filenameOrURL) throws URISyntaxException {
-    final URL resource = getClass().getResource(filenameOrURL);
-    if (null == resource) {
-      // access it as a local file resource
-      return new File(org.ambraproject.util.FileUtils.getFileName(filenameOrURL));
-    } else {
-      return new File(resource.toURI());
-    }
+  public void setXslDefaultTemplate(String xslTemplate)  throws URISyntaxException {
+    this.xslDefaultTemplate = xslTemplate;
   }
 
   /**
@@ -269,7 +264,7 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
     if (dir.isDirectory()) {
       Collections.addAll(documents, dir.list(new FilenameFilter() {
         //check the file extensions
-        @Override
+
         public boolean accept(File file, String fileName) {
           for (String extension : new String[]{".tar", ".tar.bz", ".tar.bz2",
               ".tar.gz", ".tb2", ".tbz", ".tbz2", ".tgz", ".zip"}) {
@@ -336,23 +331,68 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
    * @throws javax.xml.transform.TransformerException
    *          - if there's a problem transforming the article xml
    */
-  @Override
   public void generateCrossrefInfoDoc(Document articleXml, URI articleId) throws TransformerException {
     log.info("Generating crossref info doc for article " + articleId);
-    File crossrefXslFile;
+
     try {
-      crossrefXslFile = new File(getClass().getClassLoader().getResource(crossrefXslTemplate).toURI());
-    } catch (Exception e) {
-      crossrefXslFile = new File(crossrefXslTemplate);
+      Transformer t = getTranslet(articleXml);
+      t.setParameter("plosDoiUrl", plosDoiUrl);
+      t.setParameter("plosEmail", plosEmail);
+
+      File target_xml =
+          new File(ingestedDocumentDirectory, getCrossrefDocFileName(articleId));
+
+      t.transform(new DOMSource(articleXml, articleId.toString()), new StreamResult(target_xml));
+    } catch(Exception e) {
+      throw new TransformerException(e);
     }
-    Transformer t = TransformerFactory.newInstance().newTransformer(new StreamSource(crossrefXslFile));
-    t.setParameter("plosDoiUrl", plosDoiUrl);
-    t.setParameter("plosEmail", plosEmail);
+  }
+  /**
+   * Get a translet, compiled stylesheet, for the xslTemplate. If the doc is null
+   * use the default template. If the doc is not null then get the DTD version.
+   * IF the DTD version does not exist use the default template else use the
+   * template associated with that version.
+   *
+   * @param  doc  the dtd version of document
+   * @return Translet for the xslTemplate.
+   * @throws javax.xml.transform.TransformerException TransformerException.
+   */
+  private Transformer getTranslet(Document doc) throws TransformerException {
+    Transformer transformer;
+    StreamSource templateStream = null;
+    String templateName;
+    try {
+      String key =  doc.getDocumentElement().getAttribute("dtd-version").trim();
+      if ((doc == null) || (!xslTemplateMap.containsKey(key)) || (key.equalsIgnoreCase(""))) {
+        templateStream = getAsStream(xslDefaultTemplate);
+      } else {
+        templateName = xslTemplateMap.get(key);
+        templateStream = getAsStream(templateName);
+      }
+    } catch(Exception e) {
+      log.error("XmlTransform not found", e);
+    }
 
-    File target_xml =
-        new File(ingestedDocumentDirectory, getCrossrefDocFileName(articleId));
+    final TransformerFactory tFactory = TransformerFactory.newInstance();
+    Templates translet = tFactory.newTemplates(templateStream);
+    transformer = translet.newTransformer();
+    return transformer;
+  }
 
-    t.transform(new DOMSource(articleXml, articleId.toString()), new StreamResult(target_xml));
+  /**
+   * @param filenameOrURL filenameOrURL
+   * @throws java.net.URISyntaxException URISyntaxException
+   * @return the local or remote file or url as a java.io.File
+   */
+  public StreamSource getAsStream(final String filenameOrURL) throws URISyntaxException,
+      IOException {
+    final URL resource = getClass().getClassLoader().getResource(filenameOrURL);
+
+    if (resource != null) {
+      return new StreamSource(resource.openStream());
+    }
+
+    return  new StreamSource(new File(filenameOrURL));
   }
 
   /**
