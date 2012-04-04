@@ -27,7 +27,7 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <ambra.version>2.3.1-SNAPSHOT</ambra.version>
+    <ambra.version>2.2.3</ambra.version>
     <conf-helper.version>2.2.1</conf-helper.version>
   </properties>
 
@@ -126,7 +126,7 @@
     <dependency>
       <groupId>net.sf.saxon</groupId>
       <artifactId>saxon</artifactId>
-      <version>9.3</version>
+      <version>9.4</version>
     </dependency>
     <dependency>
       <groupId>org.ambraproject</groupId>
