@@ -510,7 +510,7 @@
   </xsl:function>
 
   <!-- pmc structured name to simple string (for dc:creator etc) -->
-  <xsl:function name="my:format-contrib-name" as="xs:string">
+  <xsl:function name="my:format-contrib-name" as="xs:string?">
     <xsl:param name="contrib" as="element(contrib)"/>
 
     <xsl:choose>
