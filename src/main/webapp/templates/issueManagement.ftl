@@ -120,13 +120,13 @@
         </tr>
         <#list grp.articles as a>
         <@s.url id="articleURL" includeParams="none" namespace="/article" action="fetchArticle"
-                 articleURI="${a.id}"/>
+                 articleURI="${a.doi}"/>
         <tr>
           <td align="center">
-              <@s.checkbox name="articlesToRemove" fieldValue="${a.id}"/>
+              <@s.checkbox name="articlesToRemove" fieldValue="${a.doi}"/>
           </td>
           <td>
-             ${a.id}
+             ${a.doi}
           </td>
           <td>
              <a target="_article" href="${articleURL}">${a.title}</a>

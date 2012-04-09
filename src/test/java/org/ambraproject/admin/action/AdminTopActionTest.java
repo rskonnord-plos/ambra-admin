@@ -21,6 +21,7 @@ import org.ambraproject.article.service.ArticleService;
 import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.article.service.SampleArticleData;
 import org.ambraproject.filestore.FSIDMapper;
+import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Syndication;
 import org.apache.commons.io.FileUtils;
@@ -97,8 +98,8 @@ public class AdminTopActionTest extends AdminWebTest {
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
     assertEquals(action.getUploadableFiles().size(), 7, "Action returned incorrect number of uploadable files");
     boolean foundCorrectArticle = false;
-    for (Article article : action.getPublishableArticles()) {
-      if (article.getDoi().equals(publishableArticle.getDoi())) {
+    for (ArticleInfo articleInfo : action.getPublishableArticles()) {
+      if (articleInfo.getDoi().equals(publishableArticle.getDoi())) {
         foundCorrectArticle = true;
         break;
       }
@@ -140,9 +141,9 @@ public class AdminTopActionTest extends AdminWebTest {
     article3.seteIssn(defaultJournal.geteIssn());
     dummyDataStore.store(article3);
 
-    final Comparator<Article> dateAscending = new Comparator<Article>() {
+    final Comparator<ArticleInfo> dateAscending = new Comparator<ArticleInfo>() {
       @Override
-      public int compare(Article article, Article article1) {
+      public int compare(ArticleInfo article, ArticleInfo article1) {
         if (article.getDate() == null) {
           return article1.getDate() == null ? 0 : -1;
         } else if (article1.getDate() == null) {
@@ -151,21 +152,21 @@ public class AdminTopActionTest extends AdminWebTest {
         return article.getDate().compareTo(article1.getDate());
       }
     };
-    final Comparator<Article> dateDescending = new Comparator<Article>() {
+    final Comparator<ArticleInfo> dateDescending = new Comparator<ArticleInfo>() {
       @Override
-      public int compare(Article article, Article article1) {
+      public int compare(ArticleInfo article, ArticleInfo article1) {
         return -1 * dateAscending.compare(article, article1);
       }
     };
-    final Comparator<Article> doiAscending = new Comparator<Article>() {
+    final Comparator<ArticleInfo> doiAscending = new Comparator<ArticleInfo>() {
       @Override
-      public int compare(Article article, Article article1) {
+      public int compare(ArticleInfo article, ArticleInfo article1) {
         return article.getDoi().compareTo(article1.getDoi());
       }
     };
-    final Comparator<Article> doiDescending = new Comparator<Article>() {
+    final Comparator<ArticleInfo> doiDescending = new Comparator<ArticleInfo>() {
       @Override
-      public int compare(Article article, Article article1) {
+      public int compare(ArticleInfo article, ArticleInfo article1) {
         return -1 * doiAscending.compare(article, article1);
       }
     };
@@ -178,16 +179,16 @@ public class AdminTopActionTest extends AdminWebTest {
   }
 
   @Test(dependsOnMethods = "testBasicRequest", dataProvider = "articlesToSort", alwaysRun = true)
-  public void testSort(String directive, Comparator<Article> comparator) {
+  public void testSort(String directive, Comparator<ArticleInfo> comparator) {
     action.setAction(directive);
     action.processArticles();
 
     assertTrue(action.getPublishableArticles().size() > 1, "action didn't have any publishable articles");
 
     for (int i = 0; i < action.getPublishableArticles().size() - 1; i++) {
-      Article article = action.getPublishableArticles().get(i);
-      Article nextArticle = action.getPublishableArticles().get(i + 1);
-      assertTrue(comparator.compare(article, nextArticle) <= 0,
+      ArticleInfo articleInfo = action.getPublishableArticles().get(i);
+      ArticleInfo nextArticleInfo = action.getPublishableArticles().get(i + 1);
+      assertTrue(comparator.compare(articleInfo, nextArticleInfo) <= 0,
           "Articles weren't in order when sorting by: '" + directive + "'");
     }
   }

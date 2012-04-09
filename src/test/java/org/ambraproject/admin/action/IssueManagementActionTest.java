@@ -90,7 +90,7 @@ public class IssueManagementActionTest extends AdminWebTest {
 
         //add an articleInfo to TOC group
         ArticleInfo info = new ArticleInfo();
-        info.setId(URI.create(article.getDoi()));
+        info.setDoi(article.getDoi());
         info.setAt(article.getTypes());
         info.setTitle(article.getTitle());
         group.addArticle(info);
@@ -153,7 +153,7 @@ public class IssueManagementActionTest extends AdminWebTest {
       for (int j = 0; j < actualGroup.getArticles().size(); j++) {
         ArticleInfo actualArticle = actualGroup.getArticles().get(j);
         ArticleInfo expectedArticle = expectedGroup.getArticles().get(j);
-        assertEquals(actualArticle.getId(), expectedArticle.getId(),
+        assertEquals(actualArticle.getDoi(), expectedArticle.getDoi(),
             "Article " + (j + 1) + " in group " + actualGroup.getHeading() + " had incorrect doi");
         assertEquals(actualArticle.getTitle(), expectedArticle.getTitle(),
             "Article " + (j + 1) + " in group " + actualGroup.getHeading() + " had incorrect title");
@@ -353,7 +353,7 @@ public class IssueManagementActionTest extends AdminWebTest {
     //the first article should be in the first TOC group
     boolean foundMatch = false;
     for (ArticleInfo articleInfo : action.getArticleGrps().get(0).getArticles()) {
-      if (articleInfo.getId().toString().equals(article.getDoi())) {
+      if (articleInfo.getDoi().equals(article.getDoi())) {
         foundMatch = true;
         break;
       }

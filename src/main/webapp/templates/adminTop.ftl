@@ -83,7 +83,7 @@
               <th>Syndicate<#if (publishableArticles.size() > 1)> <a href="#" onClick="setCheckBoxes('processArticles','[name=syndicates]',true); return false;">All</a>, <a href="#"  onClick="setCheckBoxes('processArticles','[name=syndicates]',false); return false;">None</a></#if></th>
             </tr>
             <#list publishableArticles as article>
-              <#assign doi = article.getDoi().toString() >
+              <#assign doi = article.getDoi() >
               <tr id="tr_${doi?url}" >
                 <@s.url id="articleURL" includeParams="none" namespace="/article" action="fetchArticle" articleURI="${doi}"/>
                 <td><input type="checkbox" name="articles" value="${doi}" id="${doi?url}" onClick="checkValues(this);"/>

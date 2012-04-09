@@ -229,7 +229,7 @@ public class IssueManagementAction extends BaseAdminActionSupport {
       for (TOCArticleGroup ag : articleGroups) {
         List<ArticleInfo> infoList = ag.getArticles();
         for(ArticleInfo info : infoList ) {
-          if (info.getId().equals(articleURI)) {
+          if (info.getDoi().equals(articleURI.toString())) {
             found = true;
             break;
           }

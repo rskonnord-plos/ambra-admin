@@ -20,6 +20,7 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.models.Syndication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
   private static final Logger log = LoggerFactory.getLogger(AdminTopAction.class);
   private Collection<String> uploadableFiles;
-  private List<Article> publishableArticles;
+  private List<ArticleInfo> publishableArticles;
   private Map<String, List<Syndication>> syndicationMap;
   private List<Syndication> syndications;
 
@@ -495,8 +496,8 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
       syndicationMap = new HashMap<String, List<Syndication>>();
       //Map syndications to the publishable articles
-      for (Article article : publishableArticles) {
-        syndicationMap.put(article.getDoi(), syndicationService.getSyndications(article.getDoi()));
+      for (ArticleInfo articleInfo : publishableArticles) {
+        syndicationMap.put(articleInfo.getDoi(), syndicationService.getSyndications(articleInfo.getDoi()));
       }
 
     } catch (Exception e) {
@@ -585,7 +586,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
    *
    * @return Map of articles keyed off of their Article IDs
    */
-  public List<Article> getPublishableArticles() {
+  public List<ArticleInfo> getPublishableArticles() {
     return publishableArticles;
   }
 
