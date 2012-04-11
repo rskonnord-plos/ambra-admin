@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ $HeadURL$
+  ~ $Id$
+  ~ Copyright (c) 2006-2012 by Public Library of Science http://plos.org http://ambraproject.org
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util
+       http://www.springframework.org/schema/util/spring-util-2.0.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-2.0.xsd
+       http://activemq.apache.org/schema/core
+       http://camel.apache.org/schema/spring
+       http://camel.apache.org/schema/spring/camel-spring.xsd"
+    default-lazy-init="true">
+
+  <!--Include all the bean definitions from Ambra-->
+  <import resource="classpath*:org/ambraproject/nonWebApplicationContext.xml" />
+
+  <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="journalService" ref="journalService"/>
+  </bean>
+
+  <bean id="citationService" class="org.ambraproject.admin.service.impl.CitationServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
+  <bean id="filestoreDir" class="java.lang.String">
+    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore" />
+  </bean>
+
+ <bean id="fileStoreService" class="org.ambraproject.filestore.impl.FileSystemImpl">
+    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore"/>
+    <constructor-arg index="1" value=""/>
+  </bean>
+
+
+  <bean class="java.lang.String" id="ingestDir">
+    <constructor-arg value="${project.basedir}/target/test-classes/ingest" />
+  </bean>
+
+  <bean class="java.lang.String" id="ingestedDir">
+    <constructor-arg value="${project.basedir}/target/test-classes/ingested" />
+  </bean>
+
+  <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
+  <util:map id="xslXrefTemplateMap">
+    <entry key="default"
+           value="${project.basedir}/src/main/resources/crossref.xsl"/>
+    <entry key="2.0"
+           value="${project.basedir}/src/main/resources/crossref.xsl"/>
+    <entry key="3.0"
+           value="${project.basedir}/src/main/resources/crossref_v3.xsl"/>
+  </util:map>
+
+  <bean id="documentManagementService" class="org.ambraproject.admin.service.impl.DocumentManagementServiceImpl">
+    <property name="articleService" ref="articleService"/>
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="journalService" ref="journalService"/>
+    <property name="fileStoreService" ref="fileStoreService"/>
+    <property name="plosDoiUrl" value="http://dx.plos.org/ambra-doi-resolver/10.1371/"/>
+    <property name="plosEmail" value="dev@ambraproject.org"/>
+    <property name="xslDefaultTemplate" value="${project.basedir}/src/main/resources/crossref.xsl"/>
+    <property name="xslTemplateMap" ref="xslXrefTemplateMap"/>
+    <property name="documentDirectory" ref="ingestDir"/>
+    <property name="ingestedDocumentDirectory" ref="ingestedDir"/>
+    <property name="documentPrefix" value="info:doi/10.1371/journal."/>
+    <property name="onPublishListeners"><list/></property>
+    <property name="onDeleteListeners"><list/></property>
+  </bean>
+
+  <bean id="flagManagementService" class="org.ambraproject.admin.service.impl.FlagManagementServiceImpl">
+    <property name="annotationConverter" ref="annotationConverter"/>
+    <property name="annotationService" ref="annotationService"/>
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="replyService" ref="replyService"/>
+  </bean>
+
+  <bean id="syndicationService" class="org.ambraproject.admin.service.impl.SyndicationServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="journalService" ref="journalService"/>
+    <property name="messageService" ref="messageService"/>
+  </bean>
+
+  <bean id="messageService" class="org.ambraproject.queue.MessageServiceImpl">
+    <property name="sender" ref="messageSender"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+  </bean>
+
+  <bean id="messageSender" class="org.ambraproject.search.service.DummySOLRMessageSender">
+    <property name="solrServerFactory" ref="solrServerFactory"/>
+  </bean>
+
+  <bean id="articleDocumentService" class="org.ambraproject.article.service.ArticleDocumentServiceImpl">
+    <property name="documentBuilderFactory" ref="documentBuilderFactory"/>
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="journalService" ref="journalService"/>
+    <property name="fileStoreService" ref="fileStoreService"/>
+  </bean>
+
+  <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
+  <util:map id="xslTemplateMap">
+    <entry key="default"
+           value="org/ambraproject/article/service/pmc2obj.xslt"/>
+    <entry key="2.0"
+           value="org/ambraproject/article/service/pmc2obj.xslt"/>
+    <entry key="3.0"
+           value="org/ambraproject/article/service/pmc2obj-v3.xslt"/>
+  </util:map>
+
+  <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
+    <property name="documentBuilder" ref="documentBuilder"/>
+    <property name="xslDefaultTemplate" value="org/ambraproject/article/service/pmc2obj.xslt"/>
+    <property name="xslTemplateMap" ref="xslTemplateMap"/>
+    <property name="configuration" ref="configuration"/>
+  </bean>
+
+  <bean id="ingester" class="org.ambraproject.article.service.IngesterImpl">
+    <property name="ingestArchiveProcessor" ref="ingestArchiveProcessor"/>
+    <property name="documentManagementService" ref="documentManagementService"/>
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="fileStoreService" ref="fileStoreService"/>
+    <property name="syndicationService" ref="syndicationService"/>
+  </bean>
+
+  <bean id="articleIndexingService" class="org.ambraproject.search.service.ArticleIndexingServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="ambraMailer" ref="ambraMailer"/>
+    <property name="articleDocumentService" ref="articleDocumentService"/>
+    <property name="messageSender" ref="messageSender"/>
+    <property name="ambraConfiguration" ref="configuration"/>
+  </bean>
+
+  <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+</beans>
