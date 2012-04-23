@@ -87,24 +87,9 @@
     <property name="authIdParam" value="guid"/>
   </bean>
 
-  <bean id="annotationConverter" class="org.ambraproject.annotation.service.AnnotationConverterImpl">
-    <property name="userService" ref="userService"/>
-  </bean>
-
-  <bean id="replyService" class="org.ambraproject.annotation.service.ReplyServiceImpl">
-    <property name="sessionFactory" ref="hibernateSessionFactory"/>
-    <property name="encodingCharset" ref="defaultEncodingCharset"/>
-    <property name="defaultType" value="http://www.w3.org/2001/12/replyType#Comment"/>
-    <property name="applicationId" ref="applicationId"/>
-    <property name="permissionsService" ref="permissionsService"/>
-  </bean>
-
   <bean id="annotationService" class="org.ambraproject.annotation.service.AnnotationServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
-    <property name="encodingCharset" ref="defaultEncodingCharset"/>
-    <property name="applicationId" ref="applicationId"/>
     <property name="articleHtmlCache" ref="articleHtmlCache"/>
-    <property name="permissionsService" ref="permissionsService" />
   </bean>
 
   <bean id="journalService" class="org.ambraproject.journal.JournalServiceImpl"
@@ -236,6 +221,10 @@
     </property>
   </bean>
 
+  <bean id="adminAnnotationService" class="org.ambraproject.admin.service.impl.AdminAnnotationServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+  </bean>
+
   <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
@@ -263,13 +252,6 @@
     <property name="fileStoreService" ref="fileStoreService"/>
     <property name="documentManagementService" ref="documentManagementService"/>
     <property name="syndicationService" ref="syndicationService"/>
-  </bean>
-
-  <bean id="flagManagementService" class="org.ambraproject.admin.service.impl.FlagManagementServiceImpl">
-    <property name="sessionFactory" ref="hibernateSessionFactory"/>
-    <property name="replyService" ref="replyService"/>
-    <property name="annotationService" ref="annotationService"/>
-    <property name="annotationConverter" ref="annotationConverter"/>
   </bean>
 
   <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
@@ -307,6 +289,7 @@
     </property>
     <property name="xslDefaultTemplate" value="${ambra.services.xreftransform.default}"/>
     <property name="xslTemplateMap" ref="xslXrefTemplateMap"/>
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
 
 
@@ -322,6 +305,10 @@
     <property name="jndiName" value="java:comp/env/ambra/FileStore"/>
   </bean>
 
+  <bean id="flagService" class="org.ambraproject.admin.flags.service.FlagServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="articleHtmlCache" ref="articleHtmlCache"/>
+  </bean>
   <!--Transaction manager is needed by the transaction interceptor ... at some point we may switch to spring declarative transaction management-->
   <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
@@ -333,13 +320,6 @@
       <list>
         <!--OLD HBMS-->
         <value>WEB-INF/hibernateMappings/CustomTypes.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/Citation.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/Annotation.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/ByteArrayBlob.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/RatingContent.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/TrackbackContent.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/RatingSummaryContent.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/Reply.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/Aggregations.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/CitedPerson.hbm.xml</value>
         <value>WEB-INF/hibernateMappings/ArticleContributor.hbm.xml</value>

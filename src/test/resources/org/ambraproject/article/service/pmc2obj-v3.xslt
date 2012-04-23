@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $HeadURL:: http://svn.ambraproject.org/svn/ambra/branches/nlm-dtd-3.0/ambra/webapp/src/main/res#$
-  $Id: pmc2obj-v3.xslt 8595 2010-08-04 17:44:11Z lynn $
+  $HeadURL::                                                                                      $
+  $Id$
 
   Copyright (c) 2007-2010 by Public Library of Science
   http://plos.org

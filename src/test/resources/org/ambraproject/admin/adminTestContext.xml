@@ -24,10 +24,10 @@
        http://activemq.apache.org/schema/core
        http://camel.apache.org/schema/spring
        http://camel.apache.org/schema/spring/camel-spring.xsd"
-    default-lazy-init="true">
+       default-lazy-init="true">
 
   <!--Include all the bean definitions from Ambra-->
-  <import resource="classpath*:org/ambraproject/nonWebApplicationContext.xml" />
+  <import resource="classpath*:org/ambraproject/nonWebApplicationContext.xml"/>
 
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
@@ -39,21 +39,20 @@
   </bean>
 
   <bean id="filestoreDir" class="java.lang.String">
-    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore" />
+    <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore"/>
   </bean>
 
- <bean id="fileStoreService" class="org.ambraproject.filestore.impl.FileSystemImpl">
+  <bean id="fileStoreService" class="org.ambraproject.filestore.impl.FileSystemImpl">
     <constructor-arg index="0" value="${project.basedir}/target/test-classes/filestore"/>
     <constructor-arg index="1" value=""/>
   </bean>
 
-
   <bean class="java.lang.String" id="ingestDir">
-    <constructor-arg value="${project.basedir}/target/test-classes/ingest" />
+    <constructor-arg value="${project.basedir}/target/test-classes/ingest"/>
   </bean>
 
   <bean class="java.lang.String" id="ingestedDir">
-    <constructor-arg value="${project.basedir}/target/test-classes/ingested" />
+    <constructor-arg value="${project.basedir}/target/test-classes/ingested"/>
   </bean>
 
   <!-- Defined in src/main/resources/ambra/configuration/defaults.xml -->
@@ -78,27 +77,25 @@
     <property name="documentDirectory" ref="ingestDir"/>
     <property name="ingestedDocumentDirectory" ref="ingestedDir"/>
     <property name="documentPrefix" value="info:doi/10.1371/journal."/>
-    <property name="onPublishListeners"><list/></property>
-    <property name="onDeleteListeners"><list/></property>
-  </bean>
-
-  <bean id="flagManagementService" class="org.ambraproject.admin.service.impl.FlagManagementServiceImpl">
-    <property name="annotationConverter" ref="annotationConverter"/>
-    <property name="annotationService" ref="annotationService"/>
+    <property name="onPublishListeners">
+      <list/>
+    </property>
+    <property name="onDeleteListeners">
+      <list/>
+    </property>
     <property name="sessionFactory" ref="sessionFactory"/>
-    <property name="replyService" ref="replyService"/>
   </bean>
 
   <bean id="syndicationService" class="org.ambraproject.admin.service.impl.SyndicationServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="journalService" ref="journalService"/>
     <property name="messageService" ref="messageService"/>
   </bean>
 
   <bean id="messageService" class="org.ambraproject.queue.MessageServiceImpl">
     <property name="sender" ref="messageSender"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
   </bean>
 
   <bean id="messageSender" class="org.ambraproject.search.service.DummySOLRMessageSender">
@@ -126,7 +123,7 @@
     <property name="documentBuilder" ref="documentBuilder"/>
     <property name="xslDefaultTemplate" value="org/ambraproject/article/service/pmc2obj.xslt"/>
     <property name="xslTemplateMap" ref="xslTemplateMap"/>
-    <property name="configuration" ref="configuration"/>
+    <property name="configuration" ref="ambraConfiguration"/>
   </bean>
 
   <bean id="ingester" class="org.ambraproject.article.service.IngesterImpl">
@@ -142,10 +139,20 @@
     <property name="ambraMailer" ref="ambraMailer"/>
     <property name="articleDocumentService" ref="articleDocumentService"/>
     <property name="messageSender" ref="messageSender"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
   </bean>
 
   <bean id="searchUserService" class="org.ambraproject.search.service.SearchUserServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
   </bean>
+
+  <bean id="flagService" class="org.ambraproject.admin.flags.service.FlagServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="articleHtmlCache" ref="articleHtmlCache"/>
+  </bean>
+
+  <bean id="adminAnnotationService" class="org.ambraproject.admin.service.impl.AdminAnnotationServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
 </beans>

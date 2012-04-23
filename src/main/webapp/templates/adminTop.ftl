@@ -21,12 +21,12 @@
 <#include "includes/globals.ftl">
 <html>
   <head>
-    <title>Ambra: Administration</title>
+    <title>Ambra administration</title>
   <#include "includes/header.ftl">
     <script type="text/javascript" src="${request.contextPath}/javascript/admin.js"></script>
   </head>
   <body>
-    <h1 style="text-align: center">Ambra: Administration</h1>
+    <h1>Ambra administration</h1>
     <#include "includes/navigation.ftl">
 
     <div id="messages">

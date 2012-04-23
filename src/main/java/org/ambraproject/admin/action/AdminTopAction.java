@@ -33,9 +33,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.ambraproject.admin.service.DocumentManagementService;
 import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.*;
-import org.ambraproject.models.Article;
 import org.ambraproject.struts2.ManualTransactionManagement;
 import org.ambraproject.util.UriUtil;
+import org.ambraproject.model.article.ArticleInfo;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -496,8 +496,8 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
       syndicationMap = new HashMap<String, List<Syndication>>();
       //Map syndications to the publishable articles
-      for (ArticleInfo articleInfo : publishableArticles) {
-        syndicationMap.put(articleInfo.getDoi(), syndicationService.getSyndications(articleInfo.getDoi()));
+      for (ArticleInfo article : publishableArticles) {
+        syndicationMap.put(article.getDoi(), syndicationService.getSyndications(article.getDoi()));
       }
 
     } catch (Exception e) {

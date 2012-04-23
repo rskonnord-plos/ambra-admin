@@ -16,16 +16,16 @@ package org.ambraproject.admin.action;
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
+import org.ambraproject.models.Annotation;
+import org.ambraproject.models.AnnotationType;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.UserProfile;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.Test;
-import org.topazproject.ambra.models.Comment;
-import org.topazproject.ambra.models.Reply;
 
 import java.io.File;
-import java.net.URI;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -97,11 +97,16 @@ public class DeleteArticleActionTest extends AdminWebTest {
     ingestZip.deleteOnExit();
 
     //add some annotations to the article to see that they get deleted
-    Comment comment = new Comment();
-    comment.setAnnotates(URI.create(article.getDoi()));
+    UserProfile creator = new UserProfile(
+        "authIdDeleteArticleAction",
+        "email@DeleteArticleAction.org",
+        "displayNameDeleteArticleAction"
+    );
+    dummyDataStore.store(creator);
+    Annotation comment = new Annotation(creator, AnnotationType.COMMENT, article.getID());
     dummyDataStore.store(comment);
-    Reply reply = new Reply();
-    reply.setInReplyTo(comment.getId().toString());
+    Annotation reply = new Annotation(creator, AnnotationType.REPLY, article.getID());
+    reply.setParentID(comment.getID());
     dummyDataStore.store(reply);
 
 
@@ -114,8 +119,8 @@ public class DeleteArticleActionTest extends AdminWebTest {
     assertEquals(action.getActionMessages().size(), 1, "Action didn't return message indicating success");
 
     //check that the article got deleted from the database
-//    assertNull(dummyDataStore.get(Reply.class, reply.getId()), "Reply to a commment on the article didn't get deleted from the database");
-//    assertNull(dummyDataStore.get(Comment.class, comment.getId()), "Comment on the article didn't get deleted from the database");
+    assertNull(dummyDataStore.get(Annotation.class, reply.getID()), "Reply to a comment on the article didn't get deleted from the database");
+    assertNull(dummyDataStore.get(Annotation.class, comment.getID()), "Comment on the article didn't get deleted from the database");
     assertNull(dummyDataStore.get(Article.class, article.getID()), "Article didn't get deleted from the database");
 
     //check that the file got deleted from the filestore

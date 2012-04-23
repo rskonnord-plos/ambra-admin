@@ -16,6 +16,7 @@ package org.ambraproject.admin.action;
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
+import org.ambraproject.admin.service.DocumentManagementService;
 import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.ArticleService;
 import org.ambraproject.article.service.NoSuchArticleIdException;
@@ -24,6 +25,7 @@ import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Syndication;
+import org.ambraproject.model.article.ArticleInfo;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,6 +54,9 @@ public class AdminTopActionTest extends AdminWebTest {
 
   @Autowired
   protected ArticleService articleService; //just using this to check on articles that got ingested
+
+  @Autowired
+  protected DocumentManagementService documentManagementService;
 
   @Autowired
   protected SyndicationService syndicationService; //just using this to check that things get syndicated
@@ -98,8 +103,8 @@ public class AdminTopActionTest extends AdminWebTest {
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
     assertEquals(action.getUploadableFiles().size(), 7, "Action returned incorrect number of uploadable files");
     boolean foundCorrectArticle = false;
-    for (ArticleInfo articleInfo : action.getPublishableArticles()) {
-      if (articleInfo.getDoi().equals(publishableArticle.getDoi())) {
+    for (ArticleInfo article : action.getPublishableArticles()) {
+      if (article.getDoi().equals(publishableArticle.getDoi())) {
         foundCorrectArticle = true;
         break;
       }
@@ -186,10 +191,10 @@ public class AdminTopActionTest extends AdminWebTest {
     assertTrue(action.getPublishableArticles().size() > 1, "action didn't have any publishable articles");
 
     for (int i = 0; i < action.getPublishableArticles().size() - 1; i++) {
-      ArticleInfo articleInfo = action.getPublishableArticles().get(i);
-      ArticleInfo nextArticleInfo = action.getPublishableArticles().get(i + 1);
-      assertTrue(comparator.compare(articleInfo, nextArticleInfo) <= 0,
-          "Articles weren't in order when sorting by: '" + directive + "'");
+      ArticleInfo article = action.getPublishableArticles().get(i);
+      ArticleInfo nextArticle = action.getPublishableArticles().get(i + 1);
+      assertTrue(comparator.compare(article, nextArticle) <= 0,
+        "Articles weren't in order when sorting by: '" + directive + "'");
     }
   }
 
@@ -210,7 +215,7 @@ public class AdminTopActionTest extends AdminWebTest {
 
     //delete the article in case it's still in the database from the ingester test
     try {
-      articleService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
+      documentManagementService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
     } catch (NoSuchArticleIdException e) {
       //ignore
     }
@@ -246,7 +251,7 @@ public class AdminTopActionTest extends AdminWebTest {
         //suppress
       }
       //delete the article
-      articleService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
+      documentManagementService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
     }
   }
 
@@ -277,7 +282,7 @@ public class AdminTopActionTest extends AdminWebTest {
           //ignore
         }
       }
-      articleService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
+      documentManagementService.delete(article.getDoi(), DEFAULT_ADMIN_AUTHID);
     }
   }
 

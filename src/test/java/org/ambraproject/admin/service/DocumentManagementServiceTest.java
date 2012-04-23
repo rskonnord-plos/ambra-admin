@@ -22,6 +22,9 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.admin.AdminBaseTest;
+import org.ambraproject.models.Annotation;
+import org.ambraproject.models.AnnotationType;
+import org.ambraproject.models.UserProfile;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreException;
@@ -103,6 +106,22 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
 
     Long id = Long.valueOf(dummyDataStore.store(article));
     article.setID(id);
+
+    UserProfile annotationCreator = new UserProfile(
+        "authIdForDeleteArticle",
+        "email@deleteArticle.org",
+        "displayName@DelteArticle"
+    );
+    dummyDataStore.store(annotationCreator);
+    //create some annotatons on the article
+    Annotation comment = new Annotation(annotationCreator, AnnotationType.COMMENT, id);
+    dummyDataStore.store(comment);
+    Annotation reply = new Annotation(annotationCreator, AnnotationType.REPLY, id);
+    reply.setParentID(comment.getID());
+    dummyDataStore.store(reply);
+    Annotation replyToReply = new Annotation(annotationCreator, AnnotationType.REPLY, id);
+    replyToReply.setParentID(reply.getID());
+    dummyDataStore.store(replyToReply);
 
     return new Object[][] {
       { articleUri2, id }

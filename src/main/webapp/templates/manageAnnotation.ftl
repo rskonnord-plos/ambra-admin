@@ -20,160 +20,237 @@
 -->
 <#include "includes/globals.ftl">
 <html>
-  <head>
-    <title>Ambra: Administration: Edit Annotation</title>
+<head>
+  <title>Ambra: Administration: Manage Annotations</title>
+<#include "includes/header.ftl">
+  <script type="text/javascript" src="${request.contextPath}/javascript/edit_annotation.js"></script>
+</head>
+<body>
+<h1 style="text-align: center">Ambra: Administration: Manage Annotations</h1>
+<#include "includes/navigation.ftl">
 
-    <script type="text/javascript">
-      function confirmToDeleteAuthor(authorIndex, name) {
-        if (confirm('Are you sure you want to delete author ' + name + ' ?')) {
-          document.manageAnnotationSave.citationAuthorDeleteIndex.value = authorIndex;
-          document.manageAnnotationSave.submit();
-        }
-      }
-      function confirmToDeleteCollaborativeAuthor(authorIndex, name ) {
-        if (confirm('Are you sure you want to delete this collaborative author ' + name +' ?')) {
-          document.manageAnnotationSave.citationCollaborativeAuthorDeleteIndex.value = authorIndex;
-          document.manageAnnotationSave.submit();
-        }
-      }
-    </script>
+<@messages />
 
-    <#include "includes/header.ftl">
-  </head>
-  <body>
-    <h1 style="text-align: center">Ambra: Administration: Edit Annotation</h1>
-    <#include "includes/navigation.ftl">
+<fieldset>
+  <legend><b>Load Annotation</b></legend>
+<#if annotation??>
+  <#assign annotationIdValue = annotation.ID?c />
+  <#assign annotationUriValue = "info:doi/${annotation.annotationUri}" />
+<#else>
+  <#assign annotationIdValue = "" />
+  <#assign annotationUriValue = "" />
+</#if>
+<@s.form name="manageAnnotationLoadById" action="manageAnnotationLoad" namespace="/" method="get">
+  <table>
+    <tr>
+      <td><b>Annotation ID (numeric)</b></td>
+      <td><@s.textfield name="annotationId" size="60" value="${annotationIdValue}"/></td>
+    </tr>
+    <tr>
+      <td colspan="2"><@s.submit value="Load Annotation" /></td>
+    </tr>
+  </table>
+</@s.form>
+  <br/>
+<@s.form name="manageAnnotationLoadByUri" action="manageAnnotationLoad" namespace="/" method="get">
+  <table>
+    <tr>
+      <td><b>Annotation URI</b></td>
+      <td><@s.textfield name="annotationUri" size="60" value="${annotationUriValue}"/></td>
+    </tr>
+    <tr>
+      <td colspan="2"><@s.submit value="Load Annotation" /></td>
+    </tr>
+  </table>
+</@s.form>
+</fieldset>
 
-    <@messages />
+<#if annotation??>
+  <@s.form name="manageAnnotationSave" action="manageAnnotationSave" namespace="/" method="post">
 
-    <fieldset>
-      <legend><b>Load Annotation</b></legend>
-      <@s.form name="manageAnnotationLoad" action="manageAnnotationLoad" namespace="/" method="post">
-        <table>
-          <tr><td><b>Annotation ID</b></td><td><@s.textfield name="annotationId" value="${annotationId!}" size="60"/></td></tr>
-          <tr><td colspan="2"><@s.submit value="Load Annotation" /></td></tr>
-        </table>
-      </@s.form>
-    </fieldset>
+  <#--If there's no citation for this annotation, we need a hidden field for annotation uri. If there is a citation, it's an  editable textfield-->
+  <#if !annotation.citation??>
+    <@s.hidden name="annotationUri" value="${annotationUriValue}"/>
+  </#if>
 
-    <#if annotation??>
-      <@s.form name="manageAnnotationSave" action="manageAnnotationSave" namespace="/" method="post">
+  <fieldset>
+    <legend><b>Annotation Details</b></legend>
+    <@s.hidden name="annotationId" label="hiddenAnnotationId" required="true" value="${annotation.ID?c}"/>
+    <table>
+      <tr>
+        <td><b>Title</b></td>
+        <@s.hidden name="title" label="title" required="true" value="${annotation.originalTitle!}"/>
+        <td>${annotation.originalTitle!"No Title for this Annotation"}</td>
+      </tr>
+      <tr>
+        <td valign="top"><b>Body</b></td>
+        <td><@s.textarea name="body" value="${annotation.originalBody!}" rows="9" cols="100"/></td>
+      </tr>
+      <tr>
+        <td><b>Context</b></td>
+        <td><@s.textarea name="xpath" value="${annotation.xpath!}" rows="3" cols="100"/></td>
+      </tr>
+      <tr>
+        <td><b>Id</b></td>
+        <#if annotation.type == "Rating">
+          <#assign annotationURL = "rate/getArticleRatings.action?articleURI=${annotation.articleDoi!}#${annotation.ID?c!}" />
+        <#else>
+          <#assign annotationURL = "annotation/listThread.action?root=${annotation.ID?c!}" />
+        </#if>
+        <td>
+          <a href="${annotationURL}">${annotation.ID?c!}</a>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Type</b></td>
+        <td>${annotation.type!"No Type"}</td>
+      </tr>
+      <tr>
+        <td><b>Created</b></td>
+        <td>${annotation.created?string("EEEE, MMMM dd, yyyy, hh:mm:ss a '('zzz')'")!"No Creation Date"}</td>
+      </tr>
+      <tr>
+        <td><b>Creator</b></td>
+        <@s.url id="showUser" namespace="/user" action="showUser" userId="${annotation.creatorID?c!}"/>
+        <td><@s.a href="${showUser}">${annotation.creatorDisplayName!"No Creator"}</@s.a></td>
+      </tr>
+      <tr>
+        <td><b>Annotates</b></td>
+        <td>
+          <a href="article/${annotation.articleDoi}">${annotation.articleDoi}</a>
+        </td>
+      </tr>
+      <tr>
+        <#if annotation.competingInterestStatement?has_content>
+          <#assign ciStatement = annotation.competingInterestStatement/>
+        <#else>
+          <#assign ciStatement = "No Conflict of Interest Statement"/>
+        </#if>
+        <td><b>Conflict of Interest</b></td>
+        <td>${ciStatement}</td>
+      </tr>
+    </table>
+  </fieldset>
 
-      <fieldset>
-        <legend><b>Annotation Details</b></legend>
-          <@s.hidden name="annotationId" label="hiddenAnnotationId" required="true" value="${annotationId!}"/>
-        <table>
-          <tr><td><b>Title</b></td>
-            <td>${annotation.title!"No Title for this Annotation"}</td></tr>
-          <tr><td valign="top"><b>Body</b></td>
-            <td><@s.textarea name="annotationBody" value="${annotationBody!}" rows="9" cols="100"/></td></tr>
-          <tr><td><b>Context</b></td>
-            <td><@s.textarea name="annotationContext" value="${annotationContext!}" rows="3" cols="100"/></td></tr>
-          <tr><td><b>Id</b></td>
-            <td><a href="${freemarker_config.context}/annotation/listThread.action?inReplyTo=${annotationId!}&root=${annotationId!}">${annotationId!}</a></td></tr>
-          <tr><td><b>Type</b></td>
-            <td>${annotation.type!"No Type"}</td></tr>
-          <tr><td><b>Created</b></td>
-            <td>${annotation.createdAsDate?string("EEEE, MMMM dd, yyyy, hh:mm:ss a '('zzz')'")!"No Creation Date"}</td></tr>
-          <tr><td><b>Creator</b></td>
-            <@s.url id="showUser" namespace="/user" action="showUser" userAccountUri="${annotation.creator!}"/>
-            <td><@s.a href="${showUser}">${annotation.creator!"No Creator"}</@s.a></td></tr>
-          <tr><td><b>Annotates</b></td>
-            <td><a href="${freemarker_config.context}/article/${annotation.annotates!}">${annotation.annotates!"No Annotates value"}</a></td></tr>
-          <tr><td><b>Conflict of Interest</b></td>
-            <td>${annotation.cIStatement!"No Conflict of Interest Statement"}</td></tr>
-        </table>
-      </fieldset>
-
-      <@s.submit value="Save Annotation" />
-
-      <#if annotation.formalCorrection || annotation.retraction>
+    <@s.submit value="Save Annotation" />
+    <#if annotation.correction>
       <#if ! annotation.citation??>
-        <b>No Citation for this Annotation<b>
+      <b>No Citation for this Annotation<b>
       <#else>
-            <@s.hidden name="citationId" label="hiddenCitationId" required="true" value="${citationId!}"/>
+        <#assign citation = annotation.citation/>
         <fieldset>
           <legend><b>Annotation Citation</b></legend>
-            <table>
-              <tr><td><b>Citation Title</b></td>
-                <td><@s.textfield name="citationTitle" value="${citationTitle!}" size="40"/></td></tr>
-              <tr><td><b>Year</b></td>
-                <td><@s.textfield name="citationDisplayYear" value="${citationDisplayYear!}" size="10"/></td></tr>
-              <tr><td><b>Volume</b></td>
-                <td><@s.textfield name="citationVolumeNumber" value="${citationVolumeNumber!}" size="10"/></td></tr>
-              <tr><td><b>Issue</b></td>
-                <td><@s.textfield name="citationIssue" value="${citationIssue!}" size="10"/></td></tr>
-              <tr><td><b>Journal</b></td>
-                <td><@s.textfield name="citationJournal" value="${citationJournal!}" size="20"/></td></tr>
-              <tr><td><b>eLocationId</b></td>
-                <td><@s.textfield name="citationELocationId" value="${citationELocationId!}" size="40"/></td></tr>
-              <tr><td><b>DOI</b></td>
-                <td><@s.textfield name="citationDoi" value="${citationDoi!}" size="40"/></td></tr>
-              <tr><td><b>URL</b></td>
-                <td>${annotation.citation.url!"No URL"}</td></tr>
-              <tr><td><b>Note</b></td>
-                <td>${annotation.citation.note!"No Note"}</td></tr>
-              <tr><td><b>Summary</b></td>
-                <td>${annotation.citation.summary!"No Summary"}</td></tr>
-              <tr><td colspan="2">
+          <table>
+            <tr>
+              <td><b>Citation Title</b></td>
+              <td><@s.textfield name="annotationCitation.title" value="${citation.title!}" size="40"/></td>
+            </tr>
+            <tr>
+              <td><b>Year</b></td>
+              <td><@s.textfield name="annotationCitation.year" value="${citation.year!}" size="10"/></td>
+            </tr>
+            <tr>
+              <td><b>Volume</b></td>
+              <td><@s.textfield name="annotationCitation.volume" value="${citation.volume!}" size="10"/></td>
+            </tr>
+            <tr>
+              <td><b>Issue</b></td>
+              <td><@s.textfield name="annotationCitation.issue" value="${citation.issue!}" size="10"/></td>
+            </tr>
+            <tr>
+              <td><b>Journal</b></td>
+              <td><@s.textfield name="annotationCitation.journal" value="${citation.journal!}" size="20"/></td>
+            </tr>
+            <tr>
+              <td><b>eLocationId</b></td>
+              <td><@s.textfield name="annotationCitation.eLocationId" value="${citation.eLocationId!}" size="20"/></td>
+            </tr>
+            <tr>
+              <td><b>DOI</b></td>
+              <td><@s.textfield name="annotationUri" value="info:doi/${annotation.annotationUri!}" size="40"/></td>
+            </tr>
+            <tr>
+              <td><b>URL</b></td>
+              <@s.hidden name="annotationCitation.url" label="annotationCitation.url" required="true" value="${citation.url!}"/>
+              <td>${citation.url!"No URL"}</td>
+            </tr>
+            <tr>
+              <td><b>Note</b></td>
+              <@s.hidden name="annotationCitation.note" label="annotationCitation.note" required="true" value="${citation.note!}"/>
+              <td>${citation.note!"No Note"}</td>
+            </tr>
+            <tr>
+              <td><b>Summary</b></td>
+              <@s.hidden name="annotationCitation.summary" label="annotationCitation.summary" required="true" value="${citation.summary!}"/>
+              <td>${citation.summary!"No Summary"}</td>
+            </tr>
+            <tr>
+              <td colspan="2">
                 <fieldset>
                   <legend><b>Citation Authors</b></legend>
-                    <table>
-                      <#if citationAuthorIds?? && (citationAuthorIds?size > 0)>
-                          <tr><td><b>Given Names</b></td><td><b>Surnames</b></td><td><b>Suffixes</b></td></tr>
-                          <@s.hidden name="citationAuthorDeleteIndex" label="citationAuthorDeleteIndex" required="true" value="-1"/>
-                        <#list citationAuthorIds as authorId>
-                          <@s.hidden name="citationAuthorIds" label="hiddenCitationAuthorIds" required="true" value="${authorId!}"/>
-                          <tr><td><@s.textfield name="citationAuthorGivenNames" value="${citationAuthorGivenNames[authorId_index]!}" size="20"/></td>
-                            <td><@s.textfield name="citationAuthorSurnames" value="${citationAuthorSurnames[authorId_index]!}" size="20"/></td>
-                            <td><@s.textfield name="citationAuthorSuffixes" value="${citationAuthorSuffixes[authorId_index]!}" size="20"/></td>
-                            <td><a href="#" onClick="confirmToDeleteAuthor(${authorId_index}, '${citationAuthorGivenNames[authorId_index]!} ${citationAuthorSurnames[authorId_index]!}');return false;">Delete Author</a></td></tr>
-                        </#list>
-                          <tr><td><@s.textfield name="citationAuthorGivenNames" value="" size="20"/></td>
-                            <td><@s.textfield name="citationAuthorSurnames" value="" size="20"/></td>
-                            <td><@s.textfield name="citationAuthorSuffixes" value="" size="20"/></td>
-                            <td><a href="#" onClick="document.manageAnnotationSave.submit()">Add Author</a></td></tr>
-                      <#else>
-                        There are currently no Authors associated to this Citation.
-                        <@s.hidden name="citationAuthorDeleteIndex" label="citationAuthorDeleteIndex" required="true" value="-1"/>
-                        <tr><td><@s.textfield name="citationAuthorGivenNames" value="" size="20"/></td>
-                          <td><@s.textfield name="citationAuthorSurnames" value="" size="20"/></td>
-                          <td><@s.textfield name="citationAuthorSuffixes" value="" size="20"/></td>
-                          <td><a href="#" onClick="document.manageAnnotationSave.submit()">Add Author</a></td></tr>
-                      </#if>
+                  <table id="authors">
+                    <#if citation.authors?? && citation.authors?size gt 0>
+                      <tr>
+                        <td><b>Given Names</b></td>
+                        <td><b>Surnames</b></td>
+                        <td><b>Suffixes</b></td>
+                      </tr>
+                      <#list citation.authors as author>
+                        <tr id="author_${author_index}">
+                          <td><@s.textfield name="authorGivenNames" value="${author.givenNames!}" size="20"/></td>
+                          <td><@s.textfield name="authorSurnames" value="${author.surnames!}" size="20"/></td>
+                          <td><@s.textfield name="authorSuffixes" value="${author.suffix!}" size="20"/></td>
+                          <td><a href="#"
+                                 onClick="deleteAuthor('author_${author_index}','${author.givenNames!} ${author.surnames!}', false);return false;">
+                            Delete Author</a></td>
+                        </tr>
+                      </#list>
+                    <#else>
+                      There are currently no Authors associated with this Citation.
+                    </#if>
+                    <tr id="addAuthor">
+                      <td><@s.textfield name="authorGivenNames" value="" size="20"/></td>
+                      <td><@s.textfield name="authorSurnames" value="" size="20"/></td>
+                      <td><@s.textfield name="authorSuffixes" value="" size="20"/></td>
+                      <td><a href="#" onClick="document.getElementById('manageAnnotationSave').submit()">Add Author</a></td>
+                    </tr>
                   </table>
                 </fieldset>
-              </td></tr>
+              </td>
+            </tr>
 
-              <tr><td colspan="2">
+            <tr>
+              <td colspan="2">
                 <fieldset>
                   <legend><b>Citation Collaborative Authors</b></legend>
-                  <table>
-                      <#if citationCollaborativeAuthorNames?? && (citationCollaborativeAuthorNames?size > 0)>
-                          <@s.hidden name="citationCollaborativeAuthorDeleteIndex" label="citationCollaborativeAuthorDeleteIndex" required="true" value="-1"/>
-                        <#list citationCollaborativeAuthorNames as authorName>
-                          <tr><td><@s.textfield name="citationCollaborativeAuthorNames" value="${authorName!}" size="20"/></td>
-                            <td><a href="#" onClick="confirmToDeleteCollaborativeAuthor(${authorName_index}, '${authorName}');return false;">Delete Collaborative Author</a></td></tr>
-                        </#list>
-                          <tr><td><@s.textfield name="citationCollaborativeAuthorNames" value="" size="20"/></td>
-                            <td><a href="#" onClick="document.manageAnnotationSave.submit()">Add Collaborative Author</a></td></tr>
-                      <#else>
-                        There are currently no Collaborative Authors associated to this Citation.
-                          <@s.hidden name="citationCollaborativeAuthorDeleteIndex" label="citationCollaborativeAuthorDeleteIndex" required="true" value="-1"/>
-                          <tr><td><@s.textfield name="citationCollaborativeAuthorNames" value="" size="20"/></td>
-                            <td><a href="#" onClick="document.manageAnnotationSave.submit()">Add Collaborative Author</a></td></tr>
-                      </#if>
+                  <table id="collabAuthors">
+                    <#if citation.collabAuthors?? && (citation.collabAuthors?size > 0)>
+                      <#list citation.collabAuthors as collabAuthor>
+                        <tr id="collabAuthor_${collabAuthor_index}">
+                          <td><@s.textfield name="collabAuthors" value="${collabAuthor!}" size="75"/></td>
+                          <td><a href="#"
+                                 onClick="deleteAuthor('collabAuthor_${collabAuthor_index}', '${collabAuthor}', true);return false;">Delete
+                            Collaborative Author</a></td>
+                        </tr>
+                      </#list>
+                    <#else>
+                      There are currently no Collaborative Authors associated with this Citation.
+                    </#if>
+                    <tr>
+                      <td><@s.textfield name="collabAuthors" value="" size="75"/></td>
+                      <td><a href="#" onClick="document.getElementById('manageAnnotationSave').submit()">Add Collaborative Author</a></td>
+                    </tr>
                   </table>
                 </fieldset>
-              </td></tr>
+              </td>
+            </tr>
 
-            </table>
+          </table>
         </fieldset>
         <@s.submit value="Save Annotation" />
       </#if>
-      </#if>
-      </@s.form>
     </#if>
-
-  </body>
+  </@s.form>
+</#if>
+</body>
 </html>

@@ -21,10 +21,23 @@
 
 package org.ambraproject.admin.service.impl;
 
+import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreService;
+import org.ambraproject.models.Annotation;
+import org.ambraproject.models.AnnotationType;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.ArticleView;
+import org.ambraproject.models.Flag;
+import org.ambraproject.models.RatingSummary;
+import org.ambraproject.models.Syndication;
+import org.ambraproject.models.Trackback;
+import org.ambraproject.service.HibernateServiceImpl;
 import org.apache.commons.io.FileUtils;
+import org.aspectj.weaver.bcel.AnnotationAccessVar;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -57,7 +70,7 @@ import java.util.Map;
 /**
  * @author alan Manage documents on server. Ingest and access ingested documents.
  */
-public class DocumentManagementServiceImpl implements DocumentManagementService {
+public class DocumentManagementServiceImpl extends HibernateServiceImpl implements DocumentManagementService {
   private static final Logger log = LoggerFactory.getLogger(DocumentManagementServiceImpl.class);
 
   private ArticleService articleService;
@@ -80,7 +93,8 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
   /**
    * Set the xsl style sheet to use
    *
-   * @param xslTemplateMap - A map of classpath-relative location of an xsl stylesheets to use to process the article xml
+   * @param xslTemplateMap - A map of classpath-relative location of an xsl stylesheets to use to process the article
+   *                       xml
    */
   @Required
   public void setXslTemplateMap(Map<String, String> xslTemplateMap) {
@@ -110,7 +124,7 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
     return this.ingestedDocumentDirectory;
   }
 
-   /**
+  /**
    * Set the {@link FileStoreService} to use to store files
    *
    * @param fileStoreService - the filestore to use
@@ -134,14 +148,14 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
   }
 
   /**
-   * Setter for XSL Templates.  Takes in a string as the filename and searches for it in resource
-   * path and then as a URI.
+   * Setter for XSL Templates.  Takes in a string as the filename and searches for it in resource path and then as a
+   * URI.
    *
    * @param xslTemplate The xslTemplate to set.
    * @throws java.net.URISyntaxException
    */
   @Required
-  public void setXslDefaultTemplate(String xslTemplate)  throws URISyntaxException {
+  public void setXslDefaultTemplate(String xslTemplate) throws URISyntaxException {
     this.xslDefaultTemplate = xslTemplate;
   }
 
@@ -190,25 +204,99 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
   }
 
   @Transactional(rollbackFor = {Throwable.class})
-  public void delete(String articleUri, final String authId) throws Exception
-  {
+  public void delete(String articleDoi, final String authId) throws Exception {
     permissionsService.checkRole(PermissionsService.ADMIN_ROLE, authId);
 
-    log.debug("Deleting Article:" + articleUri);
+    log.debug("Deleting Article:" + articleDoi);
 
-    articleService.delete(articleUri, authId);
+    //delete the article from the db
+    List articles = hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Article.class)
+            .add(Restrictions.eq("doi", articleDoi))
+            .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY));
 
-    removeFromFileSystem(articleUri);
+    if (articles.size() == 0) {
+      throw new NoSuchArticleIdException(articleDoi);
+    }
 
-    invokeOnDeleteListeners(articleUri);
+    //delete any views on the article
+    hibernateTemplate.deleteAll(
+        hibernateTemplate.findByCriteria(
+            DetachedCriteria.forClass(ArticleView.class)
+                .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+        )
+    );
+
+    //delete any rating summaries on the article
+    hibernateTemplate.deleteAll(
+        hibernateTemplate.findByCriteria(
+            DetachedCriteria.forClass(RatingSummary.class)
+                .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+        )
+    );
+
+    //delete any trackbacks on the article
+    hibernateTemplate.deleteAll(
+        hibernateTemplate.findByCriteria(
+            DetachedCriteria.forClass(Trackback.class)
+                .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+        )
+    );
+
+    //delete any syndications on the article
+    hibernateTemplate.deleteAll(
+        hibernateTemplate.findByCriteria(
+            DetachedCriteria.forClass(Syndication.class)
+                .add(Restrictions.eq("doi", ((Article) articles.get(0)).getDoi()))
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY))
+    );
+
+    //delete any annotations on the article (need to do this recursivly b/c of replies
+    List<Annotation> topLevelAnnotations = hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Annotation.class)
+            .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
+            .add(Restrictions.ne("type", AnnotationType.REPLY))
+            .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+    );
+
+    for (Annotation annotation : topLevelAnnotations) {
+      deleteRepliesRecursively(annotation);
+    }
+
+    hibernateTemplate.delete(articles.get(0));
+
+
+    removeFromFileSystem(articleDoi);
+
+    invokeOnDeleteListeners(articleDoi);
   }
 
-  public void removeFromFileSystem(String articleUri) throws Exception
-  {
+  private void deleteRepliesRecursively(Annotation annotation) {
+    //delete any flags on the annotation first
+    hibernateTemplate.deleteAll(hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Flag.class)
+            .createAlias("flaggedAnnotation", "an")
+            .add(Restrictions.eq("an.ID", annotation.getID()))
+            .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+    ));
+    List<Annotation> replies = hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Annotation.class)
+            .add(Restrictions.eq("parentID", annotation.getID()))
+    );
+    for (Annotation reply : replies) {
+      deleteRepliesRecursively(reply);
+    }
+    hibernateTemplate.delete(annotation);
+  }
+
+  public void removeFromFileSystem(String articleUri) throws Exception {
     String articleRoot = FSIDMapper.zipToFSID(articleUri, "");
     Map<String, String> files = fileStoreService.listFiles(articleRoot);
 
-    for(String file : files.keySet()) {
+    for (String file : files.keySet()) {
       String fullFile = FSIDMapper.zipToFSID(articleUri, file);
       fileStoreService.deleteFile(fullFile);
     }
@@ -285,8 +373,8 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
   /**
    * Move the file to the ingested directory and generate cross-ref.
    *
-   * @param file    the file to move
-   * @param doi the associated article
+   * @param file the file to move
+   * @param doi  the associated article
    * @throws java.io.IOException on an error
    */
   public void generateIngestedData(File file, String doi)
@@ -343,33 +431,34 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
           new File(ingestedDocumentDirectory, getCrossrefDocFileName(articleId));
 
       t.transform(new DOMSource(articleXml, articleId.toString()), new StreamResult(target_xml));
-    } catch(Exception e) {
+    } catch (Exception e) {
       throw new TransformerException(e);
     }
   }
+
   /**
-   * Get a translet, compiled stylesheet, for the xslTemplate. If the doc is null
-   * use the default template. If the doc is not null then get the DTD version.
-   * IF the DTD version does not exist use the default template else use the
+   * Get a translet, compiled stylesheet, for the xslTemplate. If the doc is null use the default template. If the doc
+   * is not null then get the DTD version. IF the DTD version does not exist use the default template else use the
    * template associated with that version.
    *
-   * @param  doc  the dtd version of document
+   * @param doc the dtd version of document
    * @return Translet for the xslTemplate.
-   * @throws javax.xml.transform.TransformerException TransformerException.
+   * @throws javax.xml.transform.TransformerException
+   *          TransformerException.
    */
   private Transformer getTranslet(Document doc) throws TransformerException {
     Transformer transformer;
     StreamSource templateStream = null;
     String templateName;
     try {
-      String key =  doc.getDocumentElement().getAttribute("dtd-version").trim();
+      String key = doc.getDocumentElement().getAttribute("dtd-version").trim();
       if ((doc == null) || (!xslTemplateMap.containsKey(key)) || (key.equalsIgnoreCase(""))) {
         templateStream = getAsStream(xslDefaultTemplate);
       } else {
         templateName = xslTemplateMap.get(key);
         templateStream = getAsStream(templateName);
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       log.error("XmlTransform not found", e);
     }
 
@@ -381,8 +470,8 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
 
   /**
    * @param filenameOrURL filenameOrURL
-   * @throws java.net.URISyntaxException URISyntaxException
    * @return the local or remote file or url as a java.io.File
+   * @throws java.net.URISyntaxException URISyntaxException
    */
   public StreamSource getAsStream(final String filenameOrURL) throws URISyntaxException,
       IOException {
@@ -392,7 +481,7 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
       return new StreamSource(resource.openStream());
     }
 
-    return  new StreamSource(new File(filenameOrURL));
+    return new StreamSource(new File(filenameOrURL));
   }
 
   /**

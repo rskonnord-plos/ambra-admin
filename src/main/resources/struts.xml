@@ -224,18 +224,6 @@
       </result>
     </action>
 
-    <action name="viewRating" class="org.ambraproject.admin.action.ViewRatingAction">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/viewRating.ftl</param>
-      </result>
-    </action>
-
-    <action name="viewReply" class="org.ambraproject.annotation.action.GetReplyAction">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/viewReply.ftl</param>
-      </result>
-    </action>
-
     <action name="findUser" class="org.ambraproject.user.action.SearchUserAction">
       <result type="freemarker">
         <param name="location">/templates/searchUser.ftl</param>
@@ -339,29 +327,31 @@
     </action>
 
     <!-- Navigate to the Manage Flags page without doing any processing of those flags -->
-    <action name="manageFlags" class="org.ambraproject.admin.action.ManageFlagsAction">
+    <action name="manageFlags" class="org.ambraproject.admin.flags.action.ListFlagsAction">
       <result name="success" type="freemarker">
-        <param name="location">/templates/manageFlags.ftl</param>
+        <param name="location">/templates/listFlags.ftl</param>
       </result>
       <!-- stay in manageFlags even on error -->
       <result name="error" type="freemarker">
-        <param name="location">/templates/manageFlags.ftl</param>
+        <param name="location">/templates/listFlags.ftl</param>
       </result>
     </action>
 
     <!-- Process the changes made to the flags on the Manage Flags page -->
-    <action name="processFlags" class="org.ambraproject.admin.action.ManageFlagsAction" method="processFlags">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/manageFlags.ftl</param>
+    <action name="processFlags" class="org.ambraproject.admin.flags.action.ProcessFlagsAction">
+      <result name="success" type="redirectAction">
+        <param name="actionName">manageFlags</param>
+        <param name="actionMessages">${actionMessages}</param>
       </result>
       <!-- stay in manageFlags even on error -->
-      <result name="error" type="freemarker">
-        <param name="location">/templates/manageFlags.ftl</param>
+      <result name="error" type="redirectAction">
+        <param name="actionName">manageFlags</param>
+        <param name="actionErrors">${actionErrors}</param>
       </result>
     </action>
 
     <!-- Navigate to the Manage Annotation page without querying or showing an Annotation -->
-    <action name="manageAnnotation" class="org.ambraproject.admin.action.ManageAnnotationAction">
+    <action name="manageAnnotation" class="org.ambraproject.admin.action.DefaultAdminAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageAnnotation.ftl</param>
       </result>
@@ -372,25 +362,31 @@
     </action>
 
     <!-- Navigate to the Manage Annotation page and query/show the Annotation indicated by annotationId -->
-    <action name="manageAnnotationLoad" class="org.ambraproject.admin.action.ManageAnnotationAction"
-            method="loadAnnotation">
+    <action name="manageAnnotationLoad" class="org.ambraproject.admin.action.LoadAnnotationAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageAnnotation.ftl</param>
       </result>
-      <!-- stay in manageAnnotation even on error -->
       <result name="error" type="freemarker">
         <param name="location">/templates/manageAnnotation.ftl</param>
       </result>
     </action>
 
-    <action name="manageAnnotationSave" class="org.ambraproject.admin.action.ManageAnnotationAction"
-            method="saveAnnotation">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/manageAnnotation.ftl</param>
+    <action name="manageAnnotationSave" class="org.ambraproject.admin.action.SaveAnnotationAction">
+      <result name="success" type="redirectAction">
+        <param name="actionName">manageAnnotationLoad</param>
+        <param name="actionMessages">${actionMessages}</param>
+        <param name="annotationId">${annotationId}</param>
       </result>
-      <!-- stay in manageAnnotation even on error -->
-      <result name="error" type="freemarker">
-        <param name="location">/templates/manageAnnotation.ftl</param>
+      <result name="input" type="redirectAction">
+        <param name="actionName">manageAnnotationLoad</param>
+        <param name="actionMessages">${actionMessages}</param>
+        <param name="actionErrors">${actionErrors}</param>
+        <param name="annotationId">${annotationId}</param>
+      </result>
+      <result name="error" type="redirectAction">
+        <param name="actionName">manageAnnotationLoad</param>
+        <param name="actionErrors">${actionMessages}</param>
+        <param name="annotationId">${annotationId}</param>
       </result>
     </action>
 

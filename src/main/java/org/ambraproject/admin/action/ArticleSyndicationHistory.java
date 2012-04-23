@@ -38,7 +38,7 @@ import java.util.List;
  * "failed"</li> </ul>
  */
 public class ArticleSyndicationHistory extends BaseAdminActionSupport {
-  private static final Logger log = LoggerFactory.getLogger(ManageFlagsAction.class);
+  private static final Logger log = LoggerFactory.getLogger(ArticleSyndicationHistory.class);
 
   private List<Syndication> synHistory;
   private SyndicationService syndicationService;

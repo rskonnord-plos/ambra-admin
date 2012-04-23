@@ -20,28 +20,18 @@
   <import resource="adminTestContext.xml" />
 
   <bean id="articleSyndicationHistory" class="org.ambraproject.admin.action.ArticleSyndicationHistory">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="syndicationService" ref="syndicationService"/>
   </bean>
 
-  <bean id="manageFlagsAction" class="org.ambraproject.admin.action.ManageFlagsAction">
-    <property name="ratingsService" ref="ratingsService"/>
-    <property name="annotationConverter" ref="annotationConverter"/>
-    <property name="annotationService" ref="annotationService"/>
-    <property name="ambraConfiguration" ref="configuration"/>
-    <property name="flagManagementService" ref="flagManagementService"/>
-    <property name="adminService" ref="adminService"/>
-    <property name="replyService" ref="replyService"/>
-  </bean>
-
   <bean id="assignAdminRoleAction" class="org.ambraproject.user.action.AssignAdminRoleAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
   </bean>
 
   <bean id="searchUserAction" class="org.ambraproject.user.action.SearchUserAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="userService" ref="userService"/>
     <property name="adminService" ref="adminService"/>
     <property name="searchUserService" ref="searchUserService"/>
@@ -51,7 +41,7 @@
     <property name="documentManagementService" ref="documentManagementService"/>
     <property name="transactionManager" ref="transactionManager"/>
     <property name="ingestArchiveProcessor" ref="ingestArchiveProcessor"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="articleService" ref="articleService"/>
     <property name="ingester" ref="ingester"/>
@@ -60,28 +50,28 @@
 
   <bean id="adminUserProfileAction" class="org.ambraproject.user.action.AdminUserProfileAction">
     <property name="userService" ref="userService"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="profanityCheckingService" ref="profanityCheckingService"/>
   </bean>
 
   <bean id="adminUserAlertsAction" class="org.ambraproject.user.action.AdminUserAlertsAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="userService" ref="userService"/>
   </bean>
   <bean id="crossPubManagementAction" class="org.ambraproject.admin.action.CrossPubManagementAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
   </bean>
 
   <bean id="manageVirtualJournalsAction" class="org.ambraproject.admin.action.ManageVirtualJournalsAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
   </bean>
 
   <bean id="volumeManagementAction" class="org.ambraproject.admin.action.VolumeManagementAction">
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
     <property name="volumeURI" value=""/>
@@ -90,27 +80,37 @@
 
   <bean id="issueManagementAction" class="org.ambraproject.admin.action.IssueManagementAction">
     <property name="browseService" ref="browseService"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
   </bean>
 
   <bean id="deleteArticleAction" class="org.ambraproject.admin.action.DeleteArticleAction">
     <property name="documentManagementService" ref="documentManagementService"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
   </bean>
 
-  <bean id="viewRatingAction" class="org.ambraproject.admin.action.ViewRatingAction">
-    <property name="ambraConfiguration" ref="configuration"/>
-    <property name="ratingsService" ref="ratingsService"/>
+  <bean id="listFlagsAction" class="org.ambraproject.admin.flags.action.ListFlagsAction">
+    <property name="flagService" ref="flagService"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
+  </bean>
+  <bean id="processFlagsAction" class="org.ambraproject.admin.flags.action.ProcessFlagsAction">
+    <property name="flagService" ref="flagService"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
   </bean>
 
-  <bean id="manageAnnotationAction" class="org.ambraproject.admin.action.ManageAnnotationAction">
-    <property name="adminService" ref="adminService"/>
+  <bean id="loadAnnotationAction" class="org.ambraproject.admin.action.LoadAnnotationAction">
     <property name="annotationService" ref="annotationService"/>
-    <property name="citationService" ref="citationService"/>
-    <property name="annotationConverter" ref="annotationConverter"/>
-    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
+  </bean>
+
+  <bean id="saveAnnotationAction" class="org.ambraproject.admin.action.SaveAnnotationAction">
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="adminAnnotationService" ref="adminAnnotationService"/>
   </bean>
 </beans>

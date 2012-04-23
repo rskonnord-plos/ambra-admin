@@ -1,5 +1,5 @@
-/* $HeadURL:: http://ambraproject.org/svn/ambra/ambra/branches/ambra-2.21/webapp/src/mai#$
- * $Id: AssignAdminRoleAction.java 10063 2012-01-13 18:39:56Z josowski $
+/* $HeadURL::                                                                            $
+ * $Id$
  *
  * Copyright (c) 2006-2010 by Public Library of Science
  * http://plos.org
