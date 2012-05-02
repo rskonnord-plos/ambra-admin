@@ -95,9 +95,9 @@
                   <#if publishableSyndications[doi]?? &&  publishableSyndications[doi]?has_content>
                     <#list publishableSyndications[doi] as syndication>
                       <#if syndication.status == "PENDING">
-                        <input type="checkBox" name="syndicates" id="${doi?url}_${syndication.getTarget()}" value="${doi?url}::${syndication.getTarget()}" onClick="checkRow(this.id, this.checked);"/>${syndication.getTarget()}
+                        <input type="checkBox" name="syndicates" id="${doi?url}_${syndication.target}" value="${doi?url}::${syndication.target}" onClick="checkRow(this.id, this.checked);"/>${syndication.target}
                       <#else>
-                        &nbsp; &nbsp; <i>${syndication.getTarget()}</i>
+                        &nbsp; &nbsp; <i>${syndication.target}</i>
                       </#if>
                     </#list>
                   <#else>
@@ -120,7 +120,7 @@
 
       <fieldset>
         <legend><strong>Syndication Statuses</strong></legend>
-          <@s.form name="resyndicateFailedArticles" action="resyndicateFailedArticles" method="get" namespace="/">
+          <@s.form name="resyndicateFailedArticles" action="resyndicateFailedArticles" method="post" namespace="/">
 
             <#if isFailedSyndications>
               <input type="submit" name="action" value="Resyndicate failed articles" />
@@ -143,18 +143,18 @@
                   <#if syndication.status == 'IN_PROGRESS'>
                       <span class="published">Published.</span> <span class="inprogress">Syndication in progress</span>
                   </#if>
-                  <#if syndication == 'SUCCESS'>
+                  <#if syndication.status == 'SUCCESS'>
                       <span class="success">Syndication Succeeded</span>
                   </#if>
-                  <#if syndication == 'FAILED'>
-                      <span class="published">Published</span> <span class="failure">Syndication to ${syndication.getTarget()} Failed: &nbsp;
-                        <#if syndication.getErrorMessage()??>
-                          ${syndication.getErrorMessage()}
+                  <#if syndication.status == 'FAILURE'>
+                      <span class="published">Published</span> <span class="failure">Syndication to ${syndication.target} Failed: &nbsp;
+                        <#if syndication.errorMessage??>
+                          ${syndication.errorMessage}
                         <#else>
                           No error message for this syndication failure
                         </#if>
                       </span>
-                      <input type="hidden" name="resyndicates" id="resyndicate_${syndication.doi?url}_${syndication.getTarget()}" value="${syndication.doi?url}::${syndication.getTarget()}"/>
+                      <input type="hidden" name="resyndicates" id="resyndicate_${syndication.doi?url}_${syndication.target}" value="${syndication.doi?url}::${syndication.target}"/>
                   </#if>
                   </td>
                 </tr>
