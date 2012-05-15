@@ -23,6 +23,7 @@ package org.ambraproject.admin.action;
 
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.service.AdminService;
+import org.ambraproject.models.Journal;
 import org.springframework.beans.factory.annotation.Required;
 
 public class BaseAdminActionSupport  extends BaseActionSupport {
@@ -30,14 +31,14 @@ public class BaseAdminActionSupport  extends BaseActionSupport {
   protected AdminService adminService;
 
   // Fields Used by template
-  private AdminService.JournalInfo journalInfo;
+  private Journal journalInfo;
 
   /**
     * Gets the JournalInfo value object for access in the view.
     *
     * @return Current virtual Journal value object
     */
-   public AdminService.JournalInfo getJournal() {
+   public Journal getJournal() {
      return journalInfo;
    }
 
@@ -52,7 +53,7 @@ public class BaseAdminActionSupport  extends BaseActionSupport {
   }
 
   protected void initJournal() {
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journalInfo = adminService.getJournal(getCurrentJournal());
   }
 
 }

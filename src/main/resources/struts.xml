@@ -397,6 +397,9 @@
       <result name="input" type="freemarker">
         <param name="location">/templates/manageVirtualJournals.ftl</param>
       </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageVirtualJournals.ftl</param>
+      </result>
     </action>
 
     <action name="issueManagement" class="org.ambraproject.admin.action.IssueManagementAction">

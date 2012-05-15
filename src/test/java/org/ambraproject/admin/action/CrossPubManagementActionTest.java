@@ -13,17 +13,28 @@
 
 package org.ambraproject.admin.action;
 
+import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Journal;
+import org.ambraproject.web.VirtualJournalContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.topazproject.ambra.models.Journal;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertEqualsNoOrder;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -34,51 +45,117 @@ public class CrossPubManagementActionTest extends AdminWebTest {
   @Autowired
   protected CrossPubManagementAction action;
 
-  @Test
-  public void testAddArticles() throws Exception {
-    URI[] dois = new URI[3];
+  @DataProvider
+  public Object[][] expectedDois() {
+    Journal journal = new Journal("crosspubManagementAction journal");
+    journal.seteIssn("crossPubEissn");
+    dummyDataStore.store(journal);
+
+    List<String> expectedDois = new ArrayList<String>(3);
+    for (int i = 1; i <= 3; i++) {
+      Article article = new Article("id:crossPubManagement-" + i);
+      article.seteIssn(defaultJournal.geteIssn());
+      article.setJournals(new HashSet<Journal>(2));
+      article.getJournals().add(defaultJournal);
+      article.getJournals().add(journal);
+      dummyDataStore.store(article);
+      expectedDois.add(article.getDoi());
+    }
+    Article pubbedInJournal = new Article("id:crossPubManagementPubbedInJournal");
+    pubbedInJournal.seteIssn(journal.geteIssn());
+    pubbedInJournal.setJournals(new HashSet<Journal>(1));
+    pubbedInJournal.getJournals().add(journal);
+    dummyDataStore.store(pubbedInJournal);
+
+    Article notCrosspubbed = new Article("id:crossPubManagementNotCrossPubbed");
+    notCrosspubbed.seteIssn(defaultJournal.geteIssn());
+    notCrosspubbed.setJournals(new HashSet<Journal>(1));
+    notCrosspubbed.getJournals().add(defaultJournal);
+    dummyDataStore.store(notCrosspubbed);
+
+    Map<String, Object> requestAttributes = getDefaultRequestAttributes();
+    requestAttributes.put(VirtualJournalContext.PUB_VIRTUALJOURNAL_CONTEXT,
+        new VirtualJournalContext(journal.getJournalKey(), defaultJournal.getJournalKey(),
+            "http", 80, "localhost", "", new ArrayList<String>(0)));
+
+    return new Object[][]{
+        {requestAttributes, journal, expectedDois}
+    };
+  }
+
+  @Test(dataProvider = "expectedDois")
+  public void testExecute(Map<String, Object> requestAttributes, Journal journal, List<String> expectedDois) throws Exception {
+    action.setRequest(requestAttributes);
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "action didn't return success");
+    assertEquals(action.getActionMessages().size(), 0, "Action returned messages on default request");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+
+    assertNotNull(action.getDois(), "action had null list of dois");
+    assertEqualsNoOrder(action.getDois().toArray(), expectedDois.toArray(), "Action had incorrect dois");
+  }
+
+  @Test(dataProvider = "expectedDois", dependsOnMethods = {"testExecute"})
+  public void testRemoveArticles(Map<String, Object> requestAttributes, Journal journal, List<String> expectedDois) throws Exception {
+    //cross pub a bunch of articles and then remove them
+    String[] articlesToRemove = new String[3];
+    List<Article> removedArticles = new ArrayList<Article>(3);
+    for (int i = 0; i < 3; i++) {
+      Article article = new Article("id:crossPubManagementArticleToRemove-" + i);
+      article.seteIssn(defaultJournal.geteIssn());
+      article.setJournals(new HashSet<Journal>(2));
+      article.getJournals().add(defaultJournal);
+      article.getJournals().add(journal);
+      dummyDataStore.store(article);
+      articlesToRemove[i] = article.getDoi();
+      removedArticles.add(article);
+    }
+
+    action.setCommand("REMOVE_ARTICLES");
+    action.setArticlesToRemove(articlesToRemove);
+    action.setRequest(requestAttributes);
+
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "action didn't return success");
+    assertEquals(action.getActionMessages().size(), 3, "Action didn't return messages indicating succes");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
+    assertEqualsNoOrder(action.getDois().toArray(), expectedDois.toArray(), "action had incorrect dois");
+
+    for (Article article : removedArticles) {
+      assertFalse(dummyDataStore.get(Article.class, article.getID()).getJournals().contains(journal),
+          "journal didn't get removed from article");
+    }
+  }
+
+  @Test(dataProvider = "expectedDois", dependsOnMethods = {"testExecute","testRemoveArticles"})
+  public void testAddArticles(Map<String, Object> requestAttributes, Journal journal, List<String> expectedDois) throws Exception {
+    List<Article> articles = new ArrayList<Article>(3);
+    List<String> doisToAdd = new ArrayList<String>(3);
     for (int i = 0; i < 3; i++) {
       Article article = new Article();
       article.setDoi("id:testArticleToAdd" + i);
       article.seteIssn("notTheDefaulteIssn");
       dummyDataStore.store(article);
-      dois[i] = URI.create(article.getDoi());
+      articles.add(article);
+      doisToAdd.add(article.getDoi());
     }
 
-    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
     action.setCommand("ADD_ARTICLES");
-    action.setArticlesToAdd(StringUtils.join(dois, ","));
-    action.execute();
+    action.setArticlesToAdd(StringUtils.join(doisToAdd, ","));
+    action.setRequest(requestAttributes);
 
-    Journal storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
-    for (URI doi : dois) {
-      assertTrue(storedJournal.getSimpleCollection().contains(doi), "Article " + doi + " didn't get added to journal");
-    }
-  }
-  
-  @Test
-  public void testRemoveArticles() throws Exception {
-    Journal storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
-    
-    String[] dois = new String[3];
-    for (int i = 0; i < 3; i++) {
-      Article article = new Article();
-      article.setDoi("id:testArticleToRemove" + i);
-      article.seteIssn("notTheDefaulteIssn");
-      dummyDataStore.store(article);
-      storedJournal.getSimpleCollection().add(URI.create(article.getDoi()));
-      dois[i] = article.getDoi();
-    }
-    dummyDataStore.update(storedJournal);
+    String result = action.execute();
+    assertEquals(result, Action.SUCCESS, "action didn't return success");
+    assertEquals(action.getActionMessages().size(), 3, "Action didn't return messages indicating succes");
+    assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
 
-    action.setRequest(getDefaultRequestAttributes()); //somehow the request is getting overwritten when all the tests are run together...
-    action.setCommand("REMOVE_ARTICLES");
-    action.setArticlesToRemove(dois);
-    action.execute();
+    expectedDois.addAll(doisToAdd);
+    assertEqualsNoOrder(action.getDois().toArray(), expectedDois.toArray(), "Action had incorrect doi list");
 
-    storedJournal = dummyDataStore.get(Journal.class, defaultJournal.getId());
-    for (String doi : dois) {
-      assertFalse(storedJournal.getSimpleCollection().contains(URI.create(doi)), "Article " + doi + " didn't get removed from journal");
+
+    for (Article article : articles) {
+      assertTrue(dummyDataStore.get(Article.class, article.getID()).getJournals().contains(journal),
+          "journal didn't get added to article");
     }
   }
 

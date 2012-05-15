@@ -20,13 +20,12 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Volume;
+import org.apache.commons.lang.xwork.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
-import org.topazproject.ambra.models.Issue;
-import org.topazproject.ambra.models.Volume;
-import org.ambraproject.util.UriUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,18 +37,17 @@ import java.util.List;
 public class VolumeManagementAction extends BaseAdminActionSupport {
 
   // Fields set by templates
-  private String       command;
-  private URI          volumeURI;
-  private URI          issueURI;
-  private String       displayName;
-  private URI          imageURI;
-  private String[]     issuesToDelete;
-  private String       issuesToOrder;
+  private String command;
+  private String volumeURI;
+  private String issueURI;
+  private String displayName;
+  private String imageURI;
+  private String[] issuesToDelete;
 
   // Fields used by template
-  private String       issuesCSV;
-  private Volume       volume;
-  private List<Issue>  issues;
+  private String issuesCSV;
+  private Volume volume;
+  private List<Issue> issues;
 
   private static final Logger log = LoggerFactory.getLogger(VolumeManagementAction.class);
 
@@ -63,11 +61,10 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
     INVALID;
 
     /**
-     * Convert a string specifying an action to its
-     * enumerated equivalent.
+     * Convert a string specifying an action to its enumerated equivalent.
      *
-     * @param action  string value to convert.
-     * @return        enumerated equivalent
+     * @param action string value to convert.
+     * @return enumerated equivalent
      */
     public static VM_COMMANDS toCommand(String action) {
       VM_COMMANDS a;
@@ -85,20 +82,20 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
    * Main entry porint for Volume management action.
    */
   @Override
-  @Transactional(rollbackFor = { Throwable.class })
-  public String execute() throws Exception  {
+  @Transactional(rollbackFor = {Throwable.class})
+  public String execute() throws Exception {
     // Dispatch on hidden field command
-    switch(VM_COMMANDS.toCommand(command)) {
+    switch (VM_COMMANDS.toCommand(command)) {
       case CREATE_ISSUE:
-        create_Issue();
+        createIssue();
         break;
 
       case UPDATE_VOLUME:
-        update_Volume();
+        updateVolume();
         break;
 
       case REMOVE_ISSUES:
-        remove_Issues();
+        removeIssues();
         break;
 
       case INVALID:
@@ -108,57 +105,40 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
     return SUCCESS;
   }
 
-  private void create_Issue() {
-    if (issueURI != null) {
-      try {
-        Volume volume = adminService.getVolume(volumeURI);
-        Issue i = adminService.createIssue(volume, issueURI, imageURI, displayName, null);
-        if (i != null) {
-          addActionMessage("Created Issue: " + i.getId());
-        } else {
-          addActionError("Duplicate Issue URI, " + issueURI);
-        }
-      } catch (Exception e) {
-        addActionError("Issue not created due to the following error.");
-        addActionError(e.getMessage());
-        log.error("Create ISsue Failed.", e);
-      }
-    } else {
-      addActionError("Invalid Issue URI");
-    }
-    repopulate();
-  }
-
-  private void update_Volume() {
+  private void createIssue() {
     try {
-      Volume volume = adminService.getVolume(volumeURI);
-      List<URI> issueURIs = adminService.parseCSV(issuesToOrder);
-      /*
-       * Make sure the only changes to the articleListCSV
-       * are ordering.
-       */
-      if (validateCSV(volume, issueURIs)) {
-        volume = adminService.updateVolume(volume, displayName, issueURIs);
-        addActionMessage("Successfully updated volume "  + volumeURI);
-      }
-     } catch (Exception e) {
-       addActionError("Volume was not updated due to the following error.");
-       addActionError(e.getMessage());
-       log.error("Update Volume Failed.", e);
-    }
-    repopulate();
-  }
-
-  private void remove_Issues() {
-    try {
-      for(String issurURI : issuesToDelete){
-        adminService.deleteIssue(URI.create(issurURI));
-        addActionMessage("Deleted issue " + issurURI);
-      }
+      Issue issue = new Issue(issueURI);
+      issue.setImageUri(imageURI);
+      issue.setDisplayName(displayName);
+      adminService.addIssueToVolume(volumeURI, issue);
+      addActionMessage("Created Issue: " + issueURI);
     } catch (Exception e) {
-      addActionError("Issue not removed due to the following error.");
-      addActionError(e.getMessage());
-      log.error("Remove Issue Failed.", e);
+      log.error("Error creating issue " + issueURI + " for volume " + volumeURI, e);
+      addActionError("Issue not created due to the following error: " + e.getMessage());
+    }
+    repopulate();
+  }
+
+  private void updateVolume() {
+    try {
+      adminService.updateVolume(volumeURI, displayName, issuesCSV);
+      addActionMessage("Successfully updated volume " + volumeURI);
+    } catch (Exception e) {
+      log.error("Failed to update volume " + volumeURI, e);
+      addActionError("Volume was not updated due to the following error: " + e.getMessage());
+    }
+    repopulate();
+  }
+
+  private void removeIssues() {
+    for (String issueUri : issuesToDelete) {
+      try {
+        adminService.deleteIssue(issueUri);
+        addActionMessage("Deleted issue " + issueUri);
+      } catch (Exception e) {
+        log.error("Failed to delete issue " + issueUri, e);
+        addActionError("Issue '" + issueUri + "' not removed due to the following error: " + e.getMessage());
+      }
     }
     repopulate();
   }
@@ -166,145 +146,47 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
   private void repopulate() {
     // Re-populate fields for template
     volume = adminService.getVolume(volumeURI);
-    issuesCSV = adminService.getIssuesCSV(volumeURI);
     issues = adminService.getIssues(volumeURI);
+    issuesCSV = adminService.formatIssueCsv(issues);
     initJournal();
   }
 
-  /**
-   *
-   * @param volume
-   * @param issueURIs
-   * @return
-   * @throws java.net.URISyntaxException
-   */
-  public Boolean validateCSV(Volume volume, List<URI> issueURIs) throws URISyntaxException {
-    List<URI> curList = volume.getIssueList();
-
-    if (issueURIs.size() != curList.size()) {
-      addActionError("Issue not updated due to the following error.");
-      addActionError("There has been an addition or deletion in the Issue URI List.");
-
-      return false;
-    }
-
-    for(URI uri : curList) {
-      if (!issueURIs.contains(uri)) {
-        addActionError("Issue not updated due to the following error.");
-        addActionError("One of the URI's in the Issue URI List has changed.");
-
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Gets issues.
-   *
-   * @return Current issues associated with the volume.
-   */
   public List<Issue> getIssues() {
     return issues;
   }
 
-  /**
-   * Gets issues.
-   *
-   * @return Current issues associated with the volume.
-   */
   public String getIssuesCSV() {
     return issuesCSV;
   }
 
-  /**
-   * Gets volume.
-   *
-   * @return Current volume object.
-   */
   public Volume getVolume() {
     return volume;
   }
 
-  /**
-   * Set the volume to manage.
-   *  
-   * @param  theVolume the volume to manage.
-   */
-  @Required
-  public void setVolumeURI(String theVolume) {
-    try {
-      this.volumeURI = UriUtil.validateUri(theVolume.trim(), "Volume Uri");
-    } catch (Exception e) {
-      this.volumeURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setVolume URI conversion failed.");
-    }
+  public void setVolumeURI(String volumeURI) {
+    this.volumeURI = volumeURI.trim();
   }
 
- /**
-   * Set the volume to manage.
-   *
-   * @param  issueURI .
-   */
-  @Required
   public void setIssueURI(String issueURI) {
-    try {
-      this.issueURI = UriUtil.validateUri(issueURI.trim(), "Issue Uri");
-    } catch (Exception e) {
-      this.issueURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setIssue URI conversion failed. ");
-    }
-  }
-     /**
-   * Set display name for a voulume.
-   *
-   * @param dsplyName the display of the volume.
-   */
-  public void setDisplayName(String dsplyName) {
-    this.displayName = dsplyName.trim();
+    this.issueURI = issueURI.trim();
   }
 
-  /**
-   * Set image.
-   *
-   * @param image the image for this journal.
-   */
-  public void setImageURI(String image) {
-    try {
-      this.imageURI = UriUtil.validateUri(image.trim(), "Image Uri");
-    } catch (Exception e) {
-      this.imageURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setImage URI conversion failed. ");
-    }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName.trim();
   }
 
-  /**
-   * Set issues to delete.
-   *
-   * @param issues .
-   */
+  public void setImageURI(String imageUri) {
+    this.imageURI = imageUri;
+  }
+
   public void setIssuesToDelete(String[] issues) {
     this.issuesToDelete = issues;
   }
 
-  /**
-   * Set issues to delete.
-   *
-   * @param issues .
-   */
-  public void setIssuesToOrder(String issues) {
-    this.issuesToOrder = issues;
+  public void setIssuesCSV(String issuesCSV) {
+    this.issuesCSV = issuesCSV;
   }
 
-  /**
-   * Sets the Action to execute.
-   *
-   * @param  command the command to execute.
-   */
-  @Required
   public void setCommand(String command) {
     this.command = command;
   }

@@ -43,6 +43,12 @@
         </syndication>
         <syndication target="BAR" />
       </syndications>
+      <search>
+        <solrIndexCron>0/2+*+*+*+*+?</solrIndexCron>
+        <articleIndexingQueue>mock:articleIndexing</articleIndexingQueue>
+        <articleDeleteQueue>mock:articleDelete</articleDeleteQueue>
+        <indexingMailReceiver>do-not-reply@plos.org</indexingMailReceiver>
+      </search>
     </services>
   </ambra>
 </config>

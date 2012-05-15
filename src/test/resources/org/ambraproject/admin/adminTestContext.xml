@@ -29,13 +29,15 @@
   <!--Include all the bean definitions from Ambra-->
   <import resource="classpath*:org/ambraproject/nonWebApplicationContext.xml"/>
 
+  <bean id="onCrossPubListener" class="org.ambraproject.admin.DummyOnCrossPublishListener"/>
+
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
-    <property name="journalService" ref="journalService"/>
-  </bean>
-
-  <bean id="citationService" class="org.ambraproject.admin.service.impl.CitationServiceImpl">
-    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="onCrossPubListener">
+      <list>
+        <ref bean="onCrossPubListener"/>
+      </list>
+    </property>
   </bean>
 
   <bean id="filestoreDir" class="java.lang.String">

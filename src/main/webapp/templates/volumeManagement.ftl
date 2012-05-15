@@ -39,7 +39,8 @@
       <table border="0" cellpadding="10" cellspacing="0">
         <tr>
           <th align="center">Volume (URI)</th>
-            <td><@s.textfield name="volumeURI" value="${volume.id}" size="50" required="true" /></td>
+            <@s.hidden name="volumeURI" value="${volume.volumeUri}"/>
+            <td>${volume.volumeUri}</td>
           </tr>
           <tr>
             <th align="center">Display Name</th>
@@ -50,7 +51,7 @@
           </tr>
           <tr>
             <th align="center">Issues (re-order only)</th>
-            <td><@s.textfield name="issuesToOrder" value="${issuesCSV!''}" size="75" /></td>
+            <td><@s.textfield name="issuesCSV" value="${issuesCSV!''}" size="75" /></td>
           </tr>
         </table>
         <@s.submit align="right" value="Update"/>
@@ -63,7 +64,7 @@
       <@s.form method="post" namespace="/" action="volumeManagement"
           name="createIssue" id="create_issue">
       <@s.hidden name="command" value="CREATE_ISSUE"/>
-      <@s.hidden name="volumeURI" value="${volume.id}"/>
+      <@s.hidden name="volumeURI" value="${volume.volumeUri}"/>
       <table border="0" cellpadding="10" cellspacing="0">
         <tr>
           <th align="center">Issue (URI)</th>
@@ -92,7 +93,7 @@
       <@s.form method="post" namespace="/" action="volumeManagement" id="removeIssues"
           name="removeIssues"  >
       <@s.hidden name="command" value="REMOVE_ISSUES"/>
-      <@s.hidden name="volumeURI" value="${volume.id}"/>
+      <@s.hidden name="volumeURI" value="${volume.volumeUri}"/>
       <table border="1" cellpadding="10" cellspacing="0">
         <tr>
             <th>Delete</th>
@@ -104,29 +105,29 @@
         <#list issues as i>
         <tr>
           <td align="center">
-              <@s.checkbox name="issuesToDelete" fieldValue="${i.id}"/>
+              <@s.checkbox name="issuesToDelete" fieldValue="${i.issueUri}"/>
           </td>
           <td align="center">
-            <#if i.image?exists>
-              <@s.url namespace="/article" action="fetchObject" uri="${i.image}.g001"
-                  representation="PNG_S" includeParams="none" id="issueImage"/>
+            <@s.url namespace="/article" action="browseIssue" issue="${i.issueUri}" id="browseIssue"/>
+            <#if i.imageUri?has_content>
+              <@s.url namespace="/article" action="fetchObject" uri="${i.imageUri}.g001"
+                representation="PNG_S" includeParams="none" id="issueImage"/>
               <#assign altText="Issue Image" />
             <#else>
               <@s.url value="" id="issueImage"/>
-              <#assign altText="Submit (Issue Image null)" />
+              <#assign altText="No Issue Image" />
             </#if>
-            <input type="image" value="${altText}" src="${issueImage}" alt="${altText}" height=50/>
+            <@s.a href="%{browseIssue}"><img src="${issueImage}" alt="${altText}" height=50/></@s.a>
           </td>
           <td>
-            <@s.url namespace="/article" action="browseIssue" issue="${i.id}" id="browseIssue"/>
             <@s.a href="${browseIssue}">${i.displayName}</@s.a>
           </td>
           <td>
-             ${i.id}
+             ${i.issueUri}
           </td>
           <td>
             <@s.url namespace="/" action="issueManagement"
-                issueURI="${i.id}" volumeURI="${volume.id}" id="issueMangement"/>
+                issueURI="${i.issueUri}" volumeURI="${volume.volumeUri}" id="issueMangement"/>
             <@s.a href="${issueMangement}">Update</@s.a>
           </td>
          </tr>

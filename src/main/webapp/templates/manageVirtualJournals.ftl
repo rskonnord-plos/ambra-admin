@@ -20,104 +20,109 @@
 -->
 <#include "includes/globals.ftl">
 <html>
-  <head>
-    <title>Manage Virtual Journals</title>
-    <#include "includes/header.ftl">
-  </head>
-  <body>
-    <h1 style="text-align: center">Manage Virtual Journals</h1>
-    <!-- Volume management menu -->
-    <#include "includes/navigation.ftl">
+<head>
+  <title>Manage Virtual Journals</title>
+<#include "includes/header.ftl">
+</head>
+<body>
+<h1 style="text-align: center">Manage Virtual Journals</h1>
+<!-- Volume management menu -->
+<#include "includes/navigation.ftl">
 
-    <@messages />
+<@messages />
 
-    <!-- Update Current Issue -->
-    <@s.form method="post" namespace="/" action="manageVirtualJournals"
-        name="manageVirtualJournals_${journal.key}" id="manageVirtualJournals_${journal.key}" >
-    <@s.hidden name="command" value="UPDATE_ISSUE"/>
-    <@s.hidden name="journalToModify" value="${journal.key}"/>
-    
-    <fieldset>
-    <legend>Set Current Issue</legend>
-    <table border="0" cellpadding="10" cellspacing="0">
+<!-- Update Current Issue -->
+<@s.form method="post" namespace="/" action="manageVirtualJournals"
+name="manageVirtualJournals_${journal.journalKey}" id="manageVirtualJournals_${journal.journalKey}" >
+  <@s.hidden name="command" value="UPDATE_ISSUE"/>
+  <@s.hidden name="journalToModify" value="${journal.journalKey}"/>
+
+<fieldset>
+  <legend>Set Current Issue</legend>
+  <table border="0" cellpadding="10" cellspacing="0">
+    <tr>
+      <th align="center">Issue (URI)</th>
+      <td>
+        <#if journal.currentIssue??>
+          <#assign currentIssueUri = journal.currentIssue.issueUri!''/>
+        <#else>
+          <#assign currentIssueUri = '' />
+        </#if>
+            <@s.textfield name="currentIssueURI" value="${currentIssueUri}" size="50"/>
+      </td>
+    </tr>
+    <tr>
+  </table>
+  <@s.submit value="Update"/>
+</@s.form>
+</fieldset>
+
+<p>
+
+  <!-- create a Volume -->
+<fieldset>
+  <legend>Create Volume</legend>
+<@s.form method="post" namespace="/"  action="manageVirtualJournals"
+name="createVolume" id="create_volume" >
+  <@s.hidden name="command" value="CREATE_VOLUME"/>
+  <@s.hidden name="journalToModify" value="${journal.journalKey}"/>
+
+  <table border="0" cellpadding="10" cellspacing="0">
+    <tr>
+      <th align="center">Volume (URI)</th>
+      <td><@s.textfield name="volumeURI" size="50" required="true"/></td>
+    </tr>
+    <tr>
+      <th align="center">Display Name</th>
+      <td><@s.textfield name="displayName" size="50" required="true"/></td>
+    </tr>
+  </table>
+  <@s.submit align="right" value="Create"/>
+</@s.form>
+</fieldset>
+<p>
+
+  <!-- list Existing Volumes -->
+<fieldset>
+  <legend>Existing Volumes</legend>
+
+<#-- Check to see if there are Volumes Associated with this Journal -->
+<#if (volumes?size > 0)>
+  <@s.form method="post" namespace="/" action="manageVirtualJournals"
+  name="removeVolumes" id="removeVolumes" >
+    <@s.hidden name="command" value="REMOVE_VOLUMES"/>
+
+    <table border="1" cellpadding="10" cellspacing="0">
       <tr>
-        <th align="center">Issue (URI)</th>
+        <th>Delete</th>
+        <th>Display Name</th>
+        <th>URI</th>
+        <th>Update</th>
+      </tr>
+      <#list volumes as v>
+        <tr>
+          <td align="center">
+            <@s.checkbox name="volsToDelete" fieldValue="${v.volumeUri}"/>
+          </td>
           <td>
-            <@s.textfield name="currentIssueURI" value="${journal.currentIssue!''}" size="50"/>
+          ${v.displayName!''}
+          </td>
+          <td>
+          ${v.volumeUri}
+          </td>
+          <td>
+            <@s.url namespace="/" action="volumeManagement" volumeURI="${v.volumeUri}"
+            id="volumeMangement" />
+            <@s.a href="${volumeMangement}">Update</@s.a>
           </td>
         </tr>
-      <tr>
+      </#list>
     </table>
-    <@s.submit value="Update"/>
-    </@s.form>
-    </fieldset>
-
-    <p>
-
-    <!-- create a Volume -->
-    <fieldset>
-     <legend>Create Volume</legend>
-      <@s.form method="post" namespace="/"  action="manageVirtualJournals"
-          name="createVolume" id="create_volume" >
-      <@s.hidden name="command" value="CREATE_VOLUME"/>
-      <@s.hidden name="journalToModify" value="${journal.key}"/>
-
-      <table border="0" cellpadding="10" cellspacing="0">
-        <tr>
-          <th align="center">Volume (URI)</th>
-            <td><@s.textfield name="volumeURI" size="50" required="true"/></td>
-          </tr>
-          <tr>
-            <th align="center">Display Name</th>
-            <td><@s.textfield name="displayName" size="50" required="true"/></td>
-          </tr>
-        </table>
-        <@s.submit align="right" value="Create"/>
-      </@s.form>
-    </fieldset>
-    <p>
-
-    <!-- list Existing Volumes -->
-    <fieldset>
-      <legend>Existing Volumes</legend>
-
-      <#-- Check to see if there are Volumes Associated with this Journal -->
-      <#if (volumes?size > 0)>
-        <@s.form method="post" namespace="/" action="manageVirtualJournals"
-            name="removeVolumes" id="removeVolumes" >
-        <@s.hidden name="command" value="REMOVE_VOLUMES"/>
-
-        <table border="1" cellpadding="10" cellspacing="0">
-          <tr>
-            <th>Delete</th>
-            <th>Display Name</th>
-            <th>URI</th>
-            <th>Update</th>
-          </tr>
-          <#list volumes as v>
-          <tr>
-            <td align="center">
-              <@s.checkbox name="volsToDelete" fieldValue="${v.id}"/>
-            </td>
-            <td>
-              ${v.displayName!''}
-            </td>
-            <td>
-              ${v.id}
-            </td>
-            <td>
-              <@s.url namespace="/" action="volumeManagement" volumeURI="${v.id}"
-                 id="volumeMangement" />
-              <@s.a href="${volumeMangement}">Update</@s.a>
-            </td>
-           </tr>
-         </#list>
-        </table>
-        <@s.submit value="Delete Selected Volumes"/>
-        </@s.form>
-      <#else>
-        <strong>There are no volumes currently associated with ${journal.key}.</strong>
-      </#if>
-    </fieldset>
-  </body>
+    <@s.submit value="Delete Selected Volumes"/>
+  </@s.form>
+<#else>
+  <strong>There are no volumes currently associated with ${journal.journalKey}.</strong>
+</#if>
+</fieldset>
+</body>
 </html>

@@ -34,7 +34,7 @@
     <fieldset>
     <legend>Cross Publish Article(s)</legend>
     <@s.form method="post" namespace="/" action="crossPubManagement"
-        name="crossPubManagement_${journal.key}" id="crossPubManagement_${journal.key}" >
+        name="crossPubManagement_${journal.journalKey}" id="crossPubManagement_${journal.journalKey}" >
     <@s.hidden name="command" value="ADD_ARTICLES"/>
     <table border="0" cellpadding="10" cellspacing="0">
       <tr>
@@ -58,24 +58,24 @@
     <fieldset>
       <legend>Cross Published Articles</legend>
 
-      <#if (journal.simpleCollection?size > 0)>
+      <#if (dois?size > 0)>
       <@s.form method="post" namespace="/" action="crossPubManagement"
-          name="crossPubManagement_${journal.key}" id="crossPubManagement_${journal.key}" >
+          name="crossPubManagement_${journal.journalKey}" id="crossPubManagement_${journal.journalKey}" >
       <@s.hidden name="command" value="REMOVE_ARTICLES"/>
       <table border="1" cellpadding="10" cellspacing="0">
         <tr>
             <th>Remove</th>
             <th>Article URI</th>
         </tr>
-        <#list journal.simpleCollection as uri>
+        <#list dois as doi>
         <@s.url id="articleURL" includeParams="none" namespace="/article" action="fetchArticle"
-            articleURI="${uri}"/>
+            articleURI="${doi}"/>
         <tr>
           <td align="center">
-              <@s.checkbox name="articlesToRemove" fieldValue="${uri}"/>
+              <@s.checkbox name="articlesToRemove" fieldValue="${doi}"/>
           </td>
           <td>
-             <a target="_article" href="${articleURL}">${uri}</a>
+             <a target="_article" href="${articleURL}">${doi}</a>
           </td>
          </tr>
          </#list>

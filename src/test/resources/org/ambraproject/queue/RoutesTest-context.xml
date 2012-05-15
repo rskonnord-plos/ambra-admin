@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+  <bean id="configuration" class="org.ambraproject.testutils.AmbraTestConfigurationFactory" factory-method="getConfiguration">
+    <constructor-arg value="queue/configuration.xml"/>
+  </bean>
+
+  <bean id="articleIndexingService" class="org.ambraproject.queue.DummyArticleIndexingService"/>
+
+  <bean id="pmcResponseConsumer" class="org.ambraproject.queue.DummyResponseConsumer"/>
+
+  <!--jms stuff for internal activemq routes-->
+  <bean id="jmsFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+    <property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>
+  </bean>
+
+  <bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">
+    <property name="connectionFactory" ref="jmsFactory"/>
+  </bean>
+
+  <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+    <property name="connectionFactory" ref="jmsFactory"/>
+    <property name="transactionManager" ref="jmsTransactionManager"/>
+    <property name="transacted" value="true"/>
+    <property name="concurrentConsumers" value="1"/>
+  </bean>
+
+  <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <property name="configuration" ref="jmsConfig"/>
+  </bean>
+
+  <bean id="routes" class="org.ambraproject.queue.Routes">
+    <property name="ambraConfiguration" ref="configuration"/>
+    <property name="mailEndpoint" value="mock:mail"/>
+  </bean>
+
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+    <jmxAgent id="plos-queue" disabled="true"/>
+    <template id="producerTemplate"/>
+    <consumerTemplate id="consumerTemplate"/>
+    <routeBuilder ref="routes"/>
+  </camelContext>
+
+</beans>

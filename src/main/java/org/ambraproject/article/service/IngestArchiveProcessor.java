@@ -40,7 +40,7 @@ import java.util.zip.ZipFile;
 public interface IngestArchiveProcessor {
 
   /**
-   * Process the xml and return a fully-populated, unsaved {@link org.topazproject.ambra.models.Article} object
+   * Process the xml and return a fully-populated, unsaved {@link org.ambraproject.models.Article} object
    *
    *
    * @param archive - the zip file containing article information

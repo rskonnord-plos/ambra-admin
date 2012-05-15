@@ -21,6 +21,7 @@
 
 package org.ambraproject.queue;
 
+import org.ambraproject.search.service.ArticleIndexingService;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.apache.commons.configuration.Configuration;
@@ -44,6 +45,8 @@ public class Routes extends SpringRouteBuilder {
   public static final String SEARCH_INDEX = "seda:search.index";
   public static final String SEARCH_DELETE = "seda:search.delete";
 
+  private String mailEndpoint;
+
   /**
    * <p>
    * Setter method for configuration. Injected through Spring.
@@ -66,6 +69,11 @@ public class Routes extends SpringRouteBuilder {
   @Required
   public void setAmbraConfiguration(Configuration configuration) {
     this.configuration = configuration;
+  }
+
+  @Required
+  public void setMailEndpoint(String mailEndpoint) {
+    this.mailEndpoint = mailEndpoint;
   }
 
   /**
@@ -108,47 +116,8 @@ public class Routes extends SpringRouteBuilder {
               .transacted()
               .to("bean:" + beanName);
         }
-
-        // Test queue that always returns success
-        String testOkQueue = "seda:test" + target + "Ok";
-        log.info("Creating success test route to " + testOkQueue);
-        from(testOkQueue)
-            .to("log:org.ambraproject.queue." + target + "TestMessageSent?level=INFO" +
-                "&showBodyType=false" +
-                "&showBody=true" +
-                "&showExchangeId=true" +
-                "&multiline=true")
-            .setBody(xpath("/ambraMessage/doi"))
-            .setBody(body().append(constant("|OK")))
-            .delay(5000l) // 5 sec delay
-            .to("bean:" + beanName);
-
-        // Test queue that always returns failure
-        String testFailQueue = "seda:test" + target + "Fail";
-        log.info("Creating failure test route to " + testFailQueue);
-        from(testFailQueue)
-            .to("log:org.ambraproject.queue." + target + "TestMessageSent?level=INFO" +
-                "&showBodyType=false" +
-                "&showBody=true" +
-                "&showExchangeId=true" +
-                "&multiline=true")
-            .setBody(xpath("/ambraMessage/doi"))
-            .setBody(body().append(constant("|FAILED|This is a test error")))
-            .delay(5000l) // 5 sec delay
-            .to("bean:" + beanName);
       }
     }
-
-    // Test queue that only logs outgoing message
-    log.info("Creating direct:test route that does nothing but log messages");
-    from("direct:test")
-        .to("log:org.ambraproject.queue.TestQueue?level=INFO" +
-            "&showBodyType=false" +
-            "&showBody=true" +
-            "&showExchangeId=true" +
-            "&multiline=true");
-
-    String mailServer = configuration.getString("ambra.network.hosts.mailhost");
 
     String searchIndexingQueue = configuration.getString("ambra.services.search.articleIndexingQueue", null);
     if (searchIndexingQueue != null) {
@@ -190,7 +159,7 @@ public class Routes extends SpringRouteBuilder {
             .setHeader("from", constant("do-not-reply@plos.org"))
             .setHeader("subject", constant("All articles indexing failed"))
             .setBody(exceptionMessage())
-            .to("smtp://" + mailServer)
+            .to(mailEndpoint)
           .end()
           .to("log:org.ambraproject.queue.search.indexall.MessageReceived?level=INFO" +
               "&showBodyType=false" +
@@ -200,7 +169,16 @@ public class Routes extends SpringRouteBuilder {
           .setHeader("to", constant(searchMailReceiver))
           .setHeader("from", constant("do-not-reply@plos.org"))
           .setHeader("subject", constant("Article indexing finished"))
-          .to("smtp://" + mailServer);
+          .to(mailEndpoint);
+
+      String solrIndexCron = configuration.getString("ambra.services.search.solrIndexCron", null);
+      if (solrIndexCron != null) {
+        log.info("Configuring cron for indexing all articles with value: {}", solrIndexCron);
+        from("quartz://ambra/indexAll?cron=" + solrIndexCron)
+            .to(SEARCH_INDEXALL);
+      } else {
+        log.warn("ambra.services.search.solrIndexCron not defined. Not creating automatic indexing route.");
+      }
     } else {
       log.warn("ambra.services.search.indexingMailReceiver not set. Index all queue not created.");
     }

@@ -127,6 +127,7 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
 
   @Test(groups = {"originalConfig"})
   public void testArticleCrossPublished() throws Exception {
+    dummyDataStore.store(new Article(oneArticleId));
     articleIndexingService.articleCrossPublished(oneArticleId);
   }
 
@@ -140,7 +141,7 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
 
     String message = articleIndexingService.indexAllArticles();
 
-    assertTrue(message.startsWith("Finished indexing 2 articles in "), "Wrong count of articles");
+    assertTrue(message.contains(" 2 articles "), "Wrong count of articles");
 
     SolrQuery query = new SolrQuery("*:*");
     QueryResponse solrRes = solrServerFactory.getServer().query(query);

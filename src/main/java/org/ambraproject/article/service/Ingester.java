@@ -34,7 +34,7 @@ public interface Ingester {
   /**
    * Ingest a new article.  The main steps for this process are :
    * <ol>
-   *   <li>Process the article xml to create an {@link org.topazproject.ambra.models.Article} object</li>
+   *   <li>Process the article xml to create an {@link org.ambraproject.models.Article} object</li>
    *   <li>Save the Article object to the databse</li>
    *   <li>Add any applicable related article links to existent articles</li>
    *   <li>Create syndications for the article</li>
@@ -42,7 +42,6 @@ public interface Ingester {
    * </ol>
    * <p/>
    * TODO: Find a way to rollback from the filestore or database if there's a problem with the other
-   *
    *
    * @param ingestArchive - the archive to ingest
    * @param force         if true then don't check whether this article already exists but just save this new article.

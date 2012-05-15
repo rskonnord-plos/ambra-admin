@@ -25,30 +25,28 @@ import org.springframework.beans.factory.annotation.Required;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CrossPubManagementAction extends BaseAdminActionSupport {
   // Fields set by templates
-  private String       command;
-  private String       articlesToAdd;
-  private String[]     articlesToRemove;
+  private String command;
+  private String articlesToAdd;
+  private String[] articlesToRemove;
+  private List<String> dois = new ArrayList<String>();
 
   private static final Logger log = LoggerFactory.getLogger(CrossPubManagementAction.class);
-  /**
-   *
-   */
+
   private enum XP_COMMANDS {
     ADD_ARTICLES,
     REMOVE_ARTICLES,
     INVALID;
 
     /**
-     * Convert a string specifying an action to its
-     * enumerated equivalent.
+     * Convert a string specifying an action to its enumerated equivalent.
      *
-     * @param action  string value to convert.
-     * @return        enumerated equivalent
+     * @param action string value to convert.
+     * @return enumerated equivalent
      */
     public static XP_COMMANDS toCommand(String action) {
       XP_COMMANDS a;
@@ -61,41 +59,59 @@ public class CrossPubManagementAction extends BaseAdminActionSupport {
       return a;
     }
   }
+
   /**
    * Main entry point for Cross Publication management action.
-   *
    */
   @Override
-  @Transactional(rollbackFor = { Throwable.class })
-  public String execute() throws Exception  {
+  @Transactional(rollbackFor = {Throwable.class})
+  public String execute() throws Exception {
 
-    switch( XP_COMMANDS.toCommand(command)) {
+    switch (XP_COMMANDS.toCommand(command)) {
       case ADD_ARTICLES: {
-        List<URI> articles = adminService.parseCSV(articlesToAdd);
-        for(URI articleUri : articles) {
-          if (adminService.validURI(articleUri)) {
-            adminService.addXPubArticle(getCurrentJournal(), articleUri);
-            addActionMessage("Article: " + articleUri + " cross published in journal.");
-          } else {
-            addActionMessage("Unable to add: " + articleUri);
-          }
-        }
+        addArticles();
         break;
       }
       case REMOVE_ARTICLES: {
-        for(String articleId : articlesToRemove) {
-          URI articleUri = URI.create(articleId);
-          adminService.removeXPubArticle(getCurrentJournal(), articleUri);
-          addActionMessage("Cross published article: " + articleUri + " removed.");
-        }
+        removeArticles();
         break;
       }
-      case INVALID:
-        break;
     }
-    // create a faux journal object for template
-    initJournal();
+    repopulate();
     return SUCCESS;
+  }
+
+  private void repopulate() {
+    initJournal();
+    dois = adminService.getCrossPubbedArticles(getJournal());
+  }
+
+  private void removeArticles() {
+    for (String articleDoi : articlesToRemove) {
+      try {
+        adminService.removeArticleFromJournal(articleDoi, getCurrentJournal());
+        addActionMessage("Removed article: " + articleDoi);
+      } catch (Exception e) {
+        log.error("Error uncrosspublishing article: " + articleDoi + " from journal: " + getCurrentJournal(), e);
+        addActionError("Failed to remove " + articleDoi + ": " + e.getMessage());
+      }
+    }
+  }
+
+  private void addArticles() {
+    for (String articleDoi : articlesToAdd.split(",")) {
+      try {
+        adminService.crossPubArticle(articleDoi, getCurrentJournal());
+        addActionMessage("Article: " + articleDoi + " cross published in journal.");
+      } catch (Exception e) {
+        log.error("Error crosspublishing article: " + articleDoi + " to journal: " + getCurrentJournal(), e);
+        addActionError("Failed to cross publish " + articleDoi + ": " + e.getMessage());
+      }
+    }
+  }
+
+  public List<String> getDois() {
+    return dois;
   }
 
   /**

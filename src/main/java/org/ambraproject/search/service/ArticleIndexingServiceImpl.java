@@ -26,6 +26,9 @@ import org.apache.commons.configuration.Configuration;
 import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -88,7 +91,7 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
       indexingQueue = null;
     }
     log.info("Article indexing queue set to " + indexingQueue);
-    
+
     deleteQueue = ambraConfiguration.getString("ambra.services.search.articleDeleteQueue", null);
     if (deleteQueue != null && deleteQueue.trim().length() == 0) {
       deleteQueue = null;
@@ -227,16 +230,16 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
         indexingQueue, mailer, this.incrementLimitSize);
 
       StringBuilder message = new StringBuilder();
-      message.append("Finished indexing ")
+      message.append("Queued ")
           .append(Integer.toString(result.total))
-          .append(" articles in ")
+          .append(" articles for indexing in ")
           .append(Long.toString((System.currentTimeMillis() - timestamp) / 1000l))
           .append(" sec.");
       log.info(message.toString());
 
       if (result.failed > 0) {
-        log.warn("Failed indexing " + result.failed + " articles");
-        message.append("\nFailed indexing ")
+        log.warn("Failed to queue " + result.failed + " articles");
+        message.append("\nFailed to queue ")
             .append(Integer.toString(result.failed))
             .append(" articles.");
       }
@@ -271,75 +274,69 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
       final String indexingQueue, final AmbraMailer mailer,
       final int incrementLimitSize) throws Exception {
 
-    return (Result)hibernateTemplate.execute(new HibernateCallback()
-    {
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
-        boolean bContinue = true;
+    boolean bContinue = true;
 
-        List<URI> failedArticles = new ArrayList<URI>();
-        int totalIndexed = 0;
-        int totalFailed = 0;
-        boolean partialUpdate = false;
-        int offset = 0;
+    List<URI> failedArticles = new ArrayList<URI>();
+    int totalIndexed = 0;
+    int totalFailed = 0;
+    boolean partialUpdate = false;
+    int offset = 0;
 
-        while (bContinue) {
+    while (bContinue) {
+      try {
+        // get the list of articles
+        List<String> articleDois = hibernateTemplate.findByCriteria(
+            DetachedCriteria.forClass(Article.class)
+                .add(Restrictions.eq("state", Article.STATE_ACTIVE))
+                .setProjection(Projections.property("doi")),
+            offset, incrementLimitSize
+        );
+
+        for (String articleId : articleDois) {
           try {
-            // get the list of articles
-            SQLQuery sql = session.createSQLQuery("select doi from article where state = :state");
+            // get the article xml and add the necessary information to the xml
+            Document doc = articleDocumentService.getFullDocument(articleId);
 
-            sql.setParameter("state", Article.STATE_ACTIVE);
-            sql.setFirstResult(offset);
-            sql.setMaxResults(incrementLimitSize);
-
-            List<String> articleDois = sql.list();
-
-            for(String articleId : articleDois) {
-              try {
-                // get the article xml and add the necessary information to the xml
-                Document doc = articleDocumentService.getFullDocument(articleId);
-
-                // send the article xml to plos-queue to be indexed
-                messageSender.sendMessage(indexingQueue, doc);
-                totalIndexed++;
-              } catch (Exception e) {
-                log.error("Error indexing article " + articleId, e);
-                totalFailed++;
-              }
-            }
-
-            offset = offset + incrementLimitSize;
-            log.info("Offset " + offset);
-
-            if (offset > (totalIndexed + totalFailed)) {
-              // we have processed all the articles, exit the while loop
-              bContinue = false;
-            }
+            // send the article xml to plos-queue to be indexed
+            messageSender.sendMessage(indexingQueue, doc);
+            totalIndexed++;
           } catch (Exception e) {
-            bContinue = false;
-            log.error("Error while gathering a list of articles", e);
-
-            StringBuilder message = new StringBuilder("Error while gathering a list of articles. \n");
-            message.append(e.getMessage());
-            mailer.sendError(message.toString());
-
-            partialUpdate = true;
+            log.error("Error indexing article " + articleId, e);
+            totalFailed++;
           }
-        } // end of while
-
-        if(failedArticles.size() > 0) {
-          StringBuilder message = new StringBuilder("Error getting XML for articles:\n");
-
-          for(URI article : failedArticles) {
-            message.append(article.toString());
-            message.append("\n");
-          }
-
-          mailer.sendError(message.toString());
         }
 
-        return new Result(totalIndexed, totalFailed, partialUpdate);
+        offset = offset + incrementLimitSize;
+        log.info("Offset " + offset);
+
+        if (offset > (totalIndexed + totalFailed)) {
+          // we have processed all the articles, exit the while loop
+          bContinue = false;
+        }
+      } catch (Exception e) {
+        bContinue = false;
+        log.error("Error while gathering a list of articles", e);
+
+        StringBuilder message = new StringBuilder("Error while gathering a list of articles. \n");
+        message.append(e.getMessage());
+        mailer.sendError(message.toString());
+
+        partialUpdate = true;
       }
-    });
+    } // end of while
+
+    if (failedArticles.size() > 0) {
+      StringBuilder message = new StringBuilder("Error getting XML for articles:\n");
+
+      for (URI article : failedArticles) {
+        message.append(article.toString());
+        message.append("\n");
+      }
+
+      mailer.sendError(message.toString());
+    }
+
+    return new Result(totalIndexed, totalFailed, partialUpdate);
   }
 
   /**

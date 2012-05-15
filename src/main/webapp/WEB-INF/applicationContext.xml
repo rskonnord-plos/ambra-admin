@@ -66,7 +66,6 @@
   <bean id="articleService" class="org.ambraproject.article.service.ArticleServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
-    <property name="journalService" ref="journalService"/>
   </bean>
 
   <bean id="journalCreator" class="org.ambraproject.journal.JournalCreatorImpl"
@@ -213,7 +212,6 @@
 
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
-    <property name="journalService" ref="journalService"/>
     <property name="onCrossPubListener">
       <list>
         <ref bean="articleIndexingService"/>
@@ -293,10 +291,6 @@
   </bean>
 
 
-  <bean id="citationService" class="org.ambraproject.admin.service.impl.CitationServiceImpl">
-    <property name="sessionFactory" ref="hibernateSessionFactory"/>
-  </bean>
-
   <bean id="hibernateDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
     <property name="jndiName" value="java:comp/env/jdbc/AmbraDS"/>
   </bean>
@@ -318,13 +312,6 @@
     <property name="dataSource" ref="hibernateDataSource"/>
     <property name="mappingLocations">
       <list>
-        <!--OLD HBMS-->
-        <value>WEB-INF/hibernateMappings/CustomTypes.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/Aggregations.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/CitedPerson.hbm.xml</value>
-        <value>WEB-INF/hibernateMappings/ArticleContributor.hbm.xml</value>
-
-        <!--NEW HBMS-->
         <value>classpath:org/ambraproject/models/*.hbm.xml</value>
       </list>
     </property>
@@ -424,6 +411,7 @@
   <bean id="routeBuilder" class="org.ambraproject.queue.Routes"
         depends-on="pmcResponseConsumer, crossrefResponseConsumer, activemq, PROPAGATION_REQUIRED, articleIndexingService, shutdownStrategy">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="mailEndpoint" value="smtp://${ambra.network.hosts.mailhost}"/>
     <!-- property name="redeliveryInterval" value="10"/ -->
   </bean>
 

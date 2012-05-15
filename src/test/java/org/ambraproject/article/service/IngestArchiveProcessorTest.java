@@ -56,6 +56,10 @@ public class IngestArchiveProcessorTest extends AdminBaseTest {
         ? archive.getName().substring(archive.getName().lastIndexOf(File.separator) + 1)
         : archive.getName();
     assertEquals(result.getArchiveName(), archiveName, "Article didn't have archive name set correctly");
+    assertNotNull(result.getJournals(), "Returned article with null journal set");
+    assertEquals(result.getJournals().size(), 1, "Returned article with incorrect number of journals");
+    assertEquals(result.getJournals().iterator().next().geteIssn(), result.geteIssn(),
+        "returned result with incorrect journal eIssn");
   }
 
   @Test(dataProviderClass = SampleArticleData.class, dataProvider = "sampleAssets",

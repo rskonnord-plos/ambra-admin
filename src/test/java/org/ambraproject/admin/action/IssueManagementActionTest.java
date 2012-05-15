@@ -14,26 +14,30 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
+import com.sun.tools.hat.internal.oql.OQLEngine;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
-import org.ambraproject.article.action.TOCArticleGroup;
-import org.ambraproject.article.service.ArticleService;
+import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.views.TOCArticleGroup;
+import org.ambraproject.article.service.ArticleService;
 import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.model.article.ArticleType;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Volume;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.topazproject.ambra.models.Issue;
-import org.topazproject.ambra.models.Volume;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -51,6 +55,9 @@ public class IssueManagementActionTest extends AdminWebTest {
   @Autowired
   protected ArticleService articleService; //just using this to get articles by doi and check that they didn't get deleted
 
+  @Autowired
+  protected AdminService adminService; //just using this to format expected doi strings
+
   @Override
   protected BaseActionSupport getAction() {
     return action;
@@ -58,17 +65,14 @@ public class IssueManagementActionTest extends AdminWebTest {
 
   @DataProvider(name = "basicInfo")
   public Object[][] getBasicInfo() {
-    Volume volume = new Volume();
-    volume.setId(URI.create("id:testVolumeForIssue"));
-    volume.setIssueList(new ArrayList<URI>(1));
-
     Issue issue = new Issue();
-    issue.setId(URI.create("id:testIssueForIssueManagement"));
+    issue.setRespectOrder(true);
+    issue.setIssueUri("id:testIssueForIssueManagement");
     issue.setDisplayName("Malbolge");
-    issue.setImage(URI.create("id:testImageForIssueManagement"));
-    issue.setArticleList(new ArrayList<URI>(8));
+    issue.setImageUri("id:testImageForIssueManagement");
+    issue.setArticleDois(new ArrayList<String>(8));
 
-    List<TOCArticleGroup> articleGroupList = new ArrayList<TOCArticleGroup>(3);
+    List<TOCArticleGroup> articleGroupList = new ArrayList<TOCArticleGroup>(4);
 
     for (ArticleType type : ArticleType.getOrderedListForDisplay()) {
       TOCArticleGroup group = new TOCArticleGroup(type);
@@ -80,13 +84,13 @@ public class IssueManagementActionTest extends AdminWebTest {
         article.setTypes(new HashSet<String>(1));
         article.getTypes().add(type.getUri().toString());
 
-        //insure that articles are ordered in time
+        //ensure that articles are ordered in time
         Calendar date = Calendar.getInstance();
         date.add(Calendar.SECOND, -1 * (type.getHeading().hashCode() + i));
         article.setDate(date.getTime());
 
         dummyDataStore.store(article);
-        issue.getArticleList().add(URI.create(article.getDoi()));
+        issue.getArticleDois().add(article.getDoi());
 
         //add an articleInfo to TOC group
         ArticleInfo info = new ArticleInfo();
@@ -98,52 +102,74 @@ public class IssueManagementActionTest extends AdminWebTest {
       articleGroupList.add(group);
     }
 
-    List<URI> orphans = new ArrayList<URI>(2);
+    //group for orphans
+    TOCArticleGroup orphans = new TOCArticleGroup(null);
+    orphans.setHeading("Orphaned Article");
+    orphans.setPluralHeading("Orphaned Articles");
+
     Article orphan1 = new Article();
-    orphan1.setDoi("id:orphanned-article-for-IssueManagementAction1");
+    orphan1.setDoi("id:orphaned-article-for-IssueManagementAction1");
     orphan1.setTypes(new HashSet<String>(1));
     orphan1.getTypes().add("id:definitelyNotARealArticleType");
     dummyDataStore.store(orphan1);
-    orphans.add(URI.create(orphan1.getDoi()));
 
-    orphans.add(URI.create("id:non-existent-article-orphan"));
+    ArticleInfo orphan1Info = new ArticleInfo();
+    orphan1Info.setDoi(orphan1.getDoi());
+    orphans.addArticle(orphan1Info);
+    issue.getArticleDois().add(orphan1.getDoi());
 
-    issue.getArticleList().addAll(orphans);
+    ArticleInfo orphan2Info = new ArticleInfo();
+    orphan2Info.setDoi("id:non-existent-article-orphan");
+    orphans.addArticle(orphan2Info);
+    issue.getArticleDois().add(orphan2Info.getDoi());
 
+    articleGroupList.add(orphans);
+
+    //sort the issue article list in a weird way so we can tell that the article csv is ordered by toc groups
+    Collections.sort(issue.getArticleDois(),new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        return -1 * o1.compareTo(o2);
+      }
+    });
+    for (TOCArticleGroup group : articleGroupList) {
+      Collections.sort(group.getArticles(), new Comparator<ArticleInfo>() {
+        @Override
+        public int compare(ArticleInfo o1, ArticleInfo o2) {
+          return -1 * o1.getDoi().compareTo(o2.getDoi());
+        }
+      });
+    }
     dummyDataStore.store(issue);
-    volume.getIssueList().add(issue.getId());
-    dummyDataStore.store(volume);
 
     return new Object[][]{
-        {volume.getId().toString(), issue, articleGroupList, orphans}
+        {issue, articleGroupList}
     };
   }
 
   @Test(dataProvider = "basicInfo")
-  public void testExecute(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                          List<URI> orphans) throws Exception {
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
-
-
+  public void testExecute(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
+    action.setIssueURI(issue.getIssueUri());
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
     assertEquals(action.getActionMessages().size(), 0, "Action returned messages on default request");
 
-    assertEquals(action.getIssue().getId(), issue.getId(), "Action returned incorrect issue");
+    assertEquals(action.getIssue().getIssueUri(), issue.getIssueUri(), "Action returned incorrect issue");
     assertEquals(action.getIssue().getDisplayName(), issue.getDisplayName(),
         "Action returned issue with incorrect display name");
-    assertEquals(action.getIssue().getImage(), issue.getImage(), "Action returned issue with incorrect image URI");
-    assertEquals(action.getArticleOrderCSV(), StringUtils.join(issue.getArticleList(), ","),
+    assertEquals(action.getIssue().getImageUri(), issue.getImageUri(), "Action returned issue with incorrect image URI");
+
+    //the action should show the article csv in order of the article groups
+    assertEquals(action.getArticleOrderCSV(), adminService.formatArticleCsv(articleGroupList),
         "Action returned incorrect article csv");
 
-    assertEquals(action.getArticleGrps().size(), articleGroupList.size(),
+    assertEquals(action.getArticleGroups().size(), articleGroupList.size(),
         "Action returned incorrect number of article groups");
     //article groups
     for (int i = 0; i < articleGroupList.size(); i++) {
-      TOCArticleGroup actualGroup = action.getArticleGrps().get(i);
+      TOCArticleGroup actualGroup = action.getArticleGroups().get(i);
       TOCArticleGroup expectedGroup = articleGroupList.get(i);
       assertEquals(actualGroup.getHeading(), expectedGroup.getHeading(),
           "Article group " + (i + 1) + " had incorrect heading");
@@ -159,21 +185,17 @@ public class IssueManagementActionTest extends AdminWebTest {
             "Article " + (j + 1) + " in group " + actualGroup.getHeading() + " had incorrect title");
       }
     }
-
-    assertEquals(action.getOrphans().toArray(), orphans.toArray(), "Action returned incorrect orphans");
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testUpdateIssue(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                              List<URI> orphans) throws Exception {
+  public void testUpdateIssue(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
     //execute the action to get the current CSV
     action.setCommand("foo");
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
+    action.setIssueURI(issue.getIssueUri());
     action.execute();
     clearMessages();
 
-    List<URI> existingArticles = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
+    List<String> existingArticles = dummyDataStore.get(Issue.class, issue.getID()).getArticleDois();
 
     String reorderedArticleCsv = action.getArticleOrderCSV();
     String articleToReorder = reorderedArticleCsv.substring(0, reorderedArticleCsv.indexOf(","));
@@ -201,14 +223,12 @@ public class IssueManagementActionTest extends AdminWebTest {
       }
     }
 
-
     String imageUri = "id:newImageURIToSetOnIssue";
     String displayName = "Cheech and Chong";
 
     action.setCommand("UPDATE_ISSUE");
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
-    action.setArticleListCSV(reorderedArticleCsv);
+    action.setIssueURI(issue.getIssueUri());
+    action.setArticleOrderCSV(reorderedArticleCsv);
     action.setDisplayName(displayName);
     action.setImageURI(imageUri);
     action.setRespectOrder(true);
@@ -218,64 +238,55 @@ public class IssueManagementActionTest extends AdminWebTest {
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
-//    assertTrue(action.getActionMessages().size() > 0, "Action didn't return messages indicating success");
+    assertTrue(action.getActionMessages().size() > 0, "Action didn't return messages indicating success");
 
     //check properties on action
-    assertEquals(action.getIssue().getId(), issue.getId(), "action changed issues after update");
+    assertEquals(action.getIssue().getIssueUri(), issue.getIssueUri(), "action changed issues after update");
     assertEquals(action.getDisplayName(), displayName, "action had incorrect display name");
     assertEquals(action.getImageURI(), imageUri, "Action had incorrect image uri");
-    assertEquals(action.getArticleOrderCSV(), StringUtils.join(orderedArticlesForCSV, ","), "action didn't have correct article csv");
-    assertEquals(action.getIssue().getArticleList().size(), existingArticles.size(), "Action had incorrect number of articles");
+    assertEquals(action.getArticleOrderCSV(), StringUtils.join(orderedArticlesForCSV,","), "action didn't have correct article csv");
 
-    for (int i = 0; i < orderedArticlesForDb.length; i++) {
-      assertEquals(action.getIssue().getArticleList().get(i).toString(), orderedArticlesForDb[i],
-          "Action had articles in incorrect order; article " + (i + 1) + " was incorrect");
-    }
 
     //check what got stored to the database
-    Issue storedIssue = dummyDataStore.get(Issue.class, issue.getId());
+    Issue storedIssue = dummyDataStore.get(Issue.class, issue.getID());
 
     assertEquals(storedIssue.getDisplayName(), displayName, "Issue got saved to the database with incorrect display name");
-    assertEquals(storedIssue.getImage(), URI.create(imageUri), "Issue got saved to the database with incorrect image uri");
-    assertEquals(storedIssue.getArticleList().size(), existingArticles.size(),
+    assertEquals(storedIssue.getImageUri(), imageUri, "Issue got saved to the database with incorrect image uri");
+    assertEquals(storedIssue.getArticleDois().size(), existingArticles.size(),
         "Articles got removed or added from the issue on reordering");
 
     //The db, however, stores articles in the order we told it
     for (int i = 0; i < orderedArticlesForDb.length; i++) {
-      assertEquals(storedIssue.getArticleList().get(i).toString(), orderedArticlesForDb[i],
-          "Articles didn't get ordered correctly in the database");
+      assertEquals(storedIssue.getArticleDois().get(i), orderedArticlesForDb[i],
+          "Articles didn't get ordered correctly in the database; article " + (i + 1) + " was incorrect");
     }
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testActionDoesNotAllowAddingArticleToCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                                                       List<URI> orphans) throws Exception {
+  public void testActionDoesNotAllowAddingArticleToCsv(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
     //execute the action to get the original csv
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
+    action.setIssueURI(issue.getIssueUri());
     action.execute();
     String originalCsv = action.getArticleOrderCSV();
 
     String incorrectCsv = originalCsv + ",id:some-fake-new-article";
 
     action.setCommand("UPDATE_ISSUE");
-    action.setArticleListCSV(incorrectCsv);
+    action.setArticleOrderCSV(incorrectCsv);
     action.setRespectOrder(true);
     action.setDisplayName(issue.getDisplayName());
-    action.setImageURI(issue.getImage().toString());
+    action.setImageURI(issue.getImageUri());
 
     //should fail
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
-    assertTrue(action.getActionErrors().size() > 1, "Action didn't return error messages");
+    assertTrue(action.getActionErrors().size() > 0, "Action didn't return error messages");
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testActionDoesNotAllowRemovingArticleFromCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                                                           List<URI> orphans) throws Exception {
+  public void testActionDoesNotAllowRemovingArticleFromCsv(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
     //execute the action to get the original csv
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
+    action.setIssueURI(issue.getIssueUri());
     action.execute();
     String originalCsv = action.getArticleOrderCSV();
 
@@ -283,23 +294,21 @@ public class IssueManagementActionTest extends AdminWebTest {
     String incorrectCsv = originalCsv.replace(articleToRemove + ",", "");
 
     action.setCommand("UPDATE_ISSUE");
-    action.setArticleListCSV(incorrectCsv);
+    action.setArticleOrderCSV(incorrectCsv);
     action.setRespectOrder(true);
     action.setDisplayName(issue.getDisplayName());
-    action.setImageURI(issue.getImage().toString());
+    action.setImageURI(issue.getImageUri());
 
     //should fail
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
-    assertTrue(action.getActionErrors().size() > 1, "Action didn't return error messages");
+    assertTrue(action.getActionErrors().size() > 0, "Action didn't return error messages");
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testActionDoesNotAllowChangingArticlesInCsv(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                                                          List<URI> orphans) throws Exception {
+  public void testActionDoesNotAllowChangingArticlesInCsv(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
     //execute the action to get the original csv
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
+    action.setIssueURI(issue.getIssueUri());
     action.execute();
     String originalCsv = action.getArticleOrderCSV();
 
@@ -311,20 +320,19 @@ public class IssueManagementActionTest extends AdminWebTest {
 
 
     action.setCommand("UPDATE_ISSUE");
-    action.setArticleListCSV(changedCsv);
+    action.setArticleOrderCSV(changedCsv);
     action.setRespectOrder(true);
     action.setDisplayName(issue.getDisplayName());
-    action.setImageURI(issue.getImage().toString());
+    action.setImageURI(issue.getImageUri());
 
     //should fail
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
-    assertTrue(action.getActionErrors().size() > 1, "Action didn't return error messages");
+    assertTrue(action.getActionErrors().size() > 0, "Action didn't return error messages");
   }
 
-  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testAddArticle(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                             List<URI> orphans) throws Exception {
+  @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute", "testUpdateIssue"}, alwaysRun = true)
+  public void testAddArticle(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
     String articlesToAddCsv = "id:new-article-for-adding-to-issue1,id:new-article-for-adding-to-issue2";
     Article article = new Article();
     article.setDoi(articlesToAddCsv.split(",")[0]);
@@ -335,75 +343,80 @@ public class IssueManagementActionTest extends AdminWebTest {
 
 
     action.setCommand("ADD_ARTICLE");
-    action.setIssueURI(issue.getId().toString());
-    action.setVolumeURI(volumeURI);
-    action.setArticleURI(articlesToAddCsv);
+    action.setIssueURI(issue.getIssueUri());
+    action.setArticlesToAddCsv(articlesToAddCsv);
 
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
-    assertEquals(action.getActionMessages().size(), 2, "Action didn't return messages indicating success");
+    assertEquals(action.getActionMessages().size(), 1, "Action didn't return messages indicating success");
 
     for (String doi : articlesToAddCsv.split(",")) {
       assertTrue(action.getArticleOrderCSV().contains(doi), "Article " + doi + " didn't get added to action's csv");
-      assertTrue(action.getIssue().getArticleList().contains(URI.create(doi)),
+      assertTrue(action.getIssue().getArticleDois().contains(doi),
           "Article " + doi + " didn't get added to action's issue");
     }
     //the first article should be in the first TOC group
     boolean foundMatch = false;
-    for (ArticleInfo articleInfo : action.getArticleGrps().get(0).getArticles()) {
+    for (ArticleInfo articleInfo : action.getArticleGroups().get(0).getArticles()) {
       if (articleInfo.getDoi().equals(article.getDoi())) {
         foundMatch = true;
         break;
       }
     }
     assertTrue(foundMatch, "New article didn't get added to correct group");
+    String orphanDoi = articlesToAddCsv.split(",")[1];
     //the second article should be an orphan
-    assertTrue(action.getOrphans().contains(URI.create(articlesToAddCsv.split(",")[1])),
-        "Non existent article didn't get added to orphan list");
+    ArrayList<ArticleInfo> orphans = action.getArticleGroups().get(action.getArticleGroups().size() - 1).getArticles();
+    boolean foundOrphan = false;
+    for (ArticleInfo articleInfo : orphans) {
+      if (orphanDoi.equals(articleInfo.getDoi())) {
+        foundOrphan = true;
+        break;
+      }
+    }
+    assertTrue(foundOrphan, "Non existent article didn't get added to orphan list");
 
     //check the values that got stored to the database
-    List<URI> storedArticles = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
+    List<String> storedArticles = dummyDataStore.get(Issue.class, issue.getID()).getArticleDois();
     for (String doi : articlesToAddCsv.split(",")) {
-      assertTrue(storedArticles.contains(URI.create(doi)), "Article " + doi + " didn't get added to the issue in the database");
+      assertTrue(storedArticles.contains(doi), "Article " + doi + " didn't get added to the issue in the database");
     }
   }
 
   @Test(dataProvider = "basicInfo", dependsOnMethods = {"testExecute"}, alwaysRun = true)
-  public void testRemoveArticles(String volumeURI, Issue issue, List<TOCArticleGroup> articleGroupList,
-                                 List<URI> orphans) throws Exception {
-    List<URI> articlesToDelete = dummyDataStore.get(Issue.class, issue.getId()).getArticleList().subList(0, 3);
+  public void testRemoveArticles(Issue issue, List<TOCArticleGroup> articleGroupList) throws Exception {
+    List<String> articlesToDelete = dummyDataStore.get(Issue.class, issue.getID()).getArticleDois().subList(0, 3);
     String[] articlesToDeleteArray = new String[3];
     for (int i = 0; i < 3; i++) {
-      articlesToDeleteArray[i] = articlesToDelete.get(i).toString();
+      articlesToDeleteArray[i] = articlesToDelete.get(i);
     }
 
 
     action.setCommand("REMOVE_ARTICLES");
-    action.setVolumeURI(volumeURI);
-    action.setIssueURI(issue.getId().toString());
+    action.setIssueURI(issue.getIssueUri());
     action.setArticlesToRemove(articlesToDeleteArray);
 
     String result = action.execute();
     assertEquals(result, Action.SUCCESS, "Action didn't return success");
 
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages");
-    assertEquals(action.getActionMessages().size(), 3, "Action didn't return messages indicating success");
+    assertEquals(action.getActionMessages().size(), 1, "Action didn't return messages indicating success");
 
-    for (URI doi : articlesToDelete) {
-      assertFalse(action.getIssue().getArticleList().contains(doi),
+    for (String doi : articlesToDelete) {
+      assertFalse(action.getIssue().getArticleDois().contains(doi),
           "Article " + doi + " didn't get removed from action's issue list");
-      assertFalse(action.getArticleOrderCSV().contains(doi.toString()),
+      assertFalse(action.getArticleOrderCSV().contains(doi),
           "Article " + doi + " didn't get removed from action's csv");
     }
 
     //check the values in the db
-    List<URI> storedArticleList = dummyDataStore.get(Issue.class, issue.getId()).getArticleList();
-    for (URI doi : articlesToDelete) {
+    List<String> storedArticleList = dummyDataStore.get(Issue.class, issue.getID()).getArticleDois();
+    for (String doi : articlesToDelete) {
       assertFalse(storedArticleList.contains(doi), "Article " + doi + " didn't get removed from issue in the database");
       try {
-        articleService.getArticle(doi.toString(), DEFAULT_ADMIN_AUTHID);
+        articleService.getArticle(doi, DEFAULT_ADMIN_AUTHID);
       } catch (NoSuchArticleIdException e) {
         fail("Article " + doi + " got deleted from the database instead of just being removed from the issue");
       }

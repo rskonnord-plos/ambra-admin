@@ -21,7 +21,9 @@
 
 package org.ambraproject.admin.service.impl;
 
-import org.hibernate.*;
+import org.ambraproject.models.Journal;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 
@@ -30,7 +32,6 @@ import org.ambraproject.admin.service.SyndicationException;
 import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.journal.JournalService;
-import org.topazproject.ambra.models.Journal;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.models.Article;
 import org.ambraproject.queue.MessageService;
@@ -46,7 +47,11 @@ import org.ambraproject.service.HibernateServiceImpl;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Manage the syndication process, including creating and updating Syndication objects, as well as pushing syndication

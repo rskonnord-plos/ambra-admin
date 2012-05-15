@@ -22,52 +22,49 @@
 package org.ambraproject.admin.service.impl;
 
 import org.ambraproject.ApplicationException;
-import org.ambraproject.Constants;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
-import org.ambraproject.journal.JournalService;
+import org.ambraproject.views.TOCArticleGroup;
+import org.ambraproject.model.article.ArticleInfo;
+import org.ambraproject.model.article.ArticleType;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Journal;
 import org.ambraproject.models.UserProfile;
 import org.ambraproject.models.UserRole;
+import org.ambraproject.models.Volume;
 import org.ambraproject.permission.service.PermissionsService;
 import org.ambraproject.service.HibernateServiceImpl;
 import org.ambraproject.util.UriUtil;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.xwork.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
-import org.topazproject.ambra.models.Issue;
-import org.topazproject.ambra.models.Journal;
-import org.topazproject.ambra.models.Volume;
-import org.topazproject.otm.criterion.DetachedCriteria;
 
-import javax.management.relation.Role;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * AdminService encapsulates the basic services needed by all administrative
- * actions.
- */
 public class AdminServiceImpl extends HibernateServiceImpl implements AdminService {
 
-  // Services set by Spring
-  private JournalService journalService;
-
-  // Private fields
   private static final String SEPARATORS = "[,;]";
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
@@ -77,25 +74,29 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     this.onCrossPubListener = onCrossPubListener;
   }
 
-  /**************************************************
-   * Journal Management Methods                     *
-   **************************************************/
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<ArticleInfo> getPublishableArticles(String eIssn, String orderField,
+                                                  boolean isOrderAscending) throws ApplicationException {
 
-  /**
-   * Get a coppy of the Volume DOIs as a String List.
-   *
-   * @param journal Journal
-   * @return the current volume list for the journal.
-   */
-  private List<String> getJrnlVolDOIs(Journal journal) {
-    List<URI> volURIs = journal.getVolumes();
-    List<String> volStr = new ArrayList<String>();
+    List<ArticleInfo> articlesInfo = new ArrayList<ArticleInfo>();
+    Order order = isOrderAscending ? Order.asc(orderField) : Order.desc(orderField);
+    List<Object[]> results = hibernateTemplate.findByCriteria(DetachedCriteria.forClass(Article.class)
+        .add(Restrictions.eq("eIssn", eIssn))
+        .add(Restrictions.eq("state",Article.STATE_UNPUBLISHED))
+        .addOrder(order)
+        .setProjection(Projections.projectionList()
+            .add(Projections.property("doi"))
+            .add(Projections.property("date"))));
 
-    for (URI volURI : volURIs) {
-      volStr.add(volURI.toString());
+    for(Object[] rows : results) {
+      ArticleInfo articleInfo = new ArticleInfo();
+      articleInfo.setDoi(rows[0].toString());
+      articleInfo.setDate((Date)rows[1]);
+      articlesInfo.add(articleInfo);
     }
 
-    return volStr;
+    return articlesInfo;
   }
 
   @Override
@@ -126,543 +127,379 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     }
   }
 
-  /**
-   * Give a SEPARATOR delimitted string of volume URIs convert them
-   * to a list of separated URIs.
-   *
-   * @param csvStr the list of string of URIs.
-   * @return a list of URI created from the string csvStr .
-   * @throws java.net.URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
-  public List<URI> parseCSV(String csvStr) throws URISyntaxException {
-    List<URI> listURIs = new ArrayList<URI>();
-
-    if ((csvStr != null) && (csvStr.length() > 0)) {
-      String[] elements = csvStr.split(SEPARATORS);
-
-      for (String element : elements) {
-        URI uri = UriUtil.validateUri(element.trim(), "CSV Uri list");
-        listURIs.add(uri);
-      }
-    }
-    return listURIs;
-  }
-
-  /**
-   * Test a single URI for validity. Currently the only requirement is that
-   * the URI must be absolute.
-   *
-   * @param uri the URI to validate.
-   * @return true if the URI is acceptable.
-   * @throws java.net.URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
-  public boolean validURI(URI uri) throws URISyntaxException {
-    // Currently the only requirement is for the uri to be absolute.
-    return uri.isAbsolute();
-  }
-
-  /**
-   * @param journalName Keyname of current journal
-   * @param article     article URI
-   * @throws Exception If listener failed
-   */
-  public void addXPubArticle(String journalName, URI article) throws Exception {
-    Journal journal = journalService.getJournal(journalName);
-    List<URI> collection = journal.getSimpleCollection();
-    if (!collection.contains(article)) {
-      collection.add(article);
-      updateStore(journal);
-      flushStore();
-      invokeOnCrossPublishListeners(article.toString());
-    }
-  }
-
-  /**
-   * @param journalName Keyname of current journal
-   * @param article     article URI
-   * @throws Exception If listener failed
-   */
-  public void removeXPubArticle(String journalName, URI article) throws Exception {
-    Journal journal = journalService.getJournal(journalName);
-    List<URI> collection = journal.getSimpleCollection();
-    if (collection.contains(article)) {
-      collection.remove(article);
-      updateStore(journal);
-      flushStore();
-      invokeOnCrossPublishListeners(article.toString());
-    }
-  }
-
-  /**
-   * Invokes all objects that are registered to listen to article cross publish event.
-   *
-   * @param articleId Article ID
-   * @throws Exception If listener method failed
-   */
-  private void invokeOnCrossPublishListeners(String articleId) throws Exception {
-    if (onCrossPubListener != null) {
-      for (OnCrossPubListener listener : onCrossPubListener) {
-        listener.articleCrossPublished(articleId);
-      }
-    }
-  }
-
-  /**
-   * Set current Journal issue URI.
-   *
-   * @param journalName Keyname of current journal
-   * @param issueURI the URI of the current issue for the journal being modified.
-   */
-  public void setJrnlIssueURI(String journalName, URI issueURI) {
-    Journal journal = journalService.getJournal(journalName);
-    URI newImage = ((issueURI != null) && (issueURI.toString().length() == 0)) ? null : issueURI;
-    journal.setCurrentIssue(newImage);
-    updateStore(journal);
-  }
-
-  /**
-   * Update the persistent store with the new journal changes.
-   *
-   * @param o Object to update
-   * @throws org.topazproject.otm.OtmException if the session encounters an error during
-   *                      the update.
-   */
-  private void updateStore(Object o) {
-    hibernateTemplate.saveOrUpdate(o);
-  }
-
-  /**
-   * Update the persistant store with the new journal changes.
-   *
-   * @throws org.topazproject.otm.OtmException if the sesion encounters an error during
-   *                      the update.
-   */
-  public void flushStore() {
-    hibernateTemplate.flush();
-  }
-
-  /**************************************************
-   * Volume Management Methods                      *
-   **************************************************/
-
-  /**
-   * Return a Volume object specified by URI.
-   *
-   * @param volURI the URI of the volume.
-   * @return the volume object requested.
-   * @throws org.topazproject.otm.OtmException throws OtmException if any one of the Volume URIs supplied
-   *                      by the journal does not exist.
-   */
-  public Volume getVolume(URI volURI) {
-    return (Volume)hibernateTemplate.get(Volume.class, volURI);
-  }
-
-  /**
-   * Uses the list of volume URIs maintained by the journal
-   * to create a list of Volume objects.
-   *
-   * @param journalName Keyname of the current journal
-   * @return the list of volumes for the current journal (never null)
-   * @throws org.topazproject.otm.OtmException throws OtmException if any one of the Volume URIs supplied
-   *                      by the journal does not exist.
-   */
-  public List<Volume> getVolumes(String journalName) {
-    List<Volume> volumes = new ArrayList<Volume>();
-
-    Journal journal = journalService.getJournal(journalName);
-    List<URI> volURIs = journal.getVolumes();
-
-    for (final URI volUri : volURIs) {
-      Volume volume = getVolume(volUri);
-
-      if (volume != null) {
-        volumes.add(volume);
-      } else {
-        log.error("getVolumes failed to retrieve: " + volUri);
-      }
-    }
-    return volumes;
-  }
-
-  /**
-   * Create a new Volume and add it to the current Journal's list
-   * of volumes it contains.
-   *
-   * @param journalName Keyname of the current journal
-   * @param volURI    the uri of the new volume.
-   * @param dsplyName the display name of the volume.
-   * @param issueList a SPARATOR delimted list of issue doi's associated with
-   *                  this volume.
-   * @return the volume object that was created. ( returns null if there
-   *         is no journal or volURI already exists ).
-   * @throws org.topazproject.otm.OtmException       thrown when the Volume or Journal cannot be
-   *                            saved or updated by the session.
-   * @throws java.net.URISyntaxException thrown when values in issueList cannot be converted
-   *                            to a URI
-   */
-  public Volume createVolume(String journalName, URI volURI, String dsplyName, String issueList)
-      throws URISyntaxException {
-
-    String displayName = (dsplyName == null) ? "" : dsplyName;
-
-    /* If there is no journal then don't
-     * create an orphan volume : return null.
-     */
-    if (journalName == null) {
-      return null;
-    }
-
-    Journal journal = journalService.getJournal(journalName);
-
-    // Volume URI already exist return null
-    if (hibernateTemplate.get(Volume.class, volURI) != null) {
-      return null;
-    }
-
-    Volume newVol = new Volume();
-    newVol.setId(volURI);
-    newVol.setCreated(new Date());
-    newVol.setDisplayName(displayName);
-
-    /*
-     * Issues come in as a SEPARATOR delimitted string
-     * that is split into an ArrayList of strings.
-     */
-    if (issueList != null && issueList.length() != 0) {
-      List<URI> issues = new ArrayList<URI>();
-
-      for (final String issueToAdd : issueList.split(SEPARATORS)) {
-        if (issueToAdd.length() > 0) {
-          issues.add(URI.create(issueToAdd));
+  @Override
+  @Transactional
+  public void crossPubArticle(final String articleDoi, final String journalKey) throws Exception {
+    log.debug("Cross publishing {} in {}", articleDoi, journalKey);
+    hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        Article article = (Article) session.createCriteria(Article.class)
+            .add(Restrictions.eq("doi", articleDoi))
+            .uniqueResult();
+        if (!article.getJournals().contains(journal)) {
+          article.getJournals().add(journal);
         }
+        session.update(article);
+        return null;
       }
-      newVol.setIssueList(issues);
-    }
-
-    // save the new volume.
-    hibernateTemplate.save(newVol);
-    // Add this new volume URI to the Journal list
-    List<URI> volURIs = journal.getVolumes();
-
-    // If the URI is not already in the list, add it.
-    if (!volURIs.contains(volURI)) {
-      volURIs.add(volURI);
-      updateStore(journal);
-    }
-
-    flushStore();
-
-    return newVol;
+    });
+    invokeOnCrossPubListeners(articleDoi);
   }
 
-  /**
-   * Delete a Volume using the volumes URI.  Remove references to it from the journal
-   * volume list.
-   *
-   * @param journalName Keyname of the current journal
-   * @param volURI the volume to delete.
-   * @throws org.topazproject.otm.OtmException throws OtmException if session cannot
-   *                      delete the volume.
-   */
-  public void deleteVolume(String journalName, URI volURI) {
-    // the Volume to update
-    Journal journal = journalService.getJournal(journalName);
-    Volume volume = (Volume)hibernateTemplate.get(Volume.class, volURI);
-    // Update the object store
-    hibernateTemplate.delete(volume);
-    // Update Journal
-    List<URI> jrnlVols = journal.getVolumes();
-
-    if (jrnlVols.contains(volume.getId())) {
-      jrnlVols.remove(volume.getId());
-      journal.setVolumes(jrnlVols);
-    }
-    updateStore(journal);
-    flushStore();
-  }
-
-  /**
-   * Update a Volume.
-   *
-   * @param volume    the volume to update.
-   * @param dsplyName the display name for the volume.
-   * @param issueList a SEPARATOR delimitted string of issue doi's.
-   * @return Volume   the update volume object.
-   * @throws org.topazproject.otm.OtmException       throws and OtmException if the session is unable to
-   *                            update the volume persistanct store.
-   * @throws java.net.URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
-  public Volume updateVolume(Volume volume, String dsplyName, List<URI> issueList)
-      throws URISyntaxException {
-
-    volume.setDisplayName(dsplyName);
-    volume.setIssueList(issueList);
-    updateStore(volume);
-
-    return volume;
-  }
-
-  /**
-   * Update a Volume using the URI. Retrieves volume from the persistant store
-   * using the URI.
-   *
-   * @param volURI    the volume to update.
-   * @param dsplyName the display name for the volume.
-   * @param issueList a SEPARATOR delimitted string of issue doi's.
-   * @return Volume   the update volume object.
-   * @throws org.topazproject.otm.OtmException       throws and OtmException if the session is unable to
-   *                            update the volume persistanct store.
-   * @throws java.net.URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
-  public Volume updateVolume(URI volURI, String dsplyName, List<URI> issueList)
-      throws URISyntaxException {
-    // If the volume doesn't exist return null
-    Volume volume = (Volume)hibernateTemplate.get(Volume.class, volURI);
-
-    if (volume != null) {
-      return updateVolume(volume, dsplyName, issueList);
-    }
-
-    return null;
-  }
-
-  /**************************************************
-   * Issue Management Methods                       *
-   **************************************************/
-  /**
-   * Delete an Issue and remove it from each volume that references it.
-   *
-   * @param issue the issue that is to deleted.
-   * @throws org.topazproject.otm.OtmException if session is not able to delete issue
-   */
-  public void deleteIssue(Issue issue) {
-    URI issueURI = issue.getId();
-
-    hibernateTemplate.delete(issue);
-    // Get all volumes that have this issue in their issueList
-    List<Volume> containerVols = getIssueParents(issueURI);
-
-    for (Volume vol : containerVols) {
-      vol.getIssueList().remove(issueURI);
-      updateStore(vol);
-    }
-
-    flushStore();
-  }
-
-  /**
-   * Delete an Issue specified by URI. Remove it from each volume that references it.
-   *
-   * @param issueURI the uri of the issue to delete.
-   * @throws org.topazproject.otm.OtmException if session is not able to delete issue
-   */
-  public void deleteIssue(URI issueURI) {
-    // the Volume to update
-    Issue issue = (Issue)hibernateTemplate.get(Issue.class, issueURI);
-    deleteIssue(issue);
-  }
-
-  /**
-   * Get an Issue specified by URI.
-   *
-   * @param issueURI the issue's URI.
-   * @return the Issue object specified by URI.
-   * @throws org.topazproject.otm.OtmException if the session get incounters an error.
-   */
-  public Issue getIssue(URI issueURI) {
-    return (Issue)hibernateTemplate.get(Issue.class, issueURI);
-  }
-
-  /**
-   * Get a list of issues from the specified volume.
-   *
-   * @param volumeURI the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws org.topazproject.otm.OtmException if the session get incounters an error.
-   */
-  public List<Issue> getIssues(URI volumeURI) {
-    Volume volume = getVolume(volumeURI);
-    return getIssues(volume);
-  }
-
-  /**
-   * Get a list of issues from the specified volume.
-   *
-   * @param volume the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws org.topazproject.otm.OtmException if the session get incounters an error.
-   */
-  public List<Issue> getIssues(Volume volume) {
-    List<Issue> issues = new ArrayList<Issue>();
-
-    if (volume.getIssueList() != null) {
-      for (final URI issueURI : volume.getIssueList()) {
-        final Issue issue = getIssue(issueURI);
-
-        if (issue != null) {
-          issues.add(issue);
-        } else {
-          log.error("Error getting issue: " + issueURI.toString());
+  @Override
+  @Transactional
+  public void removeArticleFromJournal(final String articleDoi, final String journalKey) throws Exception {
+    hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Article article = (Article) session.createCriteria(Article.class)
+            .add(Restrictions.eq("doi", articleDoi))
+            .uniqueResult();
+        for (Iterator<Journal> iterator = article.getJournals().iterator(); iterator.hasNext();) {
+          if (journalKey.equals(iterator.next().getJournalKey())) {
+            iterator.remove();
+            break;
+          }
         }
+        session.update(article);
+        return null;
       }
-    }
-    return issues;
+    });
+    invokeOnCrossPubListeners(articleDoi);
   }
 
-  /**
-   * Get a list of issues from the specified volume.
-   *
-   * @param volume the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws org.topazproject.otm.OtmException if the session get incounters an error.
-   */
-  public String getIssuesCSV(Volume volume) {
-    StringBuilder issCSV = new StringBuilder();
-    List<Issue> issues = getIssues(volume);
-    Iterator iter = issues.listIterator();
-
-    while (iter.hasNext()) {
-      Issue i = (Issue) iter.next();
-      issCSV.append(i.getId().toString());
-      if (iter.hasNext()) {
-        issCSV.append(',');
-      }
-    }
-    return issCSV.toString();
-  }
-
-  /**
-   * Get a list of issues from the specified volume.
-   *
-   * @param volURI the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws org.topazproject.otm.OtmException if the session get incounters an error.
-   */
-  public String getIssuesCSV(URI volURI) {
-    Volume volume = getVolume(volURI);
-
-    return getIssuesCSV(volume);
-  }
-
-  /**
-   * Create an Issue. When an issue is created new DublinCore meta-data needs
-   * to be attached to the issue. The data consists of a string list of doi's
-   * delimited by SEPARATOR. The new issue is attached to the lastest volume
-   * for the journal context.
-   *
-   * @param vol         Volume
-   * @param issueURI    the issue to update.
-   * @param imgURI      a URI for the article/image associated with this volume.
-   * @param dsplyName   the display name for the volume.
-   * @param articleList a SEPARATOR delimitted string of article doi's.
-   * @return the issue created or null if unable to create the issue
-   *         or the issue exist.
-   * @throws org.topazproject.otm.OtmException throws OtmException if the session fails to save the
-   *                      issue or update the volume.
-   */
-  public Issue createIssue(Volume vol, URI issueURI, URI imgURI, String dsplyName,
-                           String articleList) {
-
-    /*
-     * Return null if issue exist.
-     */
-    if (hibernateTemplate.get(Issue.class, issueURI) != null) {
-      return null;
-    }
-
-    Issue newIssue = new Issue();
-    newIssue.setId(issueURI);
-
-    newIssue.setCreated(new Date());
-    newIssue.setDisplayName(dsplyName);
-
-    if ((imgURI == null) || imgURI.toString().equals("")) {
-      newIssue.setImage(null);
-    } else {
-      newIssue.setImage(imgURI);
-      addImageArticleInfo(imgURI.toString(), newIssue);
-    }
-
-    /*
-     * Articles are specified in a SEPARATOR delimited
-     * string of the doi's for each article associated
-     * with the issue.
-     */
-    if (articleList != null && articleList.length() != 0) {
-      for (final String articleToAdd : articleList.split(SEPARATORS)) {
-        if (articleToAdd.length() > 0) {
-          addArticleToList(newIssue, URI.create(articleToAdd.trim()));
-        }
-      }
-    }
-    // Default respect order to false.
-    newIssue.setRespectOrder(false);
-    hibernateTemplate.save(newIssue);
-
-    // Update the volume.
-    vol.getIssueList().add(issueURI);
-    updateStore(vol);
-    flushStore();
-
-    return newIssue;
-  }
-
-  /**
-   * Update an Issue. Since this is an update it is assumed the issue is already
-   * associated with aa volume.
-   *
-   * @param issueURI     the issue to update.
-   * @param imgURI       a URI for the article/image associated with this volume.
-   * @param dsplyName    the display name for the volume.
-   * @param articleList  a SEPARATOR delimitted string of article doi's.
-   * @param respectOrder respect the order manual ordering of articles within
-   *                     articleTypes.
-   * @return the updated issue or null if the issue does not exist.
-   * @throws RuntimeException throws RuntimeException if session cannot update the issue.
-   * @throws java.net.URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
+  @Override
   @SuppressWarnings("unchecked")
-  public Issue updateIssue(URI issueURI, URI imgURI, String dsplyName,
-                           List<URI> articleList, boolean respectOrder) throws URISyntaxException {
-    // the Issue to update
-    Issue issue = (Issue) hibernateTemplate.get(Issue.class, issueURI);
-
-    // If the issue doesn't exist then return null.
-    if (issue == null) {
-      return null;
-    }
-    issue.setDisplayName(dsplyName);
-    issue.setArticleList(articleList);
-    issue.setRespectOrder(respectOrder);
-
-    if ((imgURI == null) || (imgURI.toString().equals(""))) {
-      issue.setImage(null);
-    } else {
-      issue.setImage(imgURI);
-      addImageArticleInfo(imgURI.toString(), issue);
-    }
-
-    updateStore(issue);
-    flushStore();
-
-    return issue;
+  public List<String> getCrossPubbedArticles(Journal journal) {
+    return hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Article.class)
+            .add(Restrictions.ne("eIssn", journal.geteIssn()))
+            .createAlias("journals", "j")
+            .add(Restrictions.eq("j.eIssn", journal.geteIssn()))
+            .setProjection(Projections.property("doi"))
+    );
   }
 
-  /**
-   * Add information to the issue from the image article, if it exists
-   * @param imageArticleDoi    the doi for the image article
-   * @param issue the issue to update
-   */
-  private void addImageArticleInfo(String imageArticleDoi, Issue issue) {
+  @Transactional
+  @Override
+  public void setCurrentIssue(String journalKey, String issueUri) {
+    Issue issue;
+    try {
+      issue = (Issue) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Issue.class)
+              .add(Restrictions.eq("issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      throw new IllegalArgumentException("Issue '" + issueUri + "' didn't exist");
+    }
+    Journal journal;
+    try {
+      journal = (Journal) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Journal.class)
+              .add(Restrictions.eq("journalKey", journalKey))
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      throw new IllegalArgumentException("Journal '" + journalKey + "' didn't exist");
+    }
+    journal.setCurrentIssue(issue);
+    hibernateTemplate.update(journal);
+  }
+
+  @Override
+  public Volume getVolume(String volumeUri) {
+    try {
+      return (Volume) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Volume.class)
+              .add(Restrictions.eq("volumeUri", volumeUri))
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      return null;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<Volume> getVolumes(final String journalKey) {
+    //volumes are lazy so we need to access them in a session
+    return (List<Volume>) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        if (journal == null) {
+          log.debug("No journal existed for key: " + journalKey);
+          return Collections.emptyList();
+        } else {
+          //bring up all the volumes
+          for (int i = 0; i < journal.getVolumes().size(); i++) {
+            journal.getVolumes().get(i);
+          }
+          return journal.getVolumes();
+        }
+      }
+    });
+  }
+
+  @Transactional
+  @Override
+  public Volume createVolume(final String journalKey, final String volumeUri, final String displyName) {
+    if (StringUtils.isEmpty(journalKey)) {
+      throw new IllegalArgumentException("No journal specified");
+    } else if (StringUtils.isEmpty(volumeUri)) {
+      throw new IllegalArgumentException("No Volume Uri specified");
+    }
+    return (Volume) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        //if the journal doesn't exist, return null
+        if (journal == null) {
+          return null;
+        } else {
+          //check if a volume with the same uri exists, and if so, return null
+          for (Volume existingVolume : journal.getVolumes()) {
+            if (existingVolume.getVolumeUri().equals(volumeUri)) {
+              return null;
+            }
+          }
+          Volume newVolume = new Volume();
+          newVolume.setVolumeUri(volumeUri);
+          newVolume.setDisplayName(displyName);
+          journal.getVolumes().add(newVolume);
+          session.update(journal);
+          return newVolume;
+        }
+      }
+    });
+  }
+
+  @Transactional
+  @Override
+  public String[] deleteVolumes(final String journalKey, final String... volumeUris) {
+    //volumes are lazy, so we have to access them in a session
+    return (String[]) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        if (journal == null) {
+          throw new IllegalArgumentException("No such journal: " + journalKey);
+        }
+        List<String> deletedVolumes = new ArrayList<String>(volumeUris.length);
+        Iterator<Volume> iterator = journal.getVolumes().iterator();
+        while (iterator.hasNext()) {
+          Volume volume = iterator.next();
+          if (ArrayUtils.indexOf(volumeUris, volume.getVolumeUri()) != -1) {
+            iterator.remove();
+            session.delete(volume);
+            deletedVolumes.add(volume.getVolumeUri());
+          }
+        }
+        session.update(journal);
+        return deletedVolumes.toArray(new String[deletedVolumes.size()]);
+      }
+    });
+  }
+
+  @Override
+  public void updateVolume(final String volumeUri, final String displayName, final String issueCsv)
+      throws IllegalArgumentException {
+    hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Volume volume = (Volume) session.createCriteria(Volume.class)
+            .add(Restrictions.eq("volumeUri", volumeUri))
+            .setFetchMode("issues", FetchMode.JOIN)
+            .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+            .uniqueResult();
+
+        if (volume != null) {
+          //check that we've only reordered the issue csv, not added or deleted
+          String existingIssues = AdminServiceImpl.this.formatIssueCsv(volume.getIssues());
+          for (String oldIssue : existingIssues.split(",")) {
+            if (!issueCsv.contains(oldIssue)) {
+              throw new IllegalArgumentException("Removed issue '" + oldIssue + "' from csv when updating volume");
+            }
+          }
+          for (String newIssue : issueCsv.split(",")) {
+            if (!existingIssues.contains(newIssue)) {
+              throw new IllegalArgumentException("Added issue '" + newIssue + "' to csv when updating volume");
+            }
+          }
+
+          volume.getIssues().clear();
+          for (String issueUri : issueCsv.split(",")) {
+            Issue issue = (Issue) session.createCriteria(Issue.class)
+                .add(Restrictions.eq("issueUri", issueUri))
+                .setFetchMode("articleDois", FetchMode.SELECT)
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+                .uniqueResult();
+            if (issue != null) {
+              volume.getIssues().add(issue);
+            }
+          }
+          volume.setDisplayName(displayName);
+          session.update(volume);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Override
+  @Transactional
+  public void deleteIssue(String issueUri) {
+    try {
+      log.debug("Deleting issue '{}'", issueUri);
+      Volume volume = (Volume) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Volume.class)
+              .setFetchMode("issues", FetchMode.JOIN)
+              .createAlias("issues", "i")
+              .add(Restrictions.eq("i.issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+      Iterator<Issue> iterator = volume.getIssues().iterator();
+      while (iterator.hasNext()) {
+        Issue issue = iterator.next();
+        if (issue.getIssueUri().equals(issueUri)) {
+          iterator.remove();
+          hibernateTemplate.delete(issue);
+          break;
+        }
+      }
+      hibernateTemplate.update(volume);
+    } catch (IndexOutOfBoundsException e) {
+      //it's ok if the issue doesn't exist
+    }
+  }
+
+  @Override
+  public Issue getIssue(String issueUri) {
+    log.debug("Retrieving issue with uri '{}'", issueUri);
+    try {
+      return (Issue) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Issue.class)
+              .add(Restrictions.eq("issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public List<Issue> getIssues(final String volumeUri) {
+    log.debug("Retrieving issues for '{}'", volumeUri);
+    try {
+      return ((Volume) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Volume.class)
+              .add(Restrictions.eq("volumeUri", volumeUri))
+              .setFetchMode("issues", FetchMode.JOIN)
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0)).getIssues();
+    } catch (IndexOutOfBoundsException e) {
+      return Collections.emptyList();
+    }
+  }
+
+  @Override
+  public String formatIssueCsv(final List<Issue> issues) {
+    List<String> issueUris = new ArrayList<String>(issues.size());
+    for (Issue issue : issues) {
+      issueUris.add(issue.getIssueUri());
+    }
+    return StringUtils.join(issueUris, ",");
+  }
+
+  @Override
+  public Long addIssueToVolume(final String volumeUri, final Issue issue) {
+    if (StringUtils.isEmpty(issue.getIssueUri())) {
+      throw new IllegalArgumentException("Must specify an Issue URI");
+    }
+    log.debug("Creating an issue with uri: '{}' and adding it to volume: '{}'", issue.getIssueUri(), volumeUri);
+    if (((Number) hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Issue.class)
+            .add(Restrictions.eq("issueUri", issue.getIssueUri()))
+            .setProjection(Projections.rowCount())
+    ).get(0)).intValue() > 0) {
+      throw new IllegalArgumentException("An issue with uri '" + issue.getIssueUri() + "' already exists");
+    }
+    Volume storedVolume;
+    try {
+      storedVolume = (Volume) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Volume.class)
+              .add(Restrictions.eq("volumeUri", volumeUri))
+              .setFetchMode("issues", FetchMode.JOIN)
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      throw new IllegalArgumentException("Volume '" + volumeUri + "' doesn't exist");
+    }
+    if (StringUtils.isEmpty(issue.getTitle()) || StringUtils.isEmpty(issue.getDescription())) {
+      try {
+        Object[] titleAndDescription = (Object[]) hibernateTemplate.findByCriteria(DetachedCriteria.forClass(Article.class)
+            .add(Restrictions.eq("doi", issue.getImageUri()))
+            .setProjection(Projections.projectionList()
+                .add(Projections.property("title"))
+                .add(Projections.property("description"))
+            )).get(0);
+        issue.setTitle(StringUtils.isEmpty(issue.getTitle()) ? (String) titleAndDescription[0] : issue.getTitle());
+        issue.setDescription(StringUtils.isEmpty(issue.getDescription()) ? (String) titleAndDescription[1] : issue.getDescription());
+      } catch (IndexOutOfBoundsException e) {
+        //it's fine if the image article doesn't exist
+      }
+    }
+    storedVolume.getIssues().add(issue);
+    hibernateTemplate.update(storedVolume);
+    return issue.getID();
+  }
+
+  @Override
+  public void updateIssue(String issueUri, String imageUri, String displayName,
+                          boolean respectOrder, List<String> articleDois) {
+    log.debug("Updating issue '{}'", issueUri);
+    Issue issue;
+    try {
+      issue = (Issue) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Issue.class)
+              .add(Restrictions.eq("issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //if the issue doesn't exist, just return
+      return;
+    }
+    //check that we aren't adding or removing an article here
+    for (String oldDoi : issue.getArticleDois()) {
+      if (!articleDois.contains(oldDoi)) {
+        throw new IllegalArgumentException("Removed article '" + oldDoi + "' when updating issue");
+      }
+    }
+    for (String newDoi : articleDois) {
+      if (!issue.getArticleDois().contains(newDoi)) {
+        throw new IllegalArgumentException("Added article '" + newDoi + "' when updating issue");
+      }
+    }
+
+    issue.getArticleDois().clear();
+    issue.getArticleDois().addAll(articleDois);
+    issue.setDisplayName(displayName);
+    issue.setRespectOrder(respectOrder);
+    issue.setImageUri(imageUri);
+    //pull down title and description from the image article, if it exists
     try {
       Object[] titleAndDescription = (Object[]) hibernateTemplate.findByCriteria(
-          org.hibernate.criterion.DetachedCriteria.forClass(Article.class)
-              .add(Restrictions.eq("doi", imageArticleDoi))
+          DetachedCriteria.forClass(Article.class)
+              .add(Restrictions.eq("doi", imageUri))
               .setProjection(Projections.projectionList()
                   .add(Projections.property("title"))
                   .add(Projections.property("description")))
@@ -670,244 +507,180 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       issue.setTitle((String) titleAndDescription[0]);
       issue.setDescription((String) titleAndDescription[1]);
     } catch (IndexOutOfBoundsException e) {
-      //the image article didn't exist
+      //it's ok if image article doesn't exist
     }
+    hibernateTemplate.update(issue);
   }
 
-  /*
-  *
-  */
-
-  public Issue removeArticle(Issue issue, URI articleURI) {
-
-    removeArticleFromList(issue, articleURI);
-    updateStore(issue);
-
-    return issue;
+  @Override
+  public void removeArticlesFromIssue(String issueUri, String... articleDois) {
+    log.debug("Removing articles {} to issue '{}'", Arrays.toString(articleDois), issueUri);
+    Issue issue;
+    try {
+      issue = (Issue) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Issue.class)
+              .add(Restrictions.eq("issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //it's ok if the issue doesn't exist
+      return;
+    }
+    for (String doi : articleDois) {
+      issue.getArticleDois().remove(doi);
+    }
+    hibernateTemplate.update(issue);
   }
 
-  private void removeArticleFromList(Issue issue, URI articleURI) {
-    List<URI> articleList = issue.getArticleList();
-
-    if (articleList.isEmpty() && !issue.getSimpleCollection().isEmpty()) {
-      articleList = new ArrayList<URI>(issue.getSimpleCollection());
+  @Override
+  public void addArticlesToIssue(String issueUri, String... articleDois) {
+    log.debug("Adding articles {} to issue '{}'", Arrays.toString(articleDois), issueUri);
+    Issue issue;
+    try {
+      issue = (Issue) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Issue.class)
+              .add(Restrictions.eq("issueUri", issueUri))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //it's ok if the issue doesn't exist
+      return;
     }
-
-    if (articleList.contains(articleURI)) {
-      articleList.remove(articleURI);
+    for (String doi : articleDois) {
+      if (!issue.getArticleDois().contains(doi)) {
+        issue.getArticleDois().add(doi);
+      }
     }
-
-    //Shadow this removal in the simple collection
-    if (issue.getSimpleCollection().contains(articleURI)) {
-      issue.getSimpleCollection().remove(articleURI);
-    }
+    hibernateTemplate.update(issue);
   }
 
-  /*
-   *
-   */
+  @Override
+  public String formatArticleCsv(List<TOCArticleGroup> issueArticleGroups) {
+    if (issueArticleGroups.isEmpty()) {
+      return "";
+    }
+    String csv = "";
+    for (TOCArticleGroup group : issueArticleGroups) {
+      for (ArticleInfo article : group.getArticles()) {
+        csv += article.getDoi() + ",";
+      }
+    }
+    return csv.substring(0, csv.lastIndexOf(","));
+  }
 
+  @Override
   @SuppressWarnings("unchecked")
-  public Issue addArticle(Issue issue, URI articleURI) {
-    addArticleToList(issue, articleURI);
-    updateStore(issue);
-
-    return issue;
-  }
-
-  private void addArticleToList(Issue issue, URI articleURI) {
-    /*
-     * Since we are doing an on-the-fly data migration (unwisely)
-     * we need to update articleList if it has not been done yet.
-     */
-    List<URI> articleList = issue.getArticleList();
-
-    if (articleList.isEmpty() && !issue.getSimpleCollection().isEmpty()) {
-      articleList = new ArrayList<URI>(issue.getSimpleCollection());
+  public List<TOCArticleGroup> getArticleGroupList(final Issue issue) {
+    //if the issue doesn't have any dois, return an empty list of groups
+    if (issue.getArticleDois() == null || issue.getArticleDois().isEmpty()) {
+      return Collections.emptyList();
     }
 
-    //Only add if not there
-    if (!articleList.contains(articleURI)) {
-      articleList.add(articleURI);
+    //Create a comparator to sort articles in groups depending on if the issue has manual ordering enabled
+    Comparator<ArticleInfo> comparator;
+    if (issue.isRespectOrder()) {
+      comparator = new Comparator<ArticleInfo>() {
+        @Override
+        public int compare(ArticleInfo left, ArticleInfo right) {
+          Integer leftIndex = issue.getArticleDois().indexOf(left.getDoi());
+          Integer rightIndex = issue.getArticleDois().indexOf(right.getDoi());
+          return leftIndex.compareTo(rightIndex);
+        }
+      };
+    } else {
+      comparator = new Comparator<ArticleInfo>() {
+        @Override
+        public int compare(ArticleInfo left, ArticleInfo right) {
+          if (left.getDate().after(right.getDate())) {
+            return -1;
+          }
+          if (left.getDate().before(right.getDate())) {
+            return 1;
+          }
+          return left.getDoi().compareTo(right.getDoi());
+        }
+      };
     }
 
-    //Shadow this addition in the simple collection
-    if (!issue.getSimpleCollection().contains(articleURI)) {
-      issue.getSimpleCollection().add(articleURI);
-    }
-  }
+    //keep track of dois in a separate list so we can remove them as we find articles and then keep track of the orphans at the end
+    List<String> dois = new ArrayList<String>(issue.getArticleDois());
 
-  /**************************************************
-   *                OTM queries.                    *
-   **************************************************/
+    log.debug("Loading up article groups for issue '{}'", issue.getIssueUri());
+    List<TOCArticleGroup> groups = new ArrayList<TOCArticleGroup>(ArticleType.getOrderedListForDisplay().size());
 
-  /**
-   * Get a list of volume URIs for this journal context.
-   *
-   * @param maxResults the maximum number of URIs to put into the list. maxResults = 0 will return all URIs.
-   * @param ascending  sort URI's in ascending order if true.
-   * @return a list of volumes associated with this journal (never null).
-   * @throws org.topazproject.otm.OtmException
-   *          if session is not able create and execute a query.
-   */
-  @Transactional(readOnly = true)
-  @SuppressWarnings("unchecked")
-  public List<Volume> getVolumes(final int maxResults, final boolean ascending) {
-    return (List<Volume>) hibernateTemplate.execute(new HibernateCallback() {
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
-        Criteria c = session.createCriteria(Volume.class);
+    List<Object[]> rows = hibernateTemplate.findByNamedParam(
+        "select a.doi, a.title, a.date, t from Article a inner join a.types t where a.doi in :dois",
+        new String[]{"dois"},
+        new Object[]{issue.getArticleDois()}
+    );
 
-        if (ascending) {
-          c.addOrder(Order.asc("aggregationUri"));
-        } else {
-          c.addOrder(Order.desc("aggregationUri"));
+    //results will be row of [doi, title, date, type] with an entry for each type of each article
+    //i.e. we'll see duplicate results for articles
+
+    for (ArticleType type : ArticleType.getOrderedListForDisplay()) {
+      TOCArticleGroup group = new TOCArticleGroup(type);
+      //using an explicit iterator so we can remove rows as we find matches
+      Iterator<Object[]> iterator = rows.iterator();
+      while (iterator.hasNext()) {
+        Object[] row = iterator.next();
+        //check if this row is of the correct type, and that we haven't added the article
+        if (type.getUri().toString().equals(row[3]) && dois.contains(row[0])) {
+          ArticleInfo articleInfo = new ArticleInfo();
+          articleInfo.setDoi((String) row[0]);
+          articleInfo.setTitle((String) row[1]);
+          articleInfo.setDate((Date) row[2]);
+          group.addArticle(articleInfo);
+
+          //remove the row so we don't have to check it again later
+          iterator.remove();
+          //remove the doi so we can keep track of orphans
+          dois.remove(articleInfo.getDoi());
         }
-
-        if (maxResults > 0) {
-          c.setMaxResults(maxResults);
-        }
-
-        List<Volume> volRslt = new ArrayList<Volume>();
-        Iterator r = c.list().iterator();
-
-        while (r.hasNext()) {
-          Volume v = (Volume) r.next();
-          volRslt.add(v);
-        }
-
-        return volRslt;
       }
-    });
-  }
-
-  /**
-   * Get a list of issues for this journal context.
-   *
-   * @param maxResults the maximum number of URIs to put into the list. maxResults = 0 will return all URIs.
-   * @param ascending  sort URI's in ascending order if true.
-   * @return the list of issue URIs for this journal context.
-   * @throws org.topazproject.otm.OtmException
-   *          if session is not able create or execute the query.
-   */
-  @Transactional(readOnly = true)
-  @SuppressWarnings("unchecked")
-  public List<Issue> getIssues(final int maxResults, final boolean ascending) {
-    return (List<Issue>) hibernateTemplate.execute(new HibernateCallback() {
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
-        Criteria c = session.createCriteria(Issue.class);
-
-        if (ascending) {
-          c.addOrder(Order.asc("aggregationUri"));
-        } else {
-          c.addOrder(Order.desc("aggregationUri"));
-        }
-
-        if (maxResults > 0) {
-          c.setMaxResults(maxResults);
-        }
-
-        StringBuilder qry = new StringBuilder();
-
-        List<Issue> issueRslt = new ArrayList<Issue>();
-
-        Iterator r = c.list().iterator();
-        while (r.hasNext()) {
-          Issue i = (Issue) r.next();
-          issueRslt.add(i);
-        }
-
-        return issueRslt;
+      Collections.sort(group.getArticles(), comparator);
+      //only add a group if there are articles for it
+      if (group.getCount() > 0) {
+        groups.add(group);
+        log.debug("Found {} articles of type '{}' for issue '{}",
+            new Object[]{group.getCount(), type.getHeading(), issue.getIssueUri()});
       }
-    });
-  }
-
-  /**
-   * Get a list of volume URIs that reference this issue.
-   *
-   * @param issueURI URI of issue to find parents for.
-   * @return the list of parent volumes that refernce this issue.
-   * @throws org.topazproject.otm.OtmException
-   *          if session is not able create or execute the query.
-   */
-  @Transactional(readOnly = true)
-  @SuppressWarnings("unchecked")
-  public List<Volume> getIssueParents(final URI issueURI) {
-    return (List<Volume>) hibernateTemplate.execute(new HibernateCallback() {
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
-
-        List<Volume> volRslt = session.createQuery("from org.topazproject.ambra.models.Volume v " +
-            "join v.issueList issues where issueUri = :issueURI")
-            .setParameter("issueURI", issueURI.toString())
-            .list();
-
-        return volRslt;
-      }
-    });
-  }
-
-  /**************************************************
-   * Spring managed setter/getters for fields       *
-   **************************************************/
-  /**
-   * Sets the JournalService.
-   *
-   * @param journalService The JournalService to set.
-   */
-  @Required
-  public void setJournalService(JournalService journalService) {
-    this.journalService = journalService;
-  }
-
-  /**
-   * A faux Journal object that can be accessed by the freemarker template.
-   *
-   * @param journalName Keyname of the current journal
-   * @return faux Journal object JournalInfo.
-   */
-  @Transactional(readOnly = true)
-  public JournalInfo createJournalInfo(String journalName) {
-
-    JournalInfo jrnlInfo = new JournalInfo();
-
-    // If the is no current journal the return null
-    if (journalName == null) {
-      return jrnlInfo;
     }
 
-    Journal journal = journalService.getJournal(journalName);
+    //create a group for orphaned articles
+    TOCArticleGroup orphans = new TOCArticleGroup(null);
+    orphans.setHeading("Orphaned Article");
+    orphans.setPluralHeading("Orphaned Articles");
 
-    jrnlInfo.setKey(journal.getKey());
-    jrnlInfo.seteIssn(journal.geteIssn());
-
-    URI uri = (journal.getCurrentIssue() == null) ? null : journal.getCurrentIssue();
-    jrnlInfo.setCurrentIssue((uri != null) ? uri.toString() : null);
-
-    uri = (journal.getImage() == null) ? null : journal.getImage();
-    jrnlInfo.setImage((uri != null) ? uri.toString() : null);
-
-    List<URI> jscs = journal.getSimpleCollection();
-    if (jscs != null) {
-      List<String> slist = new ArrayList<String>(jscs.size());
-
-      for (URI u : jscs) {
-        slist.add(u.toString());
-      }
-
-      jrnlInfo.setSimpleCollection(slist);
+    //anything left in the doi list is an orphan
+    for (String doi : dois) {
+      ArticleInfo article = new ArticleInfo();
+      article.setDoi(doi);
+      article.setDate(Calendar.getInstance().getTime());
+      orphans.addArticle(article);
     }
+    Collections.sort(orphans.getArticles(), comparator);
 
-    List<DetachedCriteria> dclist = journal.getSmartCollectionRules();
+    groups.add(orphans);
+    return groups;
+  }
 
-    if (dclist != null && dclist.size() > 0) {
-      StringBuilder sb = new StringBuilder();
-
-      for (DetachedCriteria dc : journal.getSmartCollectionRules()) {
-        sb.append(", ").append(dc.toString());
-      }
-
-      jrnlInfo.setSmartCollectionRulesDescriptor(sb.substring(2));
+  @Override
+  public Journal getJournal(String journalKey) {
+    try {
+      return (Journal) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Journal.class)
+              .add(Restrictions.eq("journalKey", journalKey))
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      return null;
     }
-    jrnlInfo.setVolumes(getJrnlVolDOIs(journal));
-    return jrnlInfo;
+  }
+
+  private void invokeOnCrossPubListeners(String articleDoi) throws Exception {
+    if (onCrossPubListener != null) {
+      for (OnCrossPubListener listener : onCrossPubListener) {
+        listener.articleCrossPublished(articleDoi);
+      }
+    }
   }
 }

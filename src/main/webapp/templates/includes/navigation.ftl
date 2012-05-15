@@ -30,7 +30,7 @@
   goTo="${freemarker_config.casLogoutURL}?" +
   "service=${Request[freemarker_config.journalContextAttributeKey].baseUrl}/" +
   "${request.contextPath}/logout.action"/>
-<#if journal??><@s.url id="crossPubManagement" namespace="/" action="crossPubManagement" journalKey="${journal.key}" journalEIssn="${journal.eIssn}" /></#if>
+<#if journal??><@s.url id="crossPubManagement" namespace="/" action="crossPubManagement" journalKey="${journal.journalKey}" journalEIssn="${journal.eIssn}" /></#if>
 <p style="text-align:center;">
   <@s.a href="${adminTop}">Admin Top</@s.a>&nbsp; |&nbsp;
   <strong>Manage:</strong> <@s.a href="${manageFlags}">Flags</@s.a>,&nbsp;
@@ -44,4 +44,4 @@
   <@s.a href="${logout}">Logout</@s.a>
 </p>
 <hr/>
-<#if journal??><h2>${journal.key} (${journal.eIssn!""})</h2></#if>
+<#if journal??><h2>${journal.journalKey} (${journal.eIssn!""})</h2></#if>

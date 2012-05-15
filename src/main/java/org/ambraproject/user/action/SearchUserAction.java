@@ -20,6 +20,7 @@
 package org.ambraproject.user.action;
 
 import org.ambraproject.admin.service.AdminService;
+import org.ambraproject.models.Journal;
 import org.ambraproject.models.UserProfile;
 import org.ambraproject.search.service.SearchUserService;
 import org.springframework.beans.factory.annotation.Required;
@@ -41,7 +42,7 @@ public class SearchUserAction extends UserActionSupport {
   private AdminService adminService;
   private SearchUserService searchUserService;
   // Fields Used by template
-  private AdminService.JournalInfo journalInfo;
+  private Journal journal;
 
   /**
    * Just display search page.
@@ -50,8 +51,7 @@ public class SearchUserAction extends UserActionSupport {
    */
   @Override
   public String execute() {
-    // create a faux journal object for template
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journal = adminService.getJournal(getCurrentJournal());
     return SUCCESS;
   }
 
@@ -64,7 +64,7 @@ public class SearchUserAction extends UserActionSupport {
   @Transactional(readOnly = true)
   public String executeFindUserByAuthId() throws Exception {
     // create a faux journal object for template
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journal = adminService.getJournal(getCurrentJournal());
 
     final UserProfile user = userService.getUserByAuthId(userAuthId);
     if (null == user) {
@@ -85,7 +85,7 @@ public class SearchUserAction extends UserActionSupport {
   @Transactional(readOnly = true)
   public String executeFindUserByAccountId() throws Exception {
     // create a faux journal object for template
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journal = adminService.getJournal(getCurrentJournal());
 
     final UserProfile userId = userService.getUserByAccountUri(accountId);
     if (null == userId) {
@@ -106,7 +106,7 @@ public class SearchUserAction extends UserActionSupport {
   @Transactional(readOnly = true)
   public String executeFindUserByName() throws Exception {
     // create a faux journal object for template
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journal = adminService.getJournal(getCurrentJournal());
 
     final List<UserProfile> userList = searchUserService.findUsersByDisplayName(name);
     if (userList.isEmpty()) {
@@ -127,7 +127,7 @@ public class SearchUserAction extends UserActionSupport {
   @Transactional(readOnly = true)
   public String executeFindUserByEmailAddress() throws Exception {
     // create a faux journal object for template
-    journalInfo = adminService.createJournalInfo(getCurrentJournal());
+    journal = adminService.getJournal(getCurrentJournal());
 
     final List<UserProfile> userList = searchUserService.findUsersByEmail(emailAddress);
     if (userList.isEmpty()) {
@@ -184,8 +184,8 @@ public class SearchUserAction extends UserActionSupport {
     return users;
   }
 
-  public AdminService.JournalInfo getJournal() {
-    return journalInfo;
+  public Journal getJournal() {
+    return journal;
   }
 
   /**

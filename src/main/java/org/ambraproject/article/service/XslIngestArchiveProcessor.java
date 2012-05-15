@@ -35,6 +35,7 @@ import org.ambraproject.models.Category;
 import org.ambraproject.models.CitedArticle;
 import org.ambraproject.models.CitedArticleAuthor;
 import org.ambraproject.models.CitedArticleEditor;
+import org.ambraproject.models.Journal;
 import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
@@ -238,6 +239,10 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
           ? archive.getName().substring(archive.getName().lastIndexOf(File.separator) + 1)
           : archive.getName();
       article.setArchiveName(archiveName);
+      Journal journal = new Journal();
+      journal.seteIssn(article.geteIssn());
+      article.setJournals(new HashSet<Journal>());
+      article.getJournals().add(journal);
       return article;
     } catch (IOException e) {
       throw new ArchiveProcessException("Error reading from Zip archive", e);

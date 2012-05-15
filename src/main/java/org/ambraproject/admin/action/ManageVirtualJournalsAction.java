@@ -20,31 +20,29 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.models.Volume;
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
-import org.topazproject.ambra.models.Volume;
-import org.ambraproject.util.UriUtil;
 
-import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * Volumes are associated with some journals and hubs. A volume is an aggregation of
- * of issues. Issue are aggregations of articles.
- *
+ * Volumes are associated with some journals and hubs. A volume is an aggregation of of issues. Issue are aggregations
+ * of articles.
  */
 @SuppressWarnings("serial")
 public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
 
   // Past in as parameters
-  private String   command;
-  private String   journalToModify;
-  private URI      curIssueURI;
-  private URI      volumeURI;
+  private String command;
+  private String currentIssueUri;
+  private String volumeURI;
   private String[] volsToDelete;
-  private String   displayName;
+  private String volumeDisplayName;
 
   //Used by template
   private List<Volume> volumes;
@@ -52,8 +50,8 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
   private static final Logger log = LoggerFactory.getLogger(ManageVirtualJournalsAction.class);
 
   /**
-  * Enumeration used to dispatch commands within the action.
-  */
+   * Enumeration used to dispatch commands within the action.
+   */
   public enum MVJ_COMMANDS {
     UPDATE_ISSUE,
     CREATE_VOLUME,
@@ -61,11 +59,10 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
     INVALID;
 
     /**
-     * Convert a string specifying a command to its
-     * enumerated equivalent.
+     * Convert a string specifying a command to its enumerated equivalent.
      *
-     * @param command  string value to convert.
-     * @return        enumerated equivalent
+     * @param command string value to convert.
+     * @return enumerated equivalent
      */
     public static MVJ_COMMANDS toCommand(String command) {
       MVJ_COMMANDS a;
@@ -83,77 +80,70 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
    * Manage Journals.  Display Journals and processes all add/deletes.
    */
   @Override
-  @Transactional(rollbackFor = { Throwable.class })
-  public String execute() throws Exception  {
+  @Transactional(rollbackFor = {Throwable.class})
+  public String execute() throws Exception {
 
-    switch( MVJ_COMMANDS.toCommand(command)) {
+    switch (MVJ_COMMANDS.toCommand(command)) {
       case UPDATE_ISSUE:
-        update_Issue();
+        updateIssue();
         break;
 
       case CREATE_VOLUME:
-        create_Volume();
+        createVolume();
         break;
 
       case REMOVE_VOLUMES:
         removeVolumes();
         break;
 
-       case INVALID:
-         repopulate();
-         break;
+      case INVALID:
+        repopulate();
+        break;
     }
     return SUCCESS;
   }
 
-  private void update_Issue() {
-    if (curIssueURI != null) {
+  private void updateIssue() {
+    if (currentIssueUri != null) {
       try {
-        adminService.setJrnlIssueURI(getCurrentJournal(), curIssueURI);
-        addActionMessage("Current Issue (URI) set to: " + curIssueURI);
-       } catch (Exception e) {
-        addActionMessage("Current Issue not updated due to the following error.");
-        addActionMessage(e.getMessage());
+        adminService.setCurrentIssue(getCurrentJournal(), currentIssueUri);
+        addActionMessage("Current Issue (URI) set to: " + currentIssueUri);
+      } catch (IllegalArgumentException e) {
+        addActionError("Issue '" + currentIssueUri + "' doesn't exist; try creating it first");
+      } catch (Exception e) {
+        log.error("Error setting current issue for " + getCurrentJournal() + " to " + currentIssueUri, e);
+        addActionError("Current Issue not updated due to the following error: " + e.getMessage());
       }
     } else {
-      addActionMessage("Invalid Current Issue (URI) ");
+      addActionError("Invalid Current Issue (URI)");
     }
     repopulate();
   }
 
-  private void create_Volume() {
-    if (volumeURI != null) {
-      try {
-        // Create and add to journal
-        Volume v = adminService.createVolume(getCurrentJournal(), volumeURI, displayName, "" );
-        if (v != null) {
-          addActionMessage("Created Volume: " + v.getId());
-        } else {
-          addActionMessage("Duplicate Volume URI: " + volumeURI);
-        }
-      } catch (Exception e) {
-        addActionMessage("Volume not created due to the following error.");
-        addActionMessage(e.getMessage());
+  private void createVolume() {
+    try {
+      Volume volume = adminService.createVolume(getCurrentJournal(), volumeURI, volumeDisplayName);
+      if (volume != null) {
+        addActionMessage("Created Volume: " + volumeURI);
+      } else {
+        addActionError("Duplicate Volume URI: " + volumeURI);
       }
-    } else {
-      addActionMessage("Invalid Volume URI" );
+    } catch (Exception e) {
+      log.error("Error creating volume " + volumeURI + " for " + getCurrentJournal(), e);
+      addActionError("Volume not created due to the following error: " + e.getMessage());
     }
     repopulate();
   }
 
   private void removeVolumes() {
     try {
-      if (volsToDelete.length > 0) {
-          // volsToDelete was supplied by the system so they should be correct
-          addActionMessage("Removing the Following Volume URIs:");
-          for(String vol : volsToDelete) {
-            adminService.deleteVolume(getCurrentJournal(), URI.create(vol));
-            addActionMessage("Volume: " + vol );
-          }
+      if (!ArrayUtils.isEmpty(volsToDelete)) {
+        String[] deletedVolumes = adminService.deleteVolumes(getCurrentJournal(), volsToDelete);
+        addActionMessage("Successfully removed the following volumes: " + Arrays.toString(deletedVolumes));
       }
-    } catch (Exception e){
-      addActionMessage("Volume remove failed due to the following error.");
-      addActionMessage(e.getMessage());
+    } catch (Exception e) {
+      log.error("Error deleting volumes: " + Arrays.toString(volsToDelete), e);
+      addActionError("Volume remove failed due to the following error: " + e.getMessage());
     }
     repopulate();
   }
@@ -174,27 +164,12 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
 
 
   /**
-   * Set Journal to modify.
-   *
-   * @param journalToModify Journal to modify.
-   */
-  public void setJournalToModify(String journalToModify) {
-    this.journalToModify = journalToModify.trim();
-  }
-
-  /**
    * Set volume URI.
    *
    * @param vol the volume URI.
    */
   public void setVolumeURI(String vol) {
-    try {
-      this.volumeURI = UriUtil.validateUri(vol.trim(), "Volume Uri");
-    } catch (Exception e) {
-      this.volumeURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setVolume URI conversion failed.");
-    }
+    this.volumeURI = vol;
   }
 
   /**
@@ -203,7 +178,7 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
    * @return current issue.
    */
   public String getCurIssue() {
-    return curIssueURI.toString();
+    return currentIssueUri;
   }
 
   /**
@@ -212,22 +187,7 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
    * @param currentIssueURI the current issue for this journal.
    */
   public void setCurrentIssueURI(String currentIssueURI) {
-    try {
-      this.curIssueURI = UriUtil.validateUri(currentIssueURI.trim(), "Issue Uri");
-    } catch (Exception e) {
-      this.curIssueURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setIssue URI conversion failed.");
-    }
-  }
-
-   /**
-   * Set display name for a voulume.
-   *
-   * @param dsplyName the display of the volume.
-   */
-  public void setDisplayName(String dsplyName) {
-    this.displayName = dsplyName.trim();
+    this.currentIssueUri = currentIssueURI;
   }
 
   /**
@@ -242,11 +202,14 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
   /**
    * Sets the command to execute.
    *
-   * @param  command the command to execute for this action.
+   * @param command the command to execute for this action.
    */
   @Required
   public void setCommand(String command) {
-    this.command = command;                                                                 
+    this.command = command;
   }
 
+  public void setDisplayName(String volumeDisplayName) {
+    this.volumeDisplayName = volumeDisplayName;
+  }
 }

@@ -22,14 +22,13 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.admin.AdminBaseTest;
+import org.ambraproject.article.service.NoSuchArticleIdException;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Journal;
 import org.ambraproject.models.Syndication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseTest;
-import org.ambraproject.article.service.NoSuchArticleIdException;
-import org.topazproject.ambra.models.Journal;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -37,7 +36,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Scott Sterling
@@ -228,7 +229,7 @@ public class SyndicationServiceTest extends AdminBaseTest {
   public Object[][] getFailedAndInProgressSyndications() {
     String journalKey = "PLoSBio";
     Journal journal = new Journal();
-    journal.setKey(journalKey);
+    journal.setJournalKey(journalKey);
     journal.seteIssn("111-120-56");
     dummyDataStore.store(journal);
 

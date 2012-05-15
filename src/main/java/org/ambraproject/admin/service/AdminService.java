@@ -21,397 +21,220 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
-import org.ambraproject.journal.JournalService;
-import org.topazproject.ambra.models.Issue;
-import org.topazproject.ambra.models.Volume;
+import org.ambraproject.model.article.ArticleInfo;
+import org.ambraproject.views.TOCArticleGroup;
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Journal;
+import org.ambraproject.models.Volume;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
 /**
- * AdminService encapsulates the basic services needed by all administrative
- * actions.
+ * AdminService encapsulates the basic services needed by all administrative actions.
  */
 public interface AdminService {
+  public static final String ORDER_BY_FIELD_DATE_CREATED = "created";
+  public static final String ORDER_BY_FIELD_ARTICLE_DOI = "doi";
+  public static final String ORDER_BY_FIELD_DATE_PUBLISHED = "date";
+
+  /**
+   * Returns a Map of publishable articles in the order indicated.  The key of each element is the DOI (URI) of the
+   * Article.  The value of each element is the Article itself.
+   *
+   * @param eIssn            eIssn of the Journal that this Article belongs to (no filter if null or empty)
+   * @param orderField       field on which to sort the results (no sort if null or empty) Should be one of the
+   *                         ORDER_BY_FIELD_ constants from this class
+   * @param isOrderAscending controls the sort order (default is "false" so default order is descending)
+   * @return Map of publishable articles sorted as indicated
+   * @throws org.ambraproject.ApplicationException
+   *
+   */
+  public List<ArticleInfo> getPublishableArticles(String eIssn, String orderField,
+                                                  boolean isOrderAscending) throws ApplicationException;
 
   public void assignAdminRole(Long userId) throws ApplicationException;
 
-
-  /**************************************************
-   * Journal Management Methods                     *
-   **************************************************/
-
-
   /**
-   * Give a SEPARATOR delimitted string of volume URIs convert them
-   * to a list of separated URIs.
+   * Get the journal specified by the given key. Result will be lazy, so volumes won't be accessible outside of a
+   * session
    *
-   * @param csvStr the list of string of URIs.
-   * @return a list of URI created from the string csvStr .
-   * @throws URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
+   * @param journalKey the key of the journal to get
+   * @return the journal with the given key
    */
-  public List<URI> parseCSV(String csvStr) throws URISyntaxException;
+  public Journal getJournal(String journalKey);
 
   /**
-   * Test a single URI for validity. Currently the only requirement is that
-   * the URI must be absolute.
+   * Cross publish an article in a journal, and invoke all cross-publish listeners
    *
-   * @param uri the URI to validate.
-   * @return true if the URI is acceptable.
-   * @throws URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
+   * @param articleDoi the doi of the article to cross publish
+   * @param journalKey the key of the journal to publish in
    */
-  public boolean validURI(URI uri) throws URISyntaxException;
+  public void crossPubArticle(String articleDoi, String journalKey) throws Exception;
 
   /**
-   * @param journalName Keyname of current journal
-   * @param article     article URI
-   * @throws Exception If listener failed
+   * remove an article from a journal it's cross-published in and invoke all cross-publish listeners
+   *
+   * @param articleDoi the doi of the article to remove
+   * @param journalKey the key of the journal to remove the article from
    */
-  public void addXPubArticle(String journalName, URI article) throws Exception;
+  public void removeArticleFromJournal(String articleDoi, String journalKey) throws Exception;
 
   /**
-   * @param journalName Keyname of current journal
-   * @param article     article URI
-   * @throws Exception If listener failed
+   * Get all the articles which are cross published in a journal
+   * @param journal the journal to use in getting cross published articles
+   * @return a list of dois of articles cross published in the journal
    */
-  public void removeXPubArticle(String journalName, URI article) throws Exception;
+  public List<String> getCrossPubbedArticles(Journal journal);
 
   /**
    * Set current Journal issue URI.
    *
-   * @param journalName Keyname of current journal
-   * @param issueURI the URI of the current issue for the journal being modified.
+   * @param journalKey the {@link Journal#journalKey} of the journal on which to set the current issue
+   * @param issueUri   the {@link Issue#issueUri} of the issue to set as current
    */
-  public void setJrnlIssueURI(String journalName, URI issueURI);
+  public void setCurrentIssue(String journalKey, String issueUri);
 
   /**
-   * Update the persistant store with the new journal changes.
+   * Return a Volume object specified by URI. The issues will be lazy-loaded and so not available outside of a session.
    *
-   * @throws RuntimeException if the sesion encounters an error during
-   *                      the update.
-   */
-  public void flushStore();
-
-  /**************************************************
-   * Volume Management Methods                      *
-   **************************************************/
-
-  /**
-   * Return a Volume object specified by URI.
-   *
-   * @param volURI the URI of the volume.
+   * @param volumeUri the URI of the volume.
    * @return the volume object requested.
-   * @throws RuntimeException throws RuntimeException if any one of the Volume URIs supplied
-   *                      by the journal does not exist.
+   * @throws RuntimeException throws RuntimeException if any one of the Volume URIs supplied by the journal does not
+   *                          exist.
    */
-  public Volume getVolume(URI volURI);
+  public Volume getVolume(String volumeUri);
 
   /**
-   * Uses the list of volume URIs maintained by the journal
-   * to create a list of Volume objects.
+   * Uses the list of volume URIs maintained by the journal to create a list of Volume objects.
    *
    * @param journalName Keyname of the current journal
    * @return the list of volumes for the current journal (never null)
-   * @throws RuntimeException throws RuntimeException if any one of the Volume URIs supplied
-   *                      by the journal does not exist.
+   * @throws RuntimeException throws RuntimeException if any one of the Volume URIs supplied by the journal does not
+   *                          exist.
    */
   public List<Volume> getVolumes(String journalName);
+
   /**
-   * Create a new Volume and add it to the current Journal's list
-   * of volumes it contains.
+   * Create a new Volume and add it to the current Journal's list of volumes it contains.
    *
    * @param journalName Keyname of the current journal
-   * @param volURI    the uri of the new volume.
-   * @param dsplyName the display name of the volume.
-   * @param issueList a SPARATOR delimted list of issue doi's associated with
-   *                  this volume.
-   * @return the volume object that was created. ( returns null if there
-   *         is no journal or volURI already exists ).
-   * @throws RuntimeException       thrown when the Volume or Journal cannot be
-   *                            saved or updated by the session.
-   * @throws URISyntaxException thrown when values in issueList cannot be converted
-   *                            to a URI
+   * @param volumeUri   the uri of the new volume.
+   * @param displayName the display name of the volume.
+   * @return the volume object that was created. ( returns null if there is no journal or volumeUri already exists ).
    */
-  public Volume createVolume(String journalName, URI volURI, String dsplyName, String issueList)
-      throws URISyntaxException;
+  public Volume createVolume(String journalName, String volumeUri, String displayName)
+  ;
 
   /**
-   * Delete a Volume using the volumes URI.  Remove references to it from the journal
-   * volume list.
+   * Remove volumes from the journal and delete them.
    *
-   * @param journalName Keyname of the current journal
-   * @param volURI the volume to delete.
-   * @throws RuntimeException throws RuntimeException if session cannot
-   *                      delete the volume.
+   * @param journalKey Keyname of the current journal
+   * @param volumeUris the uris of the volumes to delete
+   * @return the volumeUris of the volumes that were actually deleted (any uris that didn't correspond to volumes in the
+   *         journal will be omitted)
    */
-  public void deleteVolume(String journalName, URI volURI);
+  public String[] deleteVolumes(String journalKey, String... volumeUris);
 
   /**
-   * Update a Volume.
+   * Update a volume by uri. This only allows reordering of the issues via csv, not additions or deletions.
    *
-   * @param volume    the volume to update.
-   * @param dsplyName the display name for the volume.
-   * @param issueList a SEPARATOR delimitted string of issue doi's.
-   * @return Volume   the update volume object.
-   * @throws RuntimeException       throws and RuntimeException if the session is unable to
-   *                            update the volume persistanct store.
-   * @throws URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
+   * @param volumeUri   the uri of the volume to update
+   * @param displayName the new display name to set
+   * @param issueCsv    a csv of the issue uris to set on the volume
+   * @throws IllegalArgumentException if an issue already assigned to the volume does not appear in the csv, or if a new
+   *                                  one has been added to it
    */
-  public Volume updateVolume(Volume volume, String dsplyName, List<URI> issueList)
-      throws URISyntaxException;
-
-  /**
-   * Update a Volume using the URI. Retrieves volume from the persistant store
-   * using the URI.
-   *
-   * @param volURI    the volume to update.
-   * @param dsplyName the display name for the volume.
-   * @param issueList a SEPARATOR delimitted string of issue doi's.
-   * @return Volume   the update volume object.
-   * @throws RuntimeException       throws and RuntimeException if the session is unable to
-   *                            update the volume persistanct store.
-   * @throws URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
-   */
-  public Volume updateVolume(URI volURI, String dsplyName, List<URI> issueList)
-      throws URISyntaxException;
-
-  /**************************************************
-   * Issue Management Methods                       *
-   **************************************************/
-  /**
-   * Delete an Issue and remove it from each volume that references it.
-   *
-   * @param issue the issue that is to deleted.
-   * @throws RuntimeException if session is not able to delete issue
-   */
-  public void deleteIssue(Issue issue);
+  public void updateVolume(String volumeUri, String displayName, String issueCsv)
+      throws IllegalArgumentException;
 
   /**
    * Delete an Issue specified by URI. Remove it from each volume that references it.
    *
-   * @param issueURI the uri of the issue to delete.
-   * @throws RuntimeException if session is not able to delete issue
+   * @param issueUri the uri of the issue to delete
    */
-  public void deleteIssue(URI issueURI);
+  public void deleteIssue(String issueUri);
 
   /**
    * Get an Issue specified by URI.
    *
-   * @param issueURI the issue's URI.
+   * @param issueUri the {@link Issue#issueUri} of the issue to retrieve
    * @return the Issue object specified by URI.
-   * @throws RuntimeException if the session get incounters an error.
    */
-  public Issue getIssue(URI issueURI);
-  /**
-   * Get a list of issues from the specified volume.
-   *
-   * @param volumeURI the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws RuntimeException if the session get incounters an error.
-   */
-  public List<Issue> getIssues(URI volumeURI);
+  public Issue getIssue(String issueUri);
 
   /**
    * Get a list of issues from the specified volume.
    *
-   * @param volume the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws RuntimeException if the session get incounters an error.
+   * @param volumeUri the {@link Volume#volumeUri} of the volume to use to get issues
    */
-  public List<Issue> getIssues(Volume volume);
+  public List<Issue> getIssues(String volumeUri);
 
   /**
-   * Get a list of issues from the specified volume.
+   * Format a csv string from each of the {@link Issue#issueUri}s of the issues provided
    *
-   * @param volume the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws RuntimeException if the session get incounters an error.
+   * @param issues the issues to format
    */
-  public String getIssuesCSV(Volume volume);
+  public String formatIssueCsv(List<Issue> issues);
 
   /**
-   * Get a list of issues from the specified volume.
+   * Add the given issue to the volume, and save it to the database. If the {@link Issue#description} and {@link
+   * Issue#title} properties are not set on the issue and there is an article with doi equal to {@link Issue#imageUri},
+   * the {@link Issue#description} and {@link Issue#title} will be copied from the article
    *
-   * @param volURI the volume of interest.
-   * @return the list of issues associated with the volume (never null).
-   * @throws RuntimeException if the session get incounters an error.
+   * @param volumeUri the uri of the volume to which the issue will be added
+   * @param issue     transient issue object to add to the given volume
+   * @return the generated id for the issue
    */
-  public String getIssuesCSV(URI volURI);
+  public Long addIssueToVolume(String volumeUri, Issue issue);
 
   /**
-   * Create an Issue. When an issue is created new DublinCore meta-data needs
-   * to be attached to the issue. The data consists of a string list of doi's
-   * delimited by SEPARATOR. The new issue is attached to the lastest volume
-   * for the journal context.
+   * Update an Issue
    *
-   * @param vol         Volume
-   * @param issueURI    the issue to update.
-   * @param imgURI      a URI for the article/image associated with this volume.
-   * @param dsplyName   the display name for the volume.
-   * @param articleList a SEPARATOR delimitted string of article doi's.
-   * @return the issue created or null if unable to create the issue
-   *         or the issue exist.
-   * @throws RuntimeException throws RuntimeException if the session fails to save the
-   *                      issue or update the volume.
+   * @param issueUri     the {@link org.ambraproject.models.Issue#issueUri} of the issue to update
+   * @param imageUri     the {@link org.ambraproject.models.Issue#imageUri} to set on the issue
+   * @param displayName  the {@link org.ambraproject.models.Issue#displayName} to set on the issue
+   * @param respectOrder respect the order manual ordering of articles within articleTypes.
+   * @param articleDois  a list of article dois to set on the issue
    */
-  public Issue createIssue(Volume vol, URI issueURI, URI imgURI, String dsplyName,
-                           String articleList);
+  public void updateIssue(String issueUri, String imageUri, String displayName,
+                          boolean respectOrder, List<String> articleDois);
 
   /**
-   * Update an Issue. Since this is an update it is assumed the issue is already
-   * associated with aa volume.
+   * Remove articles from an issue
    *
-   * @param issueURI     the issue to update.
-   * @param imgURI       a URI for the article/image associated with this volume.
-   * @param dsplyName    the display name for the volume.
-   * @param articleList  a SEPARATOR delimitted string of article doi's.
-   * @param respectOrder respect the order manual ordering of articles within
-   *                     articleTypes.
-   * @return the updated issue or null if the issue does not exist.
-   * @throws RuntimeException   throws RuntimeException if session cannot update the issue.
-   * @throws URISyntaxException if a DOI cannot be converted to a vaild URI
-   *                            a syntax exception is thrown.
+   * @param issueUri    the {@link org.ambraproject.models.Issue#issueUri} of the issue to update
+   * @param articleDois the dois of articles to remove from the issue
    */
-  public Issue updateIssue(URI issueURI, URI imgURI, String dsplyName,
-                           List<URI> articleList, boolean respectOrder) throws URISyntaxException;
-
-  /*
-  *
-  */
-
-  public Issue removeArticle(Issue issue, URI articleURI);
-
-
-  /*
-   *
-   */
-  public Issue addArticle(Issue issue, URI articleURI);
-
-  /**************************************************
-   *                OTM queries.                    *
-   **************************************************/
+  public void removeArticlesFromIssue(String issueUri, String... articleDois);
 
   /**
-   * Get a list of volume URIs for this journal context.
+   * Add article dois to an issue. If any dois are already in the issue, they will not be added again.
    *
-   * @param maxResults the maximum number of URIs to put into the list.
-   *                   maxResults = 0 will return all URIs.
-   * @param ascending  sort URI's in ascending order if true.
-   * @return a list of volumes associated with this
-   *         journal (never null).
-   * @throws RuntimeException if session is not able create and execute a query.
+   * @param issueUri    the {@link Issue#issueUri} of the issue to update
+   * @param articleDois the dois to add to the issue.
    */
-  public List<Volume> getVolumes(int maxResults, boolean ascending);
+  public void addArticlesToIssue(String issueUri, String... articleDois);
 
   /**
-   * Get a list of issues for this journal context.
+   * Get a list of the articles in an issue, broken in to groups based on {@link org.ambraproject.models.Article#types}.
+   * There will be a group for each type in {@link org.ambraproject.model.article.ArticleType#getOrderedListForDisplay()}
+   * and one group containing orphaned articles.
+   * <p/>
+   * if the issue has {@link Issue#respectOrder} set to true, the articles in each group will be ordered as they appear
+   * in the issue's {@link Issue#articleDois} list. Otherwise they will be ordered with most recent articles first.
    *
-   * @param maxResults the maximum number of URIs to put into the list.
-   *                   maxResults = 0 will return all URIs.
-   * @param ascending  sort URI's in ascending order if true.
-   * @return the list of issue URIs for this journal context.
-   * @throws RuntimeException if session is not able create or execute the query.
+   * @param issue the issue to use to retrieve articles for
+   * @return all the articles in the issue, broken in to groups
    */
-  public List<Issue> getIssues(int maxResults, boolean ascending);
+  public List<TOCArticleGroup> getArticleGroupList(Issue issue);
 
   /**
-   * Get a list of volume URIs that reference this issue.
+   * Create a comma-delimited string of article dois in the articles groups
    *
-   * @param issueURI URI of issue to find parents for.
-   * @return the list of parent volumes that refernce this issue.
-   * @throws RuntimeException if session is not able create or execute the query.
+   * @param issueArticleGroups groups of articles to format
+   * @return a comma-delimited list of the articles in groups
    */
-  public List<Volume> getIssueParents(URI issueURI);
-
-
-  /**
-   * A faux journal object that can be accessed by Freemarker Templates.
-   */
-  public static final class JournalInfo {
-    private String key, eissn;
-    private String smartCollectionRulesDescriptor;
-    private String image, currentIssue;
-    private List<String> volumes;
-    private List<String> simpleCollection;
-
-    public String getKey() {
-      return key;
-    }
-
-    public void setKey(String key) {
-      this.key = key;
-    }
-
-    public String geteIssn() {
-      return eissn;
-    }
-
-    public void seteIssn(String eissn) {
-      this.eissn = eissn;
-    }
-
-    public String getSmartCollectionRulesDescriptor() {
-      return smartCollectionRulesDescriptor;
-    }
-
-    public void setSmartCollectionRulesDescriptor(String smartCollectionRulesDescriptor) {
-      this.smartCollectionRulesDescriptor = smartCollectionRulesDescriptor;
-    }
-
-    public String getImage() {
-      return image;
-    }
-
-    public void setImage(String image) {
-      this.image = image;
-    }
-
-    public String getCurrentIssue() {
-      return currentIssue;
-    }
-
-    public void setCurrentIssue(String currentIssue) {
-      this.currentIssue = currentIssue;
-    }
-
-    public List<String> getVolumes() {
-      return volumes;
-    }
-
-    public void setVolumes(List<String> volumes) {
-      this.volumes = volumes;
-    }
-
-    public List<String> getSimpleCollection() {
-      return simpleCollection;
-    }
-
-    public void setSimpleCollection(List<String> simpleCollection) {
-      this.simpleCollection = simpleCollection;
-    }
-
-    @Override
-    public String toString() {
-      return key;
-    }
-  }
-
-  /**
-   * A faux Journal object that can be accessed by the freemarker
-   * template.
-   *
-   * @param journalName Keyname of the current journal
-   * @return faux Journal object JournalInfo.
-   */
-  public JournalInfo createJournalInfo(String journalName);
-
-  /*
-   * set the journal service
-   */
-  public void setJournalService(JournalService journalService);
+  public String formatArticleCsv(List<TOCArticleGroup> issueArticleGroups);
 }

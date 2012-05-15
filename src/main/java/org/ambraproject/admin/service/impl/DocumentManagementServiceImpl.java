@@ -47,7 +47,6 @@ import org.ambraproject.admin.service.OnDeleteListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.article.service.ArticleService;
 import org.ambraproject.journal.JournalService;
-import org.topazproject.ambra.models.Journal;
 import org.ambraproject.permission.service.PermissionsService;
 import org.w3c.dom.Document;
 
@@ -475,7 +474,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    */
   public StreamSource getAsStream(final String filenameOrURL) throws URISyntaxException,
       IOException {
-    final URL resource = getClass().getClassLoader().getResource(filenameOrURL);
+    final URL resource = DocumentManagementServiceImpl.class.getClassLoader().getResource(filenameOrURL);
 
     if (resource != null) {
       return new StreamSource(resource.openStream());
@@ -499,12 +498,12 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
   }
 
   private void removeFromCrossPubbedJournals(URI id) {
-    for (Journal j : journalService.getAllJournals()) {
-      List<URI> col = j.getSimpleCollection();
-      if (col != null)
-        while (col.contains(id))
-          col.remove(id);
-    }
+//    for (Journal j : journalService.getAllJournals()) {
+//      List<URI> col = j.getSimpleCollection();
+//      if (col != null)
+//        while (col.contains(id))
+//          col.remove(id);
+//    }
   }
 
   /**

@@ -26,18 +26,21 @@ import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAsset;
 import org.ambraproject.models.ArticleRelationship;
 import org.ambraproject.models.Category;
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Journal;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.topazproject.ambra.models.Issue;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,10 +63,20 @@ public class IngesterTest extends AdminBaseTest {
 
   @Qualifier("filestoreDir")
   @Autowired
-  protected String fileStoreDir; 
+  protected String fileStoreDir;
 
   private static final String[] ingestedDirectories =
       new String[] {"pmed.0050082","pgen.1002295","pntd.0000241","pmed.1001027","image.pcol.v01.i10"};
+
+  //save the journals in the articles we're ingesting
+  @BeforeMethod
+  public void saveJournals() {
+    for (String eIssn : Arrays.asList("1549-1676", "1935-2735", "1553-7404")) {
+      Journal journal = new Journal();
+      journal.seteIssn(eIssn);
+      dummyDataStore.store(journal);
+    }
+  }
 
   //clean up after the test
   @AfterClass
@@ -226,7 +239,7 @@ public class IngesterTest extends AdminBaseTest {
     dummyDataStore.store(article);
 
     Issue issue = new Issue();
-    issue.setImage(URI.create(article.getDoi()));
+    issue.setImageUri(article.getDoi());
     issue.setDescription("This description should get overwritten");
     String issueId = dummyDataStore.store(issue);
     

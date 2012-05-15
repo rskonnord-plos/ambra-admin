@@ -20,63 +20,41 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.models.Issue;
+import org.ambraproject.views.TOCArticleGroup;
+import org.apache.commons.lang.xwork.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.transaction.annotation.Transactional;
-import org.ambraproject.article.action.TOCArticleGroup;
-import org.ambraproject.article.service.BrowseService;
-import org.ambraproject.model.article.ArticleInfo;
-import org.topazproject.ambra.models.Issue;
-import org.ambraproject.util.UriUtil;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  *
  */
 public class IssueManagementAction extends BaseAdminActionSupport {
-
-  // Fields set by templates
-  private String    command;
-  private URI       volumeURI;
-  private URI       issueURI;
-  private String    articleCSVURIs;
-  private URI       imageURI;
-  private String    articleListCSV;
-  private String    displayName;
-  private Boolean   respectOrder = false;
-  private List<URI> articlesToRemove = new ArrayList<URI>();
-
-  // Fields Used by template
-  private Issue         issue;
-  private String        articleOrderCSV;
-  private List<URI>     orphans;
-  private List<TOCArticleGroup> articleGroups = new ArrayList<TOCArticleGroup>();
-
-  // Necessary Services
-  private BrowseService browseService;
-
   private static final Logger log = LoggerFactory.getLogger(IssueManagementAction.class);
- /**
-  *
-  */
+  // Fields set by templates
+  private String command;
+  private String issueURI;
+  private String imageURI;
+  private String displayName;
+  private String articlesToAddCsv;
+  private boolean respectOrder = false;
+
+  private String[] articlesToRemove;
+  // Fields Used by template
+  private Issue issue;
+  private String articleOrderCSV;
+
+  private List<TOCArticleGroup> articleGroups;
+
   public enum IM_COMMANDS {
     ADD_ARTICLE,
     REMOVE_ARTICLES,
     UPDATE_ISSUE,
     INVALID;
 
-    /**
-     * Convert a string specifying an action to its
-     * enumerated equivalent.
-     *
-     * @param command  string value to convert.
-     * @return        enumerated equivalent
-     */
     public static IM_COMMANDS toCommand(String command) {
       IM_COMMANDS a;
       try {
@@ -89,338 +67,124 @@ public class IssueManagementAction extends BaseAdminActionSupport {
     }
   }
 
-  /**
-   * Main entry porint for Issue management action.
-   */
   @Override
-  @Transactional(rollbackFor = { Throwable.class })
-  public String execute() throws Exception  {
+  public String execute() throws Exception {
 
-    switch(IM_COMMANDS.toCommand(command)) {
+    switch (IM_COMMANDS.toCommand(command)) {
       case ADD_ARTICLE:
-        add_Article();
+        addArticles();
         break;
 
       case REMOVE_ARTICLES:
-        remove_Articles();
+        removeArticles();
         break;
 
       case UPDATE_ISSUE:
-        update_Issue();
+        updateIssue();
         break;
 
       case INVALID:
         repopulate();
         break;
-    }   
+    }
     return SUCCESS;
   }
 
-  private void add_Article() {
-    if (issueURI != null) {
+  private void addArticles() {
+    if (articlesToAddCsv != null) {
       try {
-        issue = adminService.getIssue(issueURI);
-        List<URI> articleURIs = adminService.parseCSV(articleCSVURIs);
-
-        for(URI articleURI : articleURIs) {
-          issue = adminService.addArticle(issue, articleURI);
-          addActionMessage("Added Article: " + articleURI);
-        }
-        adminService.flushStore();
+        adminService.addArticlesToIssue(issueURI, articlesToAddCsv.split(","));
+        addActionMessage("Successfully added articles to issue");
       } catch (Exception e) {
-        addActionMessage("Article not added due to the following error.");
-        addActionMessage(e.toString());
-        log.error("Add Article to Issue Failed.", e);
+        log.error("Failed to add article(s) '" + articlesToAddCsv + "' to issue " + issueURI, e);
+        addActionMessage("Article(s) not added due to the following error: " + e.getMessage());
       }
-    } else {
-      addActionMessage("Invalid Issue URI");
     }
     repopulate();
   }
 
-  private void remove_Articles() {
-    if (issueURI != null) {
-      try {
-        issue = adminService.getIssue(issueURI);
-        for(URI uri : articlesToRemove) {
-          issue = adminService.removeArticle(issue, uri);
-          addActionMessage("Removed Article: " + uri);
-        }
-        adminService.flushStore();
-      } catch (Exception e) {
-        addActionMessage("Article not removed due to the following error.");
-        addActionMessage(e.toString());
-        log.error("Remove Articels from Issue Failed.", e);
-      }
-    } else {
-      addActionMessage("Invalid Issue URI");
+  private void removeArticles() {
+    try {
+      adminService.removeArticlesFromIssue(issueURI, articlesToRemove);
+      addActionMessage("Removed the following article(s) from issue: " + Arrays.toString(articlesToRemove));
+    } catch (Exception e) {
+      log.error("Failed to remove articles " + Arrays.toString(articlesToRemove) + " from issue " + issueURI, e);
+      addActionMessage("Article(s) not removed due to the following error: " + e.getMessage());
     }
     repopulate();
   }
 
-  private void update_Issue(){
-    if (issueURI != null) {
-      try {
-        issue = adminService.getIssue(issueURI);
-        List<URI> issueURIs = adminService.parseCSV(articleListCSV);
-        /*
-         * Make sure the only changes to the articleListCSV
-         * are ordering.
-         */
-        if (validateCSV(issueURIs, browseService.getArticleList(issue)))
-          issue = adminService.updateIssue(issueURI,imageURI,displayName,issueURIs,respectOrder);
-
-      } catch (Exception e) {
-        addActionError("Issue not updated due to the following error.");
-        addActionError(e.toString());
-        log.error("Update Issue Failed.", e);
-      }
-    } else {
-      addActionError("Invalid Issue URI");
+  private void updateIssue() {
+    try {
+      adminService.updateIssue(issueURI, imageURI, displayName, respectOrder, Arrays.asList(articleOrderCSV.split(",")));
+      addActionMessage("Successfully updated issue " + issueURI);
+    } catch (Exception e) {
+      log.error("Failed to update issue '" + issueURI + "'", e);
+      addActionError("Issue not updated due to the following error: " + e.getMessage());
     }
     repopulate();
   }
 
   private void repopulate() {
-    // Repopulate template values
     issue = adminService.getIssue(issueURI);
-    articleGroups = browseService.getArticleGrpList(issue, getAuthId());
-    articleOrderCSV = browseService.articleGrpListToCSV(articleGroups);
-    orphans = getOrphannedArticles(issue, articleGroups);
-
-    /*
-     * Add the Orphans so that validateCSV doesn't prevent
-     * all updates.
-     */
-    String orphanCSV = convertURIsToCSV(orphans);
-    articleOrderCSV = (orphanCSV.length() > 0) ? articleOrderCSV +","+ orphanCSV : articleOrderCSV;
+    articleGroups = adminService.getArticleGroupList(issue);
+    articleOrderCSV = adminService.formatArticleCsv(articleGroups);
     initJournal();
   }
 
-  /**
-   *
-   * @param uriList
-   * @return
-   */
-  private String convertURIsToCSV(List<URI> uriList) {
-    StringBuilder csv = new StringBuilder();
-
-    for(URI uri : uriList) {
-      if (csv.length() > 0)
-        csv.append(',');
-      csv.append(uri.toString());
-    }
-
-    return csv.toString(); 
-  }
-  
-  /**
-   *
-   * @param issue
-   * @param articleGroups
-   * @return
-   */
-  private List<URI> getOrphannedArticles(Issue issue, List<TOCArticleGroup> articleGroups) {
-    List<URI> articleList = issue.getArticleList();
-    List<URI> orphans = new ArrayList<URI>();
-
-    for(URI articleURI : articleList) {
-      Boolean found = false;
-      for (TOCArticleGroup ag : articleGroups) {
-        List<ArticleInfo> infoList = ag.getArticles();
-        for(ArticleInfo info : infoList ) {
-          if (info.getDoi().equals(articleURI.toString())) {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-        orphans.add(articleURI);
-    }
-
-    return orphans;
-  }
-
-  /**
-   *
-   * @param issueURIs List of issue URI's
-   * @param articleList List of article URI's
-   * @return
-   * @throws URISyntaxException
-   */
-  private Boolean validateCSV(List<URI> issueURIs, List<URI> articleList) throws URISyntaxException {
-
-    if (issueURIs.size() != articleList.size()) {
-      addActionError("Issue not updated due to the following error.");
-      addActionError("There has been an addition or deletion in the Article URI List.");
-
-      return false;
-    }
-
-    for(URI uri : articleList) {
-      if (!issueURIs.contains(uri)) {
-        addActionError("Issue not updated due to the following error.");
-        addActionError("One of the URI's in the Article URI List has changed.");
-
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   *
-   * @return
-   */
-  public List<URI> getOrphans() {
-    return this.orphans; 
-  }
-
-  /**
-   * 
-   * @return
-   */
   public List<TOCArticleGroup> getArticleGroups() {
-    return this.articleGroups; 
+    return articleGroups;
   }
 
-  /**
-   *
-   */
   public Issue getIssue() {
-    return this.issue;
+    return issue;
   }
 
-  /*
-   *
-   */
-  public List<TOCArticleGroup> getArticleGrps() {
-    return this.articleGroups;
-  }
-
-  /**
-   *
-   */
   public String getDisplayName() {
-    return this.displayName;
+    return displayName;
   }
 
-  /**
-   *
-   */
   public void setDisplayName(String name) {
-    this.displayName = name;
+    displayName = name;
   }
 
-  /**
-   *
-   */
   public String getImageURI() {
-    return (this.imageURI != null) ? imageURI.toString() : null;
+    return imageURI;
   }
 
-  /**
-   *
-   */
   public void setImageURI(String uri) {
-    try {
-      this.imageURI = UriUtil.validateUri(uri.trim(), "Image Uri");
-    } catch (Exception e) {
-      this.imageURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setImage URI conversion failed."  +
-            "imageURI set to null to indicate this: " + uri.trim(), e);
-    }
+    this.imageURI = uri;
   }
 
-  /**
-   *
-   */
-  public void setVolumeURI(String uri) {
-    try {
-      this.volumeURI = UriUtil.validateUri(uri.trim(), "Volume Uri");
-    } catch (Exception e) {
-      this.volumeURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setVolume URI conversion failed." +
-            "volumeURI set to null to indicate this: " + uri.trim(), e);
-    }
-  }
-
-  /**
-   *
-   */
-  public String getVolumeURI() {
-    return (this.volumeURI != null) ? volumeURI.toString() : null;
-  }
-
-  /**
-   *
-   */
   public String getArticleOrderCSV() {
-    return this.articleOrderCSV;
+    return articleOrderCSV;
   }
 
-  /**
-   *
-   */
-  public void setArticleListCSV(String list) {
-    this.articleListCSV = list;
+  public void setArticleOrderCSV(String articleOrderCSV) {
+    this.articleOrderCSV = articleOrderCSV;
   }
 
-  /**
-   *
-   */
   public void setRespectOrder(Boolean respectOrder) {
     this.respectOrder = respectOrder;
   }
 
-  /**
-   *
-   */
   public void setIssueURI(String issueURI) {
-    try {
-      this.issueURI = UriUtil.validateUri(issueURI.trim(), "Issue Uri");
-    } catch (Exception e) {
-      this.volumeURI = null;
-      if (log.isDebugEnabled())
-        log.debug("setIssue URI conversion failed.");
+    this.issueURI = issueURI;
+  }
+
+  public void setArticlesToAddCsv(String articlesToAddCsv) {
+    this.articlesToAddCsv = articlesToAddCsv;
+  }
+
+  public void setArticlesToRemove(String[] articlesToRemove) {
+    if (articlesToRemove != null) {
+      this.articlesToRemove = articlesToRemove.clone();
+    } else {
+      this.articlesToRemove = new String[0];
     }
   }
 
-  /**
-   *
-   */
-  public void setArticleURI(String articleCSVURIs) {
-    this.articleCSVURIs = articleCSVURIs.trim();
-  }
-
-  /**
-   *
-   */
-  public void setArticlesToRemove(String[] articlesToRemove) {
-    for(String articleURI : articlesToRemove)
-      this.articlesToRemove.add(URI.create(articleURI.trim()));
-  }
-
-  /**
-   * Sets the Action to execute.
-   *
-   * @param  command the sub-action to execute for this class.
-   */
-  @Required
   public void setCommand(String command) {
     this.command = command;
-  }
-
-  /**
-   * Sets the BrowseService.
-   *
-   * @param  browseService The browseService to set.
-   */
-  @Required
-  public void setBrowseService(BrowseService browseService) {
-    this.browseService = browseService;
   }
 }

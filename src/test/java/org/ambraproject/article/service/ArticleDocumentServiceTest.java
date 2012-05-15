@@ -22,6 +22,7 @@
 package org.ambraproject.article.service;
 
 import org.ambraproject.admin.AdminBaseTest;
+import org.ambraproject.models.Article;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testng.annotations.DataProvider;
@@ -57,7 +58,7 @@ public class ArticleDocumentServiceTest extends AdminBaseTest {
 
   @DirtiesContext
   @Test(priority = 1)
-  public void clearTest () {
+  public void clearTest() {
     // Insure that we reset the datbase before running this test.
   }
 
@@ -82,16 +83,12 @@ public class ArticleDocumentServiceTest extends AdminBaseTest {
         "returned xml with incorrect number of tags");
   }
 
-  @DataProvider(name = "articleId")
-  public Object[][] articleId() {
-    return new Object[][]{
-        {"info:doi/10.1371/journal.pgen.1000096", "10.1371/journal.pgen.1000096"}
-    };
-  }
+  @Test
+  public void testGetFullXml() throws Exception {
+    Article article = new Article("info:doi/10.1371/journal.pgen.1000096");
+    dummyDataStore.store(article);
 
-  @Test(dataProvider = "articleId")
-  public void testGetFullXml(String articleId, String doi) throws Exception {
-    Document xml = articleDocumentService.getFullDocument(articleId);
+    Document xml = articleDocumentService.getFullDocument(article.getDoi());
     assertNotNull(xml, "returned null xml document");
 
     //check the doi from the xml
@@ -99,7 +96,7 @@ public class ArticleDocumentServiceTest extends AdminBaseTest {
     for (int i = 0; i < articleIdNodes.getLength(); i++) {
       Node node = articleIdNodes.item(i);
       if (node.getAttributes().getNamedItem("pub-id-type").getNodeValue().equals("doi")) {
-        assertEquals(node.getChildNodes().item(0).getNodeValue(), doi, "returned article xml with incorrect doi");
+        assertEquals(node.getChildNodes().item(0).getNodeValue(), article.getDoi().replaceFirst("info:doi/", ""), "returned article xml with incorrect doi");
         break;
       }
     }

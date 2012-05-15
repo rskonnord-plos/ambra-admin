@@ -20,6 +20,7 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.model.article.ArticleInfo;
 import org.ambraproject.models.Syndication;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
   private static final Logger log = LoggerFactory.getLogger(AdminTopAction.class);
   private Collection<String> uploadableFiles;
   private List<ArticleInfo> publishableArticles;
-  private Map<String, List<Syndication>> syndicationMap;
+  private Map<String, List<Syndication>> syndicationMap = new HashMap<String, List<Syndication>>();
   private List<Syndication> syndications;
 
   private ArticleService articleService;
@@ -472,17 +473,17 @@ public class AdminTopAction extends BaseAdminActionSupport {
       }
 
       if (orderBy.equals("doi asc")) {
-        publishableArticles = articleService.getPublishableArticles(
-            getJournal().geteIssn(), ArticleService.ORDER_BY_FIELD_ARTICLE_DOI, true);
+        publishableArticles = adminService.getPublishableArticles(
+            getJournal().geteIssn(), AdminService.ORDER_BY_FIELD_ARTICLE_DOI, true);
       } else if (orderBy.equals("doi desc")) {
-        publishableArticles = articleService.getPublishableArticles(
-            getJournal().geteIssn(), ArticleService.ORDER_BY_FIELD_ARTICLE_DOI, false);
+        publishableArticles = adminService.getPublishableArticles(
+            getJournal().geteIssn(), AdminService.ORDER_BY_FIELD_ARTICLE_DOI, false);
       } else if (orderBy.equals("pubdate asc")) {
-        publishableArticles = articleService.getPublishableArticles(
-            getJournal().geteIssn(), ArticleService.ORDER_BY_FIELD_DATE_PUBLISHED, true);
+        publishableArticles = adminService.getPublishableArticles(
+            getJournal().geteIssn(), AdminService.ORDER_BY_FIELD_DATE_PUBLISHED, true);
       } else if (orderBy.equals("pubdate desc")) {
-        publishableArticles = articleService.getPublishableArticles(
-            getJournal().geteIssn(), ArticleService.ORDER_BY_FIELD_DATE_PUBLISHED, false);
+        publishableArticles = adminService.getPublishableArticles(
+            getJournal().geteIssn(), AdminService.ORDER_BY_FIELD_DATE_PUBLISHED, false);
       }
 
       // get the recent article syndication activity for display
@@ -494,7 +495,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
           break;
       }
 
-      syndicationMap = new HashMap<String, List<Syndication>>();
       //Map syndications to the publishable articles
       for (ArticleInfo article : publishableArticles) {
         syndicationMap.put(article.getDoi(), syndicationService.getSyndications(article.getDoi()));

@@ -23,14 +23,18 @@ package org.ambraproject.article.service;
 
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreService;
+import org.ambraproject.journal.JournalService;
+import org.ambraproject.models.Article;
+import org.ambraproject.models.Journal;
+import org.ambraproject.service.HibernateServiceImpl;
+import org.hibernate.FetchMode;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
-import org.ambraproject.journal.JournalService;
-import org.topazproject.ambra.models.Journal;
-import org.ambraproject.service.HibernateServiceImpl;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -39,8 +43,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Set;
 import java.sql.Blob;
+import java.util.Set;
 
 /**
  * @author Alex Kudlick
@@ -132,11 +136,19 @@ public class ArticleDocumentServiceImpl extends HibernateServiceImpl implements 
     return documentBuilder.parse(xmlInputSource);
   }
 
-  private void appendJournals(URI articleId, Document doc) {
+  @SuppressWarnings("unchecked")
+  private void appendJournals(URI articleId, Document doc) throws NoSuchArticleIdException {
 
-    // We have to skip cache here because this method is called inside the transaction and cache
-    // invalidation happens on commit.
-    Set<Journal> journals = journalService.getJournalsForObject(articleId.toString());
+    Set<Journal> journals;
+    try {
+      journals = ((Article) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(Article.class)
+              .setFetchMode("journals", FetchMode.JOIN)
+              .add(Restrictions.eq("doi", articleId.toString()))
+      ).get(0)).getJournals();
+    } catch (IndexOutOfBoundsException e) {
+      throw new NoSuchArticleIdException(articleId.toString());
+    }
 
     Element additionalInfoElement = doc.createElementNS(XML_NAMESPACE, "ambra");
     Element journalsElement = doc.createElementNS(XML_NAMESPACE, "journals");
@@ -152,7 +164,7 @@ public class ArticleDocumentServiceImpl extends HibernateServiceImpl implements 
       journalElement.appendChild(eIssn);
 
       Element key = doc.createElementNS(XML_NAMESPACE, "key");
-      key.appendChild(doc.createTextNode(journal.getKey()));
+      key.appendChild(doc.createTextNode(journal.getJournalKey()));
       journalElement.appendChild(key);
 
       Element name = doc.createElementNS(XML_NAMESPACE, "name");
