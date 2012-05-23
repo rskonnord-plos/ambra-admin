@@ -234,7 +234,7 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
   private void updateIssueForImageArticle(Article imageArticle) {
     List<Issue> issues = hibernateTemplate.findByCriteria(
         DetachedCriteria.forClass(Issue.class)
-            .add(Restrictions.eq("image", URI.create(imageArticle.getDoi()))));
+            .add(Restrictions.eq("imageUri", imageArticle.getDoi())));
     for (Issue issue : issues) {
       issue.setDescription(imageArticle.getDescription());
       issue.setTitle(imageArticle.getTitle());
