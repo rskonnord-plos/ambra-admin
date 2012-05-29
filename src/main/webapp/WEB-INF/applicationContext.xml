@@ -136,19 +136,12 @@
     <constructor-arg index="0" ref="browseSolrEhcache"/>
     <constructor-arg index="1" value="false"/>
   </bean>
-  <bean id="feedCache" class="org.ambraproject.cache.EhcacheProvider">
-    <constructor-arg index="0" ref="feedEhcache"/>
-  </bean>
   <bean id="articleHtmlCache" class="org.ambraproject.cache.EhcacheProvider">
     <constructor-arg index="0" ref="articleHtmlEhcache"/>
   </bean>
 
   <bean id="browseSolrEhcache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
     <property name="cacheName" value="BrowseSolrCache"/>
-  </bean>
-
-  <bean id="feedEhcache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-    <property name="cacheName" value="FeedCache"/>
   </bean>
 
   <bean id="articleHtmlEhcache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
