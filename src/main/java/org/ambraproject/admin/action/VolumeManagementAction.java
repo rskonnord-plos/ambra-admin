@@ -22,13 +22,10 @@ package org.ambraproject.admin.action;
 
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Volume;
-import org.apache.commons.lang.xwork.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**

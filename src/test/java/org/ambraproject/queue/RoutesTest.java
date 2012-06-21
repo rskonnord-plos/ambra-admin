@@ -12,6 +12,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Alex Kudlick 5/9/12
@@ -32,11 +33,16 @@ public class RoutesTest extends AbstractTestNGSpringContextTests {
   @Test
   @DirtiesContext
   public void testIndexCron() throws InterruptedException {
-    mailEndpoint.setExpectedMessageCount(2);
+    int originalCount = articleIndexingService.getIndexAllCount();
+
+    //at least 2 messages
+    mailEndpoint.message(0).body().isNotNull();
+    mailEndpoint.message(1).body().isNotNull();
     Thread.sleep(3000);
 
-    assertEquals(articleIndexingService.getIndexAllCount(), 2,
-        "Cron didn't index all correct number of times");
+    int finalCount = articleIndexingService.getIndexAllCount();
+    assertTrue(finalCount >= originalCount + 2,
+        "Expected the cron to fire at least 2 times; it actually fired " + (finalCount - originalCount) + " times");
     mailEndpoint.assertIsSatisfied();
   }
 }

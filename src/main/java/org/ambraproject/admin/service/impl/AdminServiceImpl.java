@@ -37,7 +37,7 @@ import org.ambraproject.permission.service.PermissionsService;
 import org.ambraproject.service.HibernateServiceImpl;
 import org.ambraproject.util.UriUtil;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.xwork.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;

@@ -22,7 +22,6 @@ package org.ambraproject.admin.action;
 
 import org.ambraproject.models.Issue;
 import org.ambraproject.views.TOCArticleGroup;
-import org.apache.commons.lang.xwork.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
