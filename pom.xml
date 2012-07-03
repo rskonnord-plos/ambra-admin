@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ambraproject</groupId>
   <artifactId>ambra-admin</artifactId>
-  <version>1.9-SNAPSHOT</version>
+  <version>1.9</version>
   <packaging>war</packaging>
   <name>Ambra Administration</name>
 
@@ -27,7 +27,7 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <ambra.version>2.3.7-NLM-SNAPSHOT</ambra.version>
+    <ambra.version>2.3.7</ambra.version>
     <conf-helper.version>2.2.1</conf-helper.version>
   </properties>
 
@@ -66,9 +66,9 @@
   </repositories>
 
   <scm>
-    <developerConnection>scm:svn:http://ambraproject.org/svn/ambra/ambra-admin/</developerConnection>
-    <connection>scm:svn:http://ambraproject.org/svn/ambra/ambra-admin/</connection>
-    <url>http://www.ambraproject.org/trac/browser/ambra/ambra-admin/</url>
+    <developerConnection>scm:svn:http://ambraproject.org/svn/ambra/ambra-admin/tags/ambra-admin-1.9</developerConnection>
+    <connection>scm:svn:http://ambraproject.org/svn/ambra/ambra-admin/ambra-admin-1.9</connection>
+    <url>http://www.ambraproject.org/trac/browser/ambra/ambra-admin/ambra-admin-1.9</url>
   </scm>
 
   <distributionManagement>
