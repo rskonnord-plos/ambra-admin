@@ -530,7 +530,7 @@
 
   <!-- pmc structured name to simple string (for dc:creator etc) -->
   <!-- 2/13/12: added ? to type so that the transform is valid if the result is an empty set -->
-  <xsl:function name="my:format-contrib-name" as="xs:string?">
+  <xsl:function name="my:format-contrib-name" as="xs:string*">
     <xsl:param name="contrib" as="element(contrib)"/>
 
     <xsl:choose>
@@ -549,7 +549,7 @@
       </xsl:when>
     </xsl:choose>
   </xsl:function>
-
+  
   <!-- 2/13/12: added for 3.0 (suppress contrib names within collab) -->
   <xsl:template name="collabContribs" match="//collab/contrib-group"/>
 

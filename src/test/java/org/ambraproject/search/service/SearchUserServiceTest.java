@@ -85,28 +85,28 @@ public class SearchUserServiceTest extends AdminBaseTest {
   @DataProvider(name = "usersByEmail")
   public Object[][] getUsersByEmail() {
     UserProfile user1 = new UserProfile();
-    user1.setAuthId("authId1ForSearchByEmail");
-    user1.setEmail("search_email1@SearchByEmail.org");
-    user1.setDisplayName("displayName1ForSearchByEmail");
+    user1.setAuthId("authId1ForFindByEmail");
+    user1.setEmail("search_email1@FindByEmail.org");
+    user1.setDisplayName("displayName1ForFindByEmail");
     dummyDataStore.store(user1);
 
     UserProfile user2 = new UserProfile();
-    user2.setAuthId("authId2ForSearchByEmail");
-    user2.setEmail("search_email2@SearchByEmail.org");
-    user2.setDisplayName("displayName2ForSearchByEmail");
+    user2.setAuthId("authId2ForFindByEmail");
+    user2.setEmail("search_email2@FindByEmail.org");
+    user2.setDisplayName("displayName2ForFindByEmail");
     dummyDataStore.store(user2);
 
     UserProfile user3 = new UserProfile();
-    user3.setAuthId("authId3ForSearchByEmail");
-    user3.setEmail("search_email3@SearchByEmail.org");
-    user3.setDisplayName("displayName3ForSearchByEmail");
+    user3.setAuthId("authId3ForFindByEmail");
+    user3.setEmail("search_email3@FindByEmail.org");
+    user3.setDisplayName("displayName3ForFindByEmail");
     dummyDataStore.store(user3);
 
     return new Object[][]{
         {"non-existent-email", new UserProfile[]{}},
-        {"@SearchByEmail.org", new UserProfile[]{user1, user2, user3}},
+        {"@FindByEmail.org", new UserProfile[]{user1, user2, user3}},
         {"search_email", new UserProfile[]{user1, user2, user3}},
-        {"search_email2@SearchByEmail.org", new UserProfile[]{user2}},
+        {"search_email2@FindByEmail.org", new UserProfile[]{user2}},
         {"search_email1", new UserProfile[]{user1}}
     };
   }
