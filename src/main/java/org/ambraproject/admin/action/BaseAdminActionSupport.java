@@ -26,7 +26,7 @@ import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.models.Journal;
 import org.springframework.beans.factory.annotation.Required;
 
-public class BaseAdminActionSupport  extends BaseActionSupport {
+public class BaseAdminActionSupport extends BaseActionSupport {
 
   protected AdminService adminService;
 
@@ -45,7 +45,7 @@ public class BaseAdminActionSupport  extends BaseActionSupport {
   /**
    * Sets the AdminService.
    *
-   * @param  adminService The adminService to set.
+   * @param  adminService The adminService to use.
    */
   @Required
   public void setAdminService(AdminService adminService) {
@@ -55,5 +55,4 @@ public class BaseAdminActionSupport  extends BaseActionSupport {
   protected void initJournal() {
     journalInfo = adminService.getJournal(getCurrentJournal());
   }
-
 }

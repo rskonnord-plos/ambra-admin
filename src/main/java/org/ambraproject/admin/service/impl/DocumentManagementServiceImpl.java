@@ -32,6 +32,7 @@ import org.ambraproject.models.Flag;
 import org.ambraproject.models.RatingSummary;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.models.Trackback;
+import org.ambraproject.models.UserRole.Permission;
 import org.ambraproject.service.HibernateServiceImpl;
 import org.apache.commons.io.FileUtils;
 import org.aspectj.weaver.bcel.AnnotationAccessVar;
@@ -166,7 +167,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    */
   @Transactional(rollbackFor = {Throwable.class})
   public void unPublish(String objectURI, final String authId) throws Exception {
-    permissionsService.checkRole(PermissionsService.ADMIN_ROLE, authId);
+    permissionsService.checkPermission(Permission.INGEST_ARTICLE, authId);
 
     URI id = URI.create(objectURI);
 
@@ -187,7 +188,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    */
   @Transactional(rollbackFor = {Throwable.class})
   public void disable(String objectURI, final String authId) throws Exception {
-    permissionsService.checkRole(PermissionsService.ADMIN_ROLE, authId);
+    permissionsService.checkPermission(Permission.INGEST_ARTICLE, authId);
 
     URI id = URI.create(objectURI);
 
@@ -204,7 +205,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
 
   @Transactional(rollbackFor = {Throwable.class})
   public void delete(String articleDoi, final String authId) throws Exception {
-    permissionsService.checkRole(PermissionsService.ADMIN_ROLE, authId);
+    permissionsService.checkPermission(Permission.DELETE_ARTICLES, authId);
 
     log.debug("Deleting Article:" + articleDoi);
 

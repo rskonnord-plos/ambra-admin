@@ -76,6 +76,11 @@
 
   <bean id="permissionsService" class="org.ambraproject.permission.service.PermissionsServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="rolesCache" ref="rolesCache"/>
+  </bean>
+
+  <bean id="adminRolesService" class="org.ambraproject.admin.service.impl.AdminRolesServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
 
   <bean id="userService" class="org.ambraproject.user.service.UserServiceImpl">
@@ -148,6 +153,13 @@
     <property name="cacheName" value="ArticleHtmlCache"/>
   </bean>
 
+  <bean id="rolesEhCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+    <property name="cacheName" value="RolesCache"/>
+  </bean>
+
+  <bean id="rolesCache" class="org.ambraproject.cache.EhcacheProvider">
+    <constructor-arg index="0" ref="rolesEhCache"/>
+  </bean>
 
   <!-- *****************************
     *

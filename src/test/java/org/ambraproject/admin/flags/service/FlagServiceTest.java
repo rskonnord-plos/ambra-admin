@@ -26,8 +26,8 @@ import org.ambraproject.models.Flag;
 import org.ambraproject.models.FlagReasonCode;
 import org.ambraproject.models.UserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.Test;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,6 +47,7 @@ public class FlagServiceTest extends AdminBaseTest {
   protected FlagService flagService;
   
   @Autowired
+  @Qualifier("articleHtmlCache")
   protected Cache articleHtmlCache; //just used to check that articles get kicked out of the cache when they should
 
   @Test

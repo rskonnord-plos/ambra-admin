@@ -27,7 +27,7 @@
   ------------------------------------------------------------- */
 
 html { }
-body { font-family:Verdana,Arial,Helvetica,sans-serif }
+body { font-family:'Times New Roman', Times, serif }
 h3,
 fieldset { border-bottom:2px groove #e1e1e1; }
 h3 { border-bottom:2px groove #e1e1e1; padding-bottom:0.25em; }
@@ -44,7 +44,7 @@ th a { font-weight:normal; }
 td input { vertical-align:middle; }
 td img { padding-right:0.25em; vertical-align:-1px; }
 td,
-input { font-family: Verdana,Arial,Helvetica,sans-serif; }
+input { font-family:'Times New Roman', Times, serif }
 table.syndications span.published { margin-right:0.75em }
 
 a { text-decoration: none; }

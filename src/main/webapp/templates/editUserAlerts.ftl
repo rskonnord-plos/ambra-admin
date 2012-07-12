@@ -34,80 +34,88 @@
 </#function>
 
 <html>
-<head>
-  <title>Ambra: Administration: Manage Users</title>
-  <#include "includes/header.ftl">
-  <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
-  <script type="text/javascript" src="${request.contextPath}/javascript/edit_profile.js"></script>
-</head>
-<body>
-<h1 style="text-align: center">Ambra: Administration: Edit User Alerts</h1>
-<#include "includes/navigation.ftl">
-<@messages />
+  <head>
+    <title>Ambra: Administration: Manage Users</title>
+    <#include "includes/header.ftl">
+    <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
+    <script type="text/javascript" src="${request.contextPath}/javascript/edit_profile.js"></script>
+  </head>
+  <body>
+    <h1 style="text-align: center">Ambra: Administration: Edit User Alerts</h1>
+    <#include "includes/navigation.ftl">
+    <@messages />
 
-<div id="container" class="profile">
+    <fieldset>
+      <legend><strong>Edit User Profile</strong></legend>
+        <div id="container" class="profile">
+        <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
+        <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
+        <@s.url id="editRolesURL" action="editRoles" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
 
-<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
-<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
-  Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a>
-  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
-  <br/>
+        <@s.a href="%{editProfileByAdminURL}">Profile</@s.a>,
+        <@s.a href="%{editPreferencesByAdminURL}">Alerts/Preferences</@s.a>,
+        <@s.a href="%{editRolesURL}">Roles</@s.a>
 
-<@s.form action="saveAlertsByAdmin" namespace="/" method="post" cssClass="ambra-form"
-method="post" title="Alert Form" name="userAlerts">
-  <fieldset id="alert-form">
-    <legend><strong>Email Alerts</strong></legend>
-    <ol>
-      <li>
-        <span class="alerts-title">&nbsp;</span>
-        <ol>
-          <li class="alerts-weekly">
-            <label for="checkAllWeekly">
-              <input type="checkbox" value="checkAllWeekly" name="checkAllWeekly"
-                     onclick="selectAllCheckboxes(this, document.userAlerts.weeklyAlerts);"/> Select All
-            </label>
-          </li>
-          <li>
-            <label for="checkAllMonthly">
-              <input type="checkbox" value="checkAllMonthly" name="checkAllMonthly"
-                     onclick="selectAllCheckboxes(this, document.userAlerts.monthlyAlerts);"/> Select All
-            </label>
-          </li>
-        </ol>
-      </li>
-      <#list userAlerts as ua>
-      <li>
-        <span class="alerts-title">${ua.name}</span>
-        <ol>
-          <li class="alerts-weekly">
-            <#if ua.weeklyAvailable>
-              <label for="${ua.key}">
-                <@s.checkbox name="weeklyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllWeekly, this.form.weeklyAlerts);" fieldValue="${ua.key}" value="${isFound(weeklyAlerts, ua.key)}"/>
-                Weekly </label>
-            </#if>
-          </li>
+        <br/>
 
-          <li>
-            <#if ua.monthlyAvailable>
-              <label for="${ua.key}">
-                <@s.checkbox name="monthlyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllMonthly, this.form.monthlyAlerts);"  fieldValue="${ua.key}" value="${isFound(monthlyAlerts, ua.key)}"/>
-                Monthly </label>
-            <#else>
-            </#if>
-          </li>
-        </ol>
-      </#list>
-    </li>
+        <@s.form action="saveAlertsByAdmin" namespace="/" method="post" cssClass="ambra-form"
+        method="post" title="Alert Form" name="userAlerts">
+          <fieldset id="alert-form">
+            <legend><strong>Email Alerts</strong></legend>
+            <ol>
+              <li>
+                <span class="alerts-title">&nbsp;</span>
+                <ol>
+                  <li class="alerts-weekly">
+                    <label for="checkAllWeekly">
+                      <input type="checkbox" value="checkAllWeekly" name="checkAllWeekly"
+                             onclick="selectAllCheckboxes(this, document.userAlerts.weeklyAlerts);"/> Select All
+                    </label>
+                  </li>
+                  <li>
+                    <label for="checkAllMonthly">
+                      <input type="checkbox" value="checkAllMonthly" name="checkAllMonthly"
+                             onclick="selectAllCheckboxes(this, document.userAlerts.monthlyAlerts);"/> Select All
+                    </label>
+                  </li>
+                </ol>
+              </li>
+              <#list userAlerts as ua>
+              <li>
+                <span class="alerts-title">${ua.name}</span>
+                <ol>
+                  <li class="alerts-weekly">
+                    <#if ua.weeklyAvailable>
+                      <label for="${ua.key}">
+                        <@s.checkbox name="weeklyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllWeekly, this.form.weeklyAlerts);" fieldValue="${ua.key}" value="${isFound(weeklyAlerts, ua.key)}"/>
+                        Weekly </label>
+                    </#if>
+                  </li>
 
-    </ol>
-    <br clear="all"/>
+                  <li>
+                    <#if ua.monthlyAvailable>
+                      <label for="${ua.key}">
+                        <@s.checkbox name="monthlyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllMonthly, this.form.monthlyAlerts);"  fieldValue="${ua.key}" value="${isFound(monthlyAlerts, ua.key)}"/>
+                        Monthly </label>
+                    <#else>
+                    </#if>
+                  </li>
+                </ol>
+              </#list>
+            </li>
 
-    <@s.hidden name="userAuthId"/>
-    <@s.submit value="Submit" tabindex="99"/>
+            </ol>
+            <br clear="all"/>
 
-  </fieldset>
-</@s.form>
+            <@s.hidden name="userAuthId"/>
+            <@s.submit value="Submit" tabindex="99"/>
 
-</div>
-</body>
+          </fieldset>
+        </@s.form>
+      </div>
+    </fieldset>
+  </body>
 </html>

@@ -66,6 +66,11 @@ public class SearchUserAction extends UserActionSupport {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
 
+    if(userAuthId == null || userAuthId.isEmpty()) {
+      addActionError("You must specify a userAuthId to search for.");
+      return INPUT;
+    }
+
     final UserProfile user = userService.getUserByAuthId(userAuthId);
     if (null == user) {
       addActionError("No user for the given auth id");
@@ -86,6 +91,11 @@ public class SearchUserAction extends UserActionSupport {
   public String executeFindUserByAccountId() throws Exception {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
+
+    if(accountId == null || accountId.isEmpty()) {
+      addActionError("You must specify an account Id to search for.");
+      return INPUT;
+    }
 
     final UserProfile userId = userService.getUserByAccountUri(accountId);
     if (null == userId) {
@@ -108,6 +118,11 @@ public class SearchUserAction extends UserActionSupport {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
 
+    if(name == null || name.isEmpty()) {
+      addActionError("You must specify a name to search for.");
+      return INPUT;
+    }
+
     final List<UserProfile> userList = searchUserService.findUsersByDisplayName(name);
     if (userList.isEmpty()) {
       addActionError("No user(s) found with the username:" + name);
@@ -128,6 +143,11 @@ public class SearchUserAction extends UserActionSupport {
   public String executeFindUserByEmailAddress() throws Exception {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
+
+    if(emailAddress == null || emailAddress.isEmpty()) {
+      addActionError("You must specify an email address to search for.");
+      return INPUT;
+    }
 
     final List<UserProfile> userList = searchUserService.findUsersByEmail(emailAddress);
     if (userList.isEmpty()) {

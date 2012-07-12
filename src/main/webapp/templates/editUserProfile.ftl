@@ -30,77 +30,86 @@
   <#assign checkedValue = false>
 </#if>
 <html>
-<head>
-  <title>Ambra: Administration: Manage Users</title>
-  <#include "includes/header.ftl">
-  <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
-  <script type="text/javascript" src="${request.contextPath}/javascript/edit_profile.js"></script>
-</head>
-<body>
-<h1 style="text-align: center">Ambra: Administration: Edit User Profile</h1>
-<#include "includes/navigation.ftl">
-<@messages />
+  <head>
+    <title>Ambra: Administration: Manage Users</title>
+    <#include "includes/header.ftl">
+    <style type="text/css" media="all"> @import "${request.contextPath}/css/edit_profile.css";</style>
+    <script type="text/javascript" src="${request.contextPath}/javascript/edit_profile.js"></script>
+  </head>
+  <body>
+    <h1 style="text-align: center">Ambra: Administration: Edit User Profile</h1>
+    <#include "includes/navigation.ftl">
+    <@messages />
 
-<div id="container" class="profile">
+    <fieldset>
+      <legend><strong>Edit User Profile</strong></legend>
 
-<@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
-<@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/" userAuthId="${userAuthId}" includeParams="none"/>
-  Edit <@s.a href="%{editProfileByAdminURL}">profile</@s.a>
-  or <@s.a href="%{editPreferencesByAdminURL}">alerts/preferences</@s.a> for <strong>${addressingUser}</strong>
-  <br/>
-Email: <b>${email}</b>
-<br/>
-Display Name: <b>${displayName!"None"}</b>
-<@s.form name="userForm" id="userForm" action="saveProfileByAdmin" namespace="/"
-method="post" title="User Information Form" cssClass="ambra-form" enctype="multipart/form-data">
-  <@s.action name="selectList" namespace="/" id="selectList"/>
-  <fieldset>
-    <legend><b>Public Information</b> <span class="note">( <span class="required">*</span> are required)</span></legend>
-    <ol>
-      <#--Store email and alerts journals so they can be passed back to the action when we do a save-->
-      <@s.hidden name="email"/>
-      <@s.hidden name="alertsJournals"/>
+      <div id="container" class="profile">
+        <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
+        <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
+        <@s.url id="editRolesURL" action="editRoles" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
 
-      <#if displayName?has_content && !showDisplayName>
-      <#--store the display name on the page so that it gets set on the action when we go back to save-->
-        <@s.hidden name="displayName"/>
-      <#else>
-        <!--after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)"-->
-          <@s.textfield name="displayName" label="Username" required="true" tabindex="1" maxlength="18" after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)" />
-  	  </#if>
-      <@s.select label="Title" name="title" value="title" col=true list="%{#selectList.allTitles}" tabindex="10" />
-      <@s.textfield name="givenNames" label="First Name" col=true required="true" tabindex="2" />
-      <@s.textfield name="surnames" label="Last Name" col=true required="true" tabindex="3"/>
-      <@s.textfield name="city" label="City" col=true row=true tabindex="4"/>
-      <@s.select label="Country" name="country" value="country" list="%{#selectList.get('countries')}" tabindex="5" col=true />
-      <@s.textarea name="biographyText" label="Short Biography" cssClass="long-input" rows="5" cols="50" tabindex="14"/>
-      <@s.textfield name="researchAreasText" label="Research Areas" col=true row=true tabindex="15" />
-      <@s.textfield name="interestsText" label="Other Interests" col=true tabindex="16" />
-      <@s.textfield name="homePage" label="Home page" col=true row=true tabindex="17" />
-      <@s.textfield name="weblog" label="Blog URL" col=true tabindex="18" />
-    </ol>
-  </fieldset>
-  <fieldset>
-    <legend><b>Additional Information</b></legend>
-    <ol>
-      <@s.select label="Organization Type" name="organizationType" value="organizationType" list="%{#selectList.allOrganizationTypes}" tabindex="9" col=true />
-      <@s.textfield name="organizationName" label="Organization Name" cols="50" col=true tabindex="11" />
-      <@s.textarea name="postalAddress" col=true row=true label="Organization Address" rows="5" cols="50" tabindex="6" />
-      <@s.select label="Your Role" name="positionType" value="positionType" list="%{#selectList.allPositionTypes}" col=true tabindex="11" />
-    </ol>
-    <fieldset class="public-private">
-      <#if checkedValue>
-        <input type="checkbox" name="orgVisibility" id="orgVisibility" value="public" onclick="changeHidden();"
-               checked/>
-      <#else>
-        <input type="checkbox" name="orgVisibility" id="orgVisibility" value="private" onclick="changeHidden();"/>
-      </#if>
-      <label for="orgVisibility">Display ${addressingUser}'s Additional Information publicly.</label>
+        <@s.a href="%{editProfileByAdminURL}">Profile</@s.a>,
+        <@s.a href="%{editPreferencesByAdminURL}">Alerts/Preferences</@s.a>,
+        <@s.a href="%{editRolesURL}">Roles</@s.a>
+
+        <br/><br/>
+
+        Display Name: <b>${displayName!"None"}</b>
+        <@s.form name="userForm" id="userForm" action="saveProfileByAdmin" namespace="/"
+        method="post" title="User Information Form" cssClass="ambra-form" enctype="multipart/form-data">
+          <@s.action name="selectList" namespace="/" id="selectList"/>
+          <fieldset>
+            <legend><b>Public Information</b> <span class="note">( <span class="required">*</span> are required)</span></legend>
+            <ol>
+              <#--Store email and alerts journals so they can be passed back to the action when we do a save-->
+              <@s.hidden name="email"/>
+              <@s.hidden name="alertsJournals"/>
+
+              <#if displayName?has_content && !showDisplayName>
+              <#--store the display name on the page so that it gets set on the action when we go back to save-->
+                <@s.hidden name="displayName"/>
+              <#else>
+                <!--after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)"-->
+                  <@s.textfield name="displayName" label="Username" required="true" tabindex="1" maxlength="18" after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)" />
+              </#if>
+              <@s.select label="Title" name="title" value="title" col=true list="%{#selectList.allTitles}" tabindex="10" />
+              <@s.textfield name="givenNames" label="First Name" col=true required="true" tabindex="2" />
+              <@s.textfield name="surnames" label="Last Name" col=true required="true" tabindex="3"/>
+              <@s.textfield name="city" label="City" col=true row=true tabindex="4"/>
+              <@s.select label="Country" name="country" value="country" list="%{#selectList.get('countries')}" tabindex="5" col=true />
+              <@s.textarea name="biographyText" label="Short Biography" cssClass="long-input" rows="5" cols="50" tabindex="14"/>
+              <@s.textfield name="researchAreasText" label="Research Areas" col=true row=true tabindex="15" />
+              <@s.textfield name="interestsText" label="Other Interests" col=true tabindex="16" />
+              <@s.textfield name="homePage" label="Home page" col=true row=true tabindex="17" />
+              <@s.textfield name="weblog" label="Blog URL" col=true tabindex="18" />
+            </ol>
+          </fieldset>
+          <fieldset>
+            <legend><b>Additional Information</b></legend>
+            <ol>
+              <@s.select label="Organization Type" name="organizationType" value="organizationType" list="%{#selectList.allOrganizationTypes}" tabindex="9" col=true />
+              <@s.textfield name="organizationName" label="Organization Name" cols="50" col=true tabindex="11" />
+              <@s.textarea name="postalAddress" col=true row=true label="Organization Address" rows="5" cols="50" tabindex="6" />
+              <@s.select label="Your Role" name="positionType" value="positionType" list="%{#selectList.allPositionTypes}" col=true tabindex="11" />
+            </ol>
+            <fieldset class="public-private">
+              <#if checkedValue>
+                <input type="checkbox" name="orgVisibility" id="orgVisibility" value="public" onclick="changeHidden();"
+                       checked/>
+              <#else>
+                <input type="checkbox" name="orgVisibility" id="orgVisibility" value="private" onclick="changeHidden();"/>
+              </#if>
+              <label for="orgVisibility">Display ${addressingUser}'s Additional Information publicly.</label>
+            </fieldset>
+            <@s.hidden name="userAuthId"/>
+            <@s.submit value="Submit" tabindex="99"/>
+          </fieldset>
+        </@s.form>
+      </div>
     </fieldset>
-    <@s.hidden name="userAuthId"/>
-    <@s.submit value="Submit" tabindex="99"/>
-  </fieldset>
-</@s.form>
-</div>
-</body>
+  </body>
 </html>

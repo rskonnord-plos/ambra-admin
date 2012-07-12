@@ -22,18 +22,23 @@
   <bean id="articleSyndicationHistory" class="org.ambraproject.admin.action.ArticleSyndicationHistory">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="syndicationService" ref="syndicationService"/>
   </bean>
 
-  <bean id="assignAdminRoleAction" class="org.ambraproject.user.action.AssignAdminRoleAction">
+  <bean id="editRolesAction" class="org.ambraproject.user.action.EditRolesAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminRolesService" ref="adminRolesService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="adminService" ref="adminService"/>
+    <property name="userService" ref="userService"/>
   </bean>
 
   <bean id="searchUserAction" class="org.ambraproject.user.action.SearchUserAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="userService" ref="userService"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="searchUserService" ref="searchUserService"/>
   </bean>
 
@@ -45,27 +50,32 @@
     <property name="adminService" ref="adminService"/>
     <property name="articleService" ref="articleService"/>
     <property name="ingester" ref="ingester"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="syndicationService" ref="syndicationService"/>
   </bean>
 
   <bean id="adminUserProfileAction" class="org.ambraproject.user.action.AdminUserProfileAction">
     <property name="userService" ref="userService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="profanityCheckingService" ref="profanityCheckingService"/>
   </bean>
 
   <bean id="adminUserAlertsAction" class="org.ambraproject.user.action.AdminUserAlertsAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="userService" ref="userService"/>
   </bean>
   <bean id="crossPubManagementAction" class="org.ambraproject.admin.action.CrossPubManagementAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="command" value="foo"/>
   </bean>
 
   <bean id="manageVirtualJournalsAction" class="org.ambraproject.admin.action.ManageVirtualJournalsAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="adminService" ref="adminService"/>
     <property name="command" value="foo"/>
   </bean>
@@ -73,6 +83,7 @@
   <bean id="volumeManagementAction" class="org.ambraproject.admin.action.VolumeManagementAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="command" value="foo"/>
     <property name="volumeURI" value=""/>
     <property name="issueURI" value=""/>
@@ -81,6 +92,7 @@
   <bean id="issueManagementAction" class="org.ambraproject.admin.action.IssueManagementAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="command" value="foo"/>
   </bean>
 
@@ -88,28 +100,33 @@
     <property name="documentManagementService" ref="documentManagementService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
   <bean id="listFlagsAction" class="org.ambraproject.admin.flags.action.ListFlagsAction">
     <property name="flagService" ref="flagService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
   <bean id="processFlagsAction" class="org.ambraproject.admin.flags.action.ProcessFlagsAction">
     <property name="flagService" ref="flagService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
   <bean id="loadAnnotationAction" class="org.ambraproject.admin.action.LoadAnnotationAction">
     <property name="annotationService" ref="annotationService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
   <bean id="saveAnnotationAction" class="org.ambraproject.admin.action.SaveAnnotationAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="adminAnnotationService" ref="adminAnnotationService"/>
   </bean>
 </beans>

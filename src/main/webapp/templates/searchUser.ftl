@@ -36,11 +36,11 @@
           <ul>
             <#list users as user>
               <@s.url id="editProfileByAdminURL" action="editProfileByAdmin" namespace="/" userAuthId="${user.authId}" includeParams="none"/>
-              <@s.url id="assignAdminRoleToUser" action="assignAdminRole" namespace="/" userId="${user.ID}" includeParams="none"/>
+              <@s.url id="editRolesURL" action="editRoles" namespace="/" userAuthId="${user.authId}" includeParams="none"/>
               <li>
                 User: {Id: <b>${user.ID}</b>; User name: <b>${user.displayName!}</b>; Email: <b>${user.email!}</b>}
-                <@s.a href="%{editProfileByAdminURL}">Edit profile</@s.a>&nbsp;
-                <@s.a href="%{assignAdminRoleToUser}">Assign Admin Role</@s.a>
+                <@s.a href="%{editProfileByAdminURL}">Edit Profile</@s.a>&nbsp;
+                <@s.a href="%{editRolesURL}">Edit Roles</@s.a>
               </li>
             </#list>
           </ul>
@@ -84,16 +84,6 @@
             <@s.textfield name="name" label="User Name" required="true"/>
             <@s.submit value="Find User Name" />
           </@s.form>
-      </fieldset>
-    </p>
-    <p>
-      <fieldset>
-        <legend><b>Assign Admin Role To User</b></legend>
-        <@s.form name="assignAdminRoleForm" action="assignAdminRole" namespace="/" method="post">
-          <@s.textfield name="userId" label="Id" required="true"/>
-          &nbsp;
-          <@s.submit value="Assign Admin Role"/>
-        </@s.form>
       </fieldset>
     </p>
   </body>

@@ -269,15 +269,27 @@
       </result>
     </action>
 
-    <action name="assignAdminRole" class="org.ambraproject.user.action.AssignAdminRoleAction">
+    <action name="editRoles" class="org.ambraproject.user.action.EditRolesAction">
       <result name="success" type="freemarker">
-        <param name="location">/templates/searchUser.ftl</param>
+        <param name="location">/templates/editUserRoles.ftl</param>
       </result>
       <result name="error" type="freemarker">
-        <param name="location">/templates/searchUser.ftl</param>
+        <param name="location">/templates/editUserRoles.ftl</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/searchUser.ftl</param>
+        <param name="location">/templates/editUserRoles.ftl</param>
+      </result>
+    </action>
+
+    <action name="editRolesAssign" class="org.ambraproject.user.action.EditRolesAction" method="assignRoles">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/editUserRoles.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/editUserRoles.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/editUserRoles.ftl</param>
       </result>
     </action>
 

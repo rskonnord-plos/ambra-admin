@@ -33,14 +33,32 @@
 <#if journal??><@s.url id="crossPubManagement" namespace="/" action="crossPubManagement" journalKey="${journal.journalKey}" journalEIssn="${journal.eIssn}" /></#if>
 <p style="text-align:center;">
   <@s.a href="${adminTop}">Admin Top</@s.a>&nbsp; |&nbsp;
-  <strong>Manage:</strong> <@s.a href="${manageFlags}">Flags</@s.a>,&nbsp;
-  <@s.a href="${manageAnnotation}">Annotations</@s.a>,&nbsp;
-  <@s.a href="${manageUsersURL}">Users</@s.a>,&nbsp;
-  <@s.a href="${manageVirtualJournalsURL}">Virtual Journals</@s.a>,&nbsp;
-  <@s.a href="${manageSearchIndexing}">Search Index</@s.a>,&nbsp;
-  <@s.a href="${manageCaches}">Caches</@s.a>
-  <#if journal??>&nbsp;| &nbsp;<@s.a href="${crossPubManagement}">Cross Publish Articles</@s.a></#if>
-  |&nbsp;<@s.a href="${deleteArticle}">Delete Article</@s.a>&nbsp;|&nbsp;
+  <strong>Manage:</strong>
+  <#if permissions?seq_contains("MANAGE_FLAGS")>
+    <@s.a href="${manageFlags}">Flags</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_ANNOTATIONS")>
+    <@s.a href="${manageAnnotation}">Annotations</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_USERS")>
+    <@s.a href="${manageUsersURL}">Users</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_JOURNALS")>
+    <@s.a href="${manageVirtualJournalsURL}">Virtual Journals</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_SEARCH")>
+    <@s.a href="${manageSearchIndexing}">Search Index</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_CACHES")>
+    <@s.a href="${manageCaches}">Caches</@s.a>
+  </#if>
+  <#if permissions?seq_contains("CROSS_PUB_ARTICLES")>
+    <#if journal??>&nbsp;| &nbsp;<@s.a href="${crossPubManagement}">Cross Publish Articles</@s.a></#if>
+  |&nbsp;
+  </#if>
+  <#if permissions?seq_contains("DELETE_ARTICLES")>
+    <@s.a href="${deleteArticle}">Delete Article</@s.a>&nbsp;|&nbsp;
+  </#if>
   <@s.a href="${logout}">Logout</@s.a>
 </p>
 <hr/>

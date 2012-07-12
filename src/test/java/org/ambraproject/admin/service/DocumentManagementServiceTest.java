@@ -257,7 +257,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   @Test(expectedExceptions = { SecurityException.class })
   void testDisableSecurity() throws Exception
   {
-    documentManagementService.disable(articleUri, DEFUALT_USER_AUTHID);
+    documentManagementService.disable(articleUri, DEFAULT_USER_AUTHID);
   }
 
   @Test(dataProvider = "storedPublishedArticles")
@@ -269,7 +269,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   @Test(dataProvider = "storedPublishedArticles", expectedExceptions = { SecurityException.class })
   void testDeleteSecurity(String article, Long articleId) throws Exception
   {
-    documentManagementService.delete(article, DEFUALT_USER_AUTHID);
+    documentManagementService.delete(article, DEFAULT_USER_AUTHID);
   }
 
   @Test(dataProvider = "storedPublishedArticles2")
@@ -287,7 +287,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   @Test(dataProvider = "storedPublishedArticles2", expectedExceptions = { SecurityException.class })
   void testUnPublishSecurity(String article) throws Exception
   {
-    documentManagementService.unPublish(article, DEFUALT_USER_AUTHID);
+    documentManagementService.unPublish(article, DEFAULT_USER_AUTHID);
   }
 
   @Test(dataProvider = "storedUnpublishedArticles")
@@ -305,7 +305,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   @Test(dataProvider = "storedUnpublishedArticles", expectedExceptions = { UnexpectedRollbackException.class })
   void testPublishSecurity(String article)
   {
-    documentManagementService.publish(new String[] { article }, DEFUALT_USER_AUTHID);
+    documentManagementService.publish(new String[] { article }, DEFAULT_USER_AUTHID);
   }
 
   @Test

@@ -100,6 +100,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Deprecated
   public void assignAdminRole(Long userId) throws ApplicationException {
     UserProfile user = (UserProfile) hibernateTemplate.get(UserProfile.class, userId);
     if (user == null) {
