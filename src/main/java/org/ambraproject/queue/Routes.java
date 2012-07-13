@@ -149,6 +149,7 @@ public class Routes extends SpringRouteBuilder {
 
     String searchMailReceiver = configuration.getString("ambra.services.search.indexingMailReceiver", null);
     if (searchMailReceiver != null) {
+      String ambraHost = configuration.getString("ambra.network.hosts.default");
 
       log.info("Creating index all articles route");
       from(SEARCH_INDEXALL)
@@ -157,7 +158,7 @@ public class Routes extends SpringRouteBuilder {
             .maximumRedeliveries(0) // do not retry
             .setHeader("to", constant(searchMailReceiver))
             .setHeader("from", constant("do-not-reply@plos.org"))
-            .setHeader("subject", constant("All articles indexing failed"))
+            .setHeader("subject", constant("Failed to queue any articles for indexing (" + ambraHost + ")"))
             .setBody(exceptionMessage())
             .to(mailEndpoint)
           .end()
@@ -168,7 +169,7 @@ public class Routes extends SpringRouteBuilder {
           .to("bean:articleIndexingService?method=indexAllArticles")
           .setHeader("to", constant(searchMailReceiver))
           .setHeader("from", constant("do-not-reply@plos.org"))
-          .setHeader("subject", constant("Article indexing finished"))
+          .setHeader("subject", constant("Finished queueing articles for indexing (" + ambraHost + ")"))
           .to(mailEndpoint);
 
       String solrIndexCron = configuration.getString("ambra.services.search.solrIndexCron", null);
