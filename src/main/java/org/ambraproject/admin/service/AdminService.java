@@ -54,8 +54,6 @@ public interface AdminService {
   public List<ArticleInfo> getPublishableArticles(String eIssn, String orderField,
                                                   boolean isOrderAscending) throws ApplicationException;
 
-  public void assignAdminRole(Long userId) throws ApplicationException;
-
   /**
    * Get the journal specified by the given key. Result will be lazy, so volumes won't be accessible outside of a
    * session

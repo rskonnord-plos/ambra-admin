@@ -768,22 +768,6 @@ public class AdminServiceTest extends AdminBaseTest {
     assertEquals(storedVolume.getIssues().get(1), volume.getIssues().get(2), "Issues got reordered in volume; last issue changed");
   }
 
-  @Test
-  public void testAssignAdminRole() throws Exception {
-    UserProfile user = new UserProfile();
-    user.setAuthId("authIdForAssignAdminRoleInAdminServiceTest");
-    user.setDisplayName("displayNameForAssignAdminRoleInAdminServiceTest");
-    user.setEmail("email@AssignAdminRoleInAdminServiceTest");
-    Long id = Long.valueOf(dummyDataStore.store(user));
-
-    adminService.assignAdminRole(id);
-
-    UserProfile storedUser = dummyDataStore.get(UserProfile.class, id);
-    assertEquals(storedUser.getRoles().size(), 1, "User didn't get a role added");
-    UserRole role = storedUser.getRoles().iterator().next();
-    assertEquals(role.getRoleName(), PermissionsService.ADMIN_ROLE, "Role didn't have correct name");
-  }
-
   @DataProvider
   public Object[][] publishableArticles() {
     Journal journal = new Journal("Journal for testGetPublishableArticles");

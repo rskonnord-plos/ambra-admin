@@ -100,35 +100,6 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
-  @Deprecated
-  public void assignAdminRole(Long userId) throws ApplicationException {
-    UserProfile user = (UserProfile) hibernateTemplate.get(UserProfile.class, userId);
-    if (user == null) {
-      throw new ApplicationException("Attempting to assign admin role to non-existent user");
-    }
-    boolean alreadyHasAdmin = false;
-    for (UserRole role : user.getRoles()) {
-      if (PermissionsService.ADMIN_ROLE.equals(role.getRoleName())) {
-        alreadyHasAdmin = true;
-        break;
-      }
-    }
-    if (!alreadyHasAdmin) {
-      log.debug("Assigning admin role to user: {}", userId);
-      try {
-        UserRole adminRole = (UserRole) hibernateTemplate.findByCriteria(
-            org.hibernate.criterion.DetachedCriteria.forClass(UserRole.class)
-                .add(Restrictions.eq("roleName", PermissionsService.ADMIN_ROLE)),
-            0, 1).get(0);
-        user.getRoles().add(adminRole);
-        hibernateTemplate.update(user);
-      } catch (Exception e) {
-        throw new ApplicationException("Error assigning admin role to user: " + userId);
-      }
-    }
-  }
-
-  @Override
   @Transactional
   public void crossPubArticle(final String articleDoi, final String journalKey) throws Exception {
     log.debug("Cross publishing {} in {}", articleDoi, journalKey);
