@@ -10,7 +10,7 @@
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
- 
+
       http://www.apache.org/licenses/LICENSE-2.0
  
   Unless required by applicable law or agreed to in writing, software
@@ -203,6 +203,17 @@
     <xsl:variable name="ctxt-obj" as="element()?"
         select="$sec-obj-refs[@xlink:href = $uri][1]/
                   (parent::* | self::supplementary-material)[last()]"/>
+    <!--fix for bug Id PDEV-1021-->
+    <xsl:variable name="real-context-element" as="element()?">
+      <xsl:choose>
+        <xsl:when test="contains(local-name($ctxt-obj),'alternatives')">
+          <xsl:copy-of select="$ctxt-obj/parent::*"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:copy-of select="$ctxt-obj"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
 
     <id><xsl:value-of select="$uri"/></id>
     <xsl:if test="$jnl-meta/issn[@pub-type = 'epub']">
@@ -236,17 +247,17 @@
         <type><xsl:value-of select="."/></type>
       </xsl:for-each>
 
-      <xsl:if test="$ctxt-obj/label">
-        <title><xsl:call-template name="xml-to-str"><xsl:with-param name="xml" select="$ctxt-obj/label"/></xsl:call-template></title>
+      <xsl:if test="$real-context-element/label">
+        <title><xsl:call-template name="xml-to-str"><xsl:with-param name="xml" select="$real-context-element/label"/></xsl:call-template></title>
       </xsl:if>
-      <xsl:if test="$ctxt-obj/caption">
-        <description><xsl:call-template name="xml-to-str"><xsl:with-param name="xml" select="$ctxt-obj/caption"/></xsl:call-template></description>
+      <xsl:if test="$real-context-element/caption">
+        <description><xsl:call-template name="xml-to-str"><xsl:with-param name="xml" select="$real-context-element/caption"/></xsl:call-template></description>
       </xsl:if>
     </dublinCore>
 
     <isPartOf reference="{$article-uri}"/>
-    <xsl:if test="$ctxt-obj">
-      <contextElement><xsl:value-of select="local-name($ctxt-obj)"/></contextElement>
+    <xsl:if test="$real-context-element">
+      <contextElement><xsl:value-of select="local-name($real-context-element)"/></contextElement>
     </xsl:if>
 
     <xsl:for-each select="representation">
