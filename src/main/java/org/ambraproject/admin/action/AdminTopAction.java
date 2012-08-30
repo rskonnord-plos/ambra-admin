@@ -21,7 +21,10 @@
 package org.ambraproject.admin.action;
 
 import org.ambraproject.admin.service.AdminService;
-import org.ambraproject.model.article.ArticleInfo;
+import org.ambraproject.service.article.ArticleService;
+import org.ambraproject.service.article.DuplicateArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.models.Syndication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +39,6 @@ import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.*;
 import org.ambraproject.struts2.ManualTransactionManagement;
 import org.ambraproject.util.UriUtil;
-import org.ambraproject.model.article.ArticleInfo;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;

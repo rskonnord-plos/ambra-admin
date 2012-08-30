@@ -24,8 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

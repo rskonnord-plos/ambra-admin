@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.ambraproject.admin.service.SyndicationService;
-import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.util.UriUtil;
 
 import java.util.ArrayList;

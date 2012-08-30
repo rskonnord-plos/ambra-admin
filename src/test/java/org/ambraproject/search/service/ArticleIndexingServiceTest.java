@@ -23,6 +23,7 @@ package org.ambraproject.search.service;
 
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.models.Article;
+import org.ambraproject.service.search.SolrServerFactory;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -34,7 +35,7 @@ import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.ambraproject.ApplicationException;
-import org.ambraproject.BaseTest;
+import org.ambraproject.action.BaseTest;
 
 import java.net.URI;
 

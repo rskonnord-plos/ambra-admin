@@ -43,7 +43,7 @@
     </result-types>
 
     <interceptors>
-      <interceptor name="ensureAdmin" class="org.ambraproject.user.EnsureRoleInterceptor"/>
+      <interceptor name="ensureAdmin" class="org.ambraproject.struts2.EnsureRoleInterceptor"/>
       <interceptor name="transactionInterceptor" class="org.ambraproject.struts2.TransactionInterceptor"/>
 
       <interceptor-stack name="strutsBaseStack">

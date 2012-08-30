@@ -14,7 +14,7 @@
 package org.ambraproject.admin;
 
 import com.opensymphony.xwork2.ActionContext;
-import org.ambraproject.BaseWebTest;
+import org.ambraproject.action.BaseWebTest;
 import org.ambraproject.action.BaseActionSupport;
 import org.apache.struts2.interceptor.SessionAware;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,7 +28,7 @@ import java.util.HashSet;
  * Subclasses must override {@link #getAction()} so that this class can provide some default support for before/after tests.
  * <p/>
  * By default, it sets up an admin context, and sets the default request on the actions.  Tests that wish to use a user context (e.g. for checking
- * that permissions get denied) must explicitly call {@link org.ambraproject.BaseWebTest#setupUserContext()}
+ * that permissions get denied) must explicitly call {@link org.ambraproject.action.BaseWebTest#setupUserContext()}
  * <p/>
  * <b>Note:</b> Since we clear out messages after methods, the action class tests are NOT threadsafe. In order to be threadsafe, a test
  * would have to create an instance of the action within each test method.

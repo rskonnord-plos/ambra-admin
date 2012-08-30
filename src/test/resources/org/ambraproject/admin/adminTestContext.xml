@@ -27,7 +27,7 @@
        default-lazy-init="true">
 
   <!--Include all the bean definitions from Ambra-->
-  <import resource="classpath*:org/ambraproject/nonWebApplicationContext.xml"/>
+  <import resource="classpath*:org/ambraproject/action/nonWebApplicationContext.xml"/>
 
   <bean id="onCrossPubListener" class="org.ambraproject.admin.DummyOnCrossPublishListener"/>
 

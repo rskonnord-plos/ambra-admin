@@ -23,10 +23,11 @@ package org.ambraproject.article.service;
 
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreService;
-import org.ambraproject.journal.JournalService;
+import org.ambraproject.service.journal.JournalService;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Journal;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;

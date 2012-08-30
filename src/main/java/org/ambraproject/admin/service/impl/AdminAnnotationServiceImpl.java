@@ -16,7 +16,7 @@ package org.ambraproject.admin.service.impl;
 import org.ambraproject.admin.service.AdminAnnotationService;
 import org.ambraproject.models.Annotation;
 import org.ambraproject.models.AnnotationCitation;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

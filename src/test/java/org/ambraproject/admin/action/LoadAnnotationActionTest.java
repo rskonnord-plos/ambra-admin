@@ -16,7 +16,6 @@ package org.ambraproject.admin.action;
 import com.opensymphony.xwork2.Action;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
-import org.ambraproject.admin.action.LoadAnnotationAction;
 import org.ambraproject.models.Annotation;
 import org.ambraproject.models.AnnotationCitation;
 import org.ambraproject.models.AnnotationType;

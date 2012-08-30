@@ -14,7 +14,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.models.Annotation;
-import org.ambraproject.service.HibernateService;
+import org.ambraproject.service.hibernate.HibernateService;
 
 /**
  * @author Alex Kudlick 3/28/12

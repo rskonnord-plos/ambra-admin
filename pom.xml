@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ambraproject</groupId>
   <artifactId>ambra-admin</artifactId>
-  <version>2.1-SNAPSHOT</version>
+  <version>2.1-POM-REFACTOR-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Ambra Administration</name>
 
@@ -18,17 +18,18 @@
     </license>
   </licenses>
 
-
   <properties>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <spring.version>2.5.6.SEC01</spring.version>
+    <spring.version>3.1.1.RELEASE</spring.version>
+    <xerces.version>2.9.1</xerces.version>
+    <struts.version>2.3.1.2</struts.version>
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <ambra.version>2.3.8</ambra.version>
-    <conf-helper.version>2.2.1</conf-helper.version>
+    <ambra.version>2.4.2</ambra.version>
+    <filestore.version>1.0.1</filestore.version>
   </properties>
 
   <repositories>
@@ -89,14 +90,10 @@
   </distributionManagement>
 
   <dependencies>
-
-    <!--The warpath dependency allows us to build with ambra classes and
-          includes all the transitive dependencies from ambra-->
     <dependency>
       <groupId>org.ambraproject</groupId>
-      <artifactId>ambra-webapp</artifactId>
+      <artifactId>ambra-base</artifactId>
       <version>${ambra.version}</version>
-      <type>warpath</type>
       <exclusions>
         <!--These are some easy wins for reducing the size of the admin war, we don't need these libraries in admin-->
         <exclusion>
@@ -115,42 +112,11 @@
           <groupId>org.ambraproject</groupId>
           <artifactId>ambra-js</artifactId>
         </exclusion>
-        <!--This is a hack, but for some reason warpath is including version 1.0 of conf-helper,
-                  even though ambra is using the correct version-->
         <exclusion>
-          <groupId>org.ambraproject</groupId>
-          <artifactId>conf-helper</artifactId>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.saxon</groupId>
-      <artifactId>saxon</artifactId>
-      <version>9.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ambraproject</groupId>
-      <artifactId>conf-helper</artifactId>
-      <version>${conf-helper.version}</version>
-    </dependency>
-
-    <!--the war dependency is necessary to overlay classes, ftls, etc. when building the admin war-->
-    <dependency>
-      <groupId>org.ambraproject</groupId>
-      <artifactId>ambra-webapp</artifactId>
-      <version>${ambra.version}</version>
-      <type>war</type>
-      <scope>runtime</scope>
-    </dependency>
-
-    <!--This allows us to reuse test code from ambra-->
-    <dependency>
-      <groupId>org.ambraproject</groupId>
-      <artifactId>ambra-webapp</artifactId>
-      <version>${ambra.version}</version>
-      <!--In a future version of maven, this classifier may need to change to test-jar-->
-      <classifier>tests</classifier>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -160,31 +126,28 @@
       <scope>provided</scope>
     </dependency>
 
-    <!--Dependencies just for admin app-->
+    <dependency>
+      <groupId>org.ambraproject</groupId>
+      <artifactId>file-store</artifactId>
+      <version>${filestore.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-jms</artifactId>
+      <artifactId>spring-context</artifactId>
       <version>${spring.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <version>${spring.version}</version>
     </dependency>
 
     <!--camel stuff-->
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-core</artifactId>
-      <version>${camel.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-spring</artifactId>
       <version>${camel.version}</version>
       <scope>compile</scope>
     </dependency>
@@ -198,23 +161,82 @@
 
     <dependency>
       <groupId>org.apache.camel</groupId>
+      <artifactId>camel-quartz</artifactId>
+      <version>${camel.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.camel</groupId>
       <artifactId>camel-jms</artifactId>
       <version>${camel.version}</version>
       <scope>runtime</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-camel</artifactId>
-      <version>${activemq.version}</version>
-      <scope>runtime</scope>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId>
+      <version>${camel.version}</version>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-quartz</artifactId>
-      <version>${camel.version}</version>
-      <scope>runtime</scope>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-camel</artifactId>
+      <version>${activemq.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>saxon</artifactId>
+      <version>9.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ambraproject</groupId>
+      <artifactId>ambra-base</artifactId>
+      <version>${ambra.version}</version>
+      <!--In a future version of maven, this classifier may need to change to test-jar-->
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>${xerces.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.struts</groupId>
+      <artifactId>struts2-spring-plugin</artifactId>
+      <version>${struts.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-beans</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context-support</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-mock</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!--Transitive test dependencies don't get handed down from ambra-->
@@ -224,6 +246,40 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <artifactId>solr-core</artifactId>
+      <groupId>org.apache.solr</groupId>
+      <version>3.6.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-test-framework</artifactId>
+      <version>3.6.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+
 
     <dependency>
       <groupId>org.easymock</groupId>
@@ -265,55 +321,28 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>${spring.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
   </dependencies>
 
   <build>
     <finalName>ambra-admin</finalName>
-    <plugins>
-      <!--warpath plugin allows us to use warpath dependencies to get transitive dependencies from the war-->
-      <plugin>
-        <groupId>org.appfuse</groupId>
-        <artifactId>maven-warpath-plugin</artifactId>
-        <version>2.0</version>
-        <extensions>true</extensions>
-        <executions>
-          <execution>
-            <goals>
-              <goal>add-classes</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
-        <configuration>
-          <overlays>
-            <overlay>
-              <groupId>org.ambraproject</groupId>
-              <artifactId>ambra-webapp</artifactId>
-              <!--Specify what to include from ambra to keep the war small-->
-              <includes>
-                <!--classes and hibernate mappings-->
-                <include>WEB-INF/classes/**/*.class</include>
-                <include>WEB-INF/hibernateMappings/*</include>
 
-                <include>WEB-INF/profaneWords.xml</include>
-                <include>WEB-INF/countryList.xml</include>
-                <!--templates for the struts 'theme'-->
-                <include>template/**</include>
-              </includes>
-              <excludes>
-                <!--The warpath plugin will populate WEB-INF/lib-->
-                <exclude>WEB-INF/lib/*</exclude>
-              </excludes>
-            </overlay>
-          </overlays>
-        </configuration>
-      </plugin>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
       <!--specify compiler version and encoding-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -340,6 +369,47 @@
           </systemProperties>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>tomcat-maven-plugin</artifactId>
+        <configuration>
+          <path>/admin</path>
+          <contextFile>/etc/ambra/context.xml</contextFile>
+          <additionalConfigFilesDir>/etc/ambra/</additionalConfigFilesDir>
+          <!--useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader-->
+          <systemProperties>
+            <java.util.logging.manager>org.apache.juli.ClassLoaderLogManager</java.util.logging.manager>
+            <log4j.configuration>file:///etc/ambra/log4j.xml</log4j.configuration>
+            <org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH>true</org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH>
+            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+            <ambra.platform.appContext />
+            <struts.devMode>true</struts.devMode>
+          </systemProperties>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>juli</artifactId>
+            <version>6.0.29</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jdbc</artifactId>
+            <version>7.0.21</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ambraproject</groupId>
+            <artifactId>file-store</artifactId>
+            <version>${filestore.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.12</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>

@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.ambraproject.admin.service.DocumentManagementService;
-import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.util.UriUtil;
 
 public class DeleteArticleAction extends BaseAdminActionSupport {

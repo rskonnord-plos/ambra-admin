@@ -22,7 +22,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.admin.AdminBaseTest;
-import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Syndication;

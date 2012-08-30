@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;

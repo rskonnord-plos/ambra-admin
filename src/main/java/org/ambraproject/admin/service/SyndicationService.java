@@ -22,7 +22,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.models.Syndication;
-import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public interface SyndicationService {
    * @param articleDoi The unique identifier for the Article which was (or is to be) syndicated
    * @return The List of Syndications for this <code>articleDoi</code>. If there are no Syndications for this
    *         articleDoi, then return an empty List
-   * @throws org.ambraproject.article.service.NoSuchArticleIdException
+   * @throws org.ambraproject.service.article.NoSuchArticleIdException
    *          If the specified article doesn't exist
    */
   public List<Syndication> getSyndications(String articleDoi) throws NoSuchArticleIdException;
@@ -88,7 +88,7 @@ public interface SyndicationService {
    *
    * @param articleDoi The unique identifier for the Article which was (or is to be) syndicated
    * @return The complete list of Syndication objects for this Article
-   * @throws org.ambraproject.article.service.NoSuchArticleIdException
+   * @throws org.ambraproject.service.article.NoSuchArticleIdException
    *          if the article doesn't exist
    */
   public List<Syndication> createSyndications(String articleDoi) throws NoSuchArticleIdException;
@@ -121,7 +121,7 @@ public interface SyndicationService {
    *                          <code>articleDoi</code>
    * @return The Syndication object which matches the <code>articleDoi</code> and <code>syndicationTarget</code>
    *         parameters.  Contains the latest status information.
-   * @throws org.ambraproject.article.service.NoSuchArticleIdException If the specified article does not exist
+   * @throws org.ambraproject.service.article.NoSuchArticleIdException If the specified article does not exist
    */
   public Syndication syndicate(String articleDoi, String syndicationTarget) throws NoSuchArticleIdException;
 

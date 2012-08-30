@@ -13,7 +13,7 @@
 
 package org.ambraproject.admin;
 
-import org.ambraproject.BaseTest;
+import org.ambraproject.action.BaseTest;
 import org.springframework.test.context.ContextConfiguration;
 
 /**

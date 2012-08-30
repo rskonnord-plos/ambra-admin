@@ -19,7 +19,7 @@ import org.ambraproject.Constants;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.models.UserProfile;
-import org.ambraproject.user.service.UserAlert;
+import org.ambraproject.service.user.UserAlert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

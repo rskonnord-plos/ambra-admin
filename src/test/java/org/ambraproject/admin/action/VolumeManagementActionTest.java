@@ -19,13 +19,9 @@ import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Volume;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 

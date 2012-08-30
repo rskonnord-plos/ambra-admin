@@ -14,7 +14,7 @@
 package org.ambraproject.search.service;
 
 import org.ambraproject.models.UserProfile;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;

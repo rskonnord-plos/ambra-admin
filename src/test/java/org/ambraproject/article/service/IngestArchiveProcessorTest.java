@@ -26,7 +26,6 @@ import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAsset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
-import org.ambraproject.BaseTest;
 import org.ambraproject.article.ArchiveProcessException;
 import org.w3c.dom.Document;
 

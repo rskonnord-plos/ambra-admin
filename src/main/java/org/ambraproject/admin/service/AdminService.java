@@ -21,7 +21,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
-import org.ambraproject.model.article.ArticleInfo;
+import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;

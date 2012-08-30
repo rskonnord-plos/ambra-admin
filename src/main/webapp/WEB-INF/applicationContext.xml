@@ -52,29 +52,29 @@
   </util:map>
 
   <!-- freemarker configs -->
-  <bean id="ambraFreemarkerConfig" class="org.ambraproject.struts2.AmbraFreemarkerConfig">
+  <bean id="ambraFreemarkerConfig" class="org.ambraproject.freemarker.AmbraFreemarkerConfig">
     <constructor-arg index="0" ref="ambraConfiguration"/>
   </bean>
 
-  <bean id="ambraFreemarkerManager" class="org.ambraproject.struts2.AmbraFreemarkerManager">
+  <bean id="ambraFreemarkerManager" class="org.ambraproject.freemarker.AmbraFreemarkerManager">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="ambraFreemarkerConfig" ref="ambraFreemarkerConfig"/>
   </bean>
 
   <!--service beans-->
 
-  <bean id="articleService" class="org.ambraproject.article.service.ArticleServiceImpl">
+  <bean id="articleService" class="org.ambraproject.service.article.ArticleServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
-  <bean id="journalCreator" class="org.ambraproject.journal.JournalCreatorImpl"
+  <bean id="journalCreator" class="org.ambraproject.service.journal.JournalCreatorImpl"
         init-method="createJournals">
     <property name="configuration" ref="ambraConfiguration"/>
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
 
-  <bean id="permissionsService" class="org.ambraproject.permission.service.PermissionsServiceImpl">
+  <bean id="permissionsService" class="org.ambraproject.service.permission.PermissionsServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="rolesCache" ref="rolesCache"/>
   </bean>
@@ -83,7 +83,7 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
 
-  <bean id="userService" class="org.ambraproject.user.service.UserServiceImpl">
+  <bean id="userService" class="org.ambraproject.service.user.UserServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
     <property name="configuration" ref="ambraConfiguration"/>
@@ -91,22 +91,22 @@
     <property name="authIdParam" value="guid"/>
   </bean>
 
-  <bean id="annotationService" class="org.ambraproject.annotation.service.AnnotationServiceImpl">
+  <bean id="annotationService" class="org.ambraproject.service.annotation.AnnotationServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="articleHtmlCache" ref="articleHtmlCache"/>
   </bean>
 
-  <bean id="journalService" class="org.ambraproject.journal.JournalServiceImpl"
+  <bean id="journalService" class="org.ambraproject.service.journal.JournalServiceImpl"
         depends-on="journalCreator">
     <property name="configuration" ref="ambraConfiguration"/>
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
 
-  <bean id="solrServerFactory" class="org.ambraproject.search.service.SolrServerFactory">
+  <bean id="solrServerFactory" class="org.ambraproject.service.search.SolrServerFactory">
     <constructor-arg ref="ambraConfiguration"/>
   </bean>
 
-  <bean id="browseService" class="org.ambraproject.article.service.BrowseServiceImpl">
+  <bean id="browseService" class="org.ambraproject.service.article.BrowseServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="journalService" ref="journalService"/>
     <property name="articleService" ref="articleService"/>
@@ -115,7 +115,7 @@
     <property name="serverFactory" ref="solrServerFactory"/>
   </bean>
 
-  <bean id="articleAssetService" class="org.ambraproject.article.service.ArticleAssetServiceImpl">
+  <bean id="articleAssetService" class="org.ambraproject.service.article.ArticleAssetServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
     <property name="articleService" ref="articleService"/>
@@ -125,7 +125,7 @@
     <property name="profaneWords" ref="profaneWords"/>
   </bean>
 
-  <bean id="ratingsService" class="org.ambraproject.rating.service.RatingsServiceImpl">
+  <bean id="ratingsService" class="org.ambraproject.service.rating.RatingsServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
     <property name="applicationId" ref="applicationId"/>
@@ -137,11 +137,11 @@
     <property name="shared" value="true"/>
   </bean>
 
-  <bean id="browseSolrCache" class="org.ambraproject.cache.EhcacheProvider">
+  <bean id="browseSolrCache" class="org.ambraproject.service.cache.EhcacheProvider">
     <constructor-arg index="0" ref="browseSolrEhcache"/>
     <constructor-arg index="1" value="false"/>
   </bean>
-  <bean id="articleHtmlCache" class="org.ambraproject.cache.EhcacheProvider">
+  <bean id="articleHtmlCache" class="org.ambraproject.service.cache.EhcacheProvider">
     <constructor-arg index="0" ref="articleHtmlEhcache"/>
   </bean>
 
@@ -157,7 +157,7 @@
     <property name="cacheName" value="RolesCache"/>
   </bean>
 
-  <bean id="rolesCache" class="org.ambraproject.cache.EhcacheProvider">
+  <bean id="rolesCache" class="org.ambraproject.service.cache.EhcacheProvider">
     <constructor-arg index="0" ref="rolesEhCache"/>
   </bean>
 
@@ -169,7 +169,7 @@
     *
     *****************************************-->
 
-  <bean id="ambraMailer" class="org.ambraproject.service.AmbraMailerImpl">
+  <bean id="ambraMailer" class="org.ambraproject.service.mailer.AmbraMailerImpl">
     <property name="fromEmailAddress" value="application@plosone.org"/>
     <property name="feedbackEmailMap">
       <map>

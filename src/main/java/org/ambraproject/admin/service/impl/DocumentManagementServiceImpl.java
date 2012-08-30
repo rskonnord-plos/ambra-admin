@@ -21,7 +21,7 @@
 
 package org.ambraproject.admin.service.impl;
 
-import org.ambraproject.article.service.NoSuchArticleIdException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreService;
 import org.ambraproject.models.Annotation;
@@ -33,9 +33,9 @@ import org.ambraproject.models.RatingSummary;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.models.Trackback;
 import org.ambraproject.models.UserRole.Permission;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.ambraproject.service.journal.JournalService;
 import org.apache.commons.io.FileUtils;
-import org.aspectj.weaver.bcel.AnnotationAccessVar;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
@@ -46,15 +46,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.ambraproject.admin.service.DocumentManagementService;
 import org.ambraproject.admin.service.OnDeleteListener;
 import org.ambraproject.admin.service.OnPublishListener;
-import org.ambraproject.article.service.ArticleService;
-import org.ambraproject.journal.JournalService;
-import org.ambraproject.permission.service.PermissionsService;
+import org.ambraproject.service.article.ArticleService;
+import org.ambraproject.service.permission.PermissionsService;
 import org.w3c.dom.Document;
 
+import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;

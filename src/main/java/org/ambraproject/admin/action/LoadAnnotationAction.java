@@ -14,7 +14,7 @@
 package org.ambraproject.admin.action;
 
 import org.ambraproject.admin.action.BaseAdminActionSupport;
-import org.ambraproject.annotation.service.AnnotationService;
+import org.ambraproject.service.annotation.AnnotationService;
 import org.ambraproject.views.AnnotationView;
 import org.springframework.beans.factory.annotation.Required;
 

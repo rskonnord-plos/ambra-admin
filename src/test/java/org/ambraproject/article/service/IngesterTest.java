@@ -28,6 +28,8 @@ import org.ambraproject.models.ArticleRelationship;
 import org.ambraproject.models.Category;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
+import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.service.article.DuplicateArticleIdException;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

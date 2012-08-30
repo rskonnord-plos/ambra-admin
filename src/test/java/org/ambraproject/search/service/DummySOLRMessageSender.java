@@ -13,6 +13,7 @@
 
 package org.ambraproject.search.service;
 
+import org.ambraproject.service.search.SolrServerFactory;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Required;

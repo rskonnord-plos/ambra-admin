@@ -15,7 +15,7 @@ package org.ambraproject.admin.flags.service;
 
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.admin.views.FlagView;
-import org.ambraproject.cache.Cache;
+import org.ambraproject.service.cache.Cache;
 import org.ambraproject.models.Annotation;
 import org.ambraproject.models.AnnotationCitation;
 import org.ambraproject.models.AnnotationType;

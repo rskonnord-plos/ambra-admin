@@ -14,13 +14,13 @@
 package org.ambraproject.admin.flags.service;
 
 import org.ambraproject.admin.views.FlagView;
-import org.ambraproject.cache.Cache;
+import org.ambraproject.service.cache.Cache;
 import org.ambraproject.models.Annotation;
 import org.ambraproject.models.AnnotationCitation;
 import org.ambraproject.models.AnnotationType;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Flag;
-import org.ambraproject.service.HibernateServiceImpl;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
