@@ -32,12 +32,15 @@ import org.ambraproject.models.ArticleRelationship;
 import org.ambraproject.models.Category;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
+import org.ambraproject.models.Volume;
 import org.ambraproject.service.article.DuplicateArticleIdException;
 import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.StaleObjectStateException;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
@@ -47,6 +50,8 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 
@@ -126,7 +131,7 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
    *                                     is false
    * @throws IngestException             if there's any other problem ingesting the article
    */
-  @Transactional(rollbackFor = Throwable.class)
+  @Transactional(rollbackFor = Throwable.class, isolation = Isolation.REPEATABLE_READ)
   @SuppressWarnings("unchecked")
   public Article ingest(ZipFile archive, boolean force)
       throws DuplicateArticleIdException, IngestException {
@@ -137,14 +142,23 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
       updateWithExistingCategories(article);
       updateWithExistingJournal(article);
 
+      final String articleDoi = article.getDoi();
       //Check if we already have an article
-      Article existingArticle = null;
-      List<Article> results = hibernateTemplate.findByCriteria(
-          DetachedCriteria.forClass(Article.class)
-              .add(Restrictions.eq("doi", article.getDoi())), 0, 1);
-      if (results.size() > 0) {
-        existingArticle = results.get(0);
-      }
+      Article existingArticle = (Article)hibernateTemplate.execute(new HibernateCallback()
+      {
+        @Override
+        public Object doInHibernate(Session session) throws HibernateException, SQLException {
+          return (Article)session.createCriteria(Article.class)
+            .setFetchMode("journals", FetchMode.JOIN)
+            .setFetchMode("volumnes", FetchMode.JOIN)
+            .setFetchMode("issues", FetchMode.JOIN)
+            .setFetchMode("articleDois", FetchMode.JOIN)
+            .add(Restrictions.eq("doi", articleDoi))
+            .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+            .uniqueResult();
+        }
+      });
+
       // if the article is in Disabled state, we allow ingest without force
       if (!force && existingArticle != null && existingArticle.getState() != Article.STATE_DISABLED) {
         throw new DuplicateArticleIdException(article.getDoi());
@@ -299,6 +313,7 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
         final String name = property.getName();
         if (!name.equals("ID") &&
             !name.equals("created") &&
+            !name.equals("lastModified") &&
             !name.equals("class")) {
           //Collections shouldn't be dereferenced but have elements added
           //See http://www.onkarjoshi.com/blog/188/hibernateexception-a-collection-with-cascade-all-delete-orphan-was-no-longer-referenced-by-the-owning-entity-instance/
