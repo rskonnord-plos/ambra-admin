@@ -112,20 +112,6 @@ public class AdminUserProfileActionTest extends AdminWebTest {
   }
 
   @Test(dataProvider = "user")
-  public void testUpdateDoesNotOverwriteAccountUri(UserProfile user) throws Exception {
-    UserProfile storedUser = dummyDataStore.get(UserProfile.class, user.getID());
-    if (storedUser.getAccountUri() == null) {
-      storedUser.setAccountUri("id:accountUriForTestingOverwrite");
-      dummyDataStore.update(storedUser);
-    }
-
-    action.executeSaveUser();
-
-    storedUser = dummyDataStore.get(UserProfile.class, user.getID());
-    assertNotNull(storedUser.getAccountUri(), "Account uri got erased");
-  }
-
-  @Test(dataProvider = "user")
   public void testExecuteWithExistingUser(UserProfile user) throws Exception {
     assertEquals(action.execute(), Action.SUCCESS, "Action didn't return success");
     assertEquals(action.getActionErrors().size(), 0, "Action returned error messages: " + StringUtils.join(action.getActionErrors(), ";"));

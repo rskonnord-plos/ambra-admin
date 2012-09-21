@@ -25,7 +25,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -80,7 +79,6 @@ public class ManageVirtualJournalsAction extends BaseAdminActionSupport {
    * Manage Journals.  Display Journals and processes all add/deletes.
    */
   @Override
-  @Transactional(rollbackFor = {Throwable.class})
   public String execute() throws Exception {
 
     switch (MVJ_COMMANDS.toCommand(command)) {

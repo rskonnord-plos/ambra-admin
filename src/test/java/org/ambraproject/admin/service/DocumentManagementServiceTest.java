@@ -24,6 +24,7 @@ package org.ambraproject.admin.service;
 import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.models.Annotation;
 import org.ambraproject.models.AnnotationType;
+import org.ambraproject.models.ArticleRelationship;
 import org.ambraproject.models.UserProfile;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.ambraproject.filestore.FSIDMapper;
@@ -52,6 +53,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.testng.Assert.assertEqualsNoOrder;
@@ -103,6 +106,7 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
     Article article = new Article();
     article.setState(Article.STATE_ACTIVE);
     article.setDoi(articleUri2);
+    article.setRelatedArticles(new ArrayList<ArticleRelationship>());
 
     Long id = Long.valueOf(dummyDataStore.store(article));
     article.setID(id);
@@ -122,6 +126,22 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
     Annotation replyToReply = new Annotation(annotationCreator, AnnotationType.REPLY, id);
     replyToReply.setParentID(reply.getID());
     dummyDataStore.store(replyToReply);
+
+    //foreign article relationship
+    ArticleRelationship foreignRelationship = new ArticleRelationship();
+    foreignRelationship.setOtherArticleDoi(article.getDoi());
+    foreignRelationship.setOtherArticleID(id);
+
+    Article relatedArticle = new Article("id:doi-for-related-article");
+    relatedArticle.setRelatedArticles(Arrays.asList(foreignRelationship));
+    dummyDataStore.store(relatedArticle);
+
+    //add a reciprocal relationship on original article
+    ArticleRelationship relationship = new ArticleRelationship();
+    relationship.setOtherArticleDoi(relatedArticle.getDoi());
+    relationship.setOtherArticleID(relatedArticle.getID());
+    article.getRelatedArticles().add(relationship);
+    dummyDataStore.update(article);
 
     return new Object[][] {
       { articleUri2, id }
@@ -264,6 +284,11 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
   void testDelete(String article, Long articleId) throws Exception {
     documentManagementService.delete(article, DEFAULT_ADMIN_AUTHID);
     assertNull(dummyDataStore.get(Article.class, articleId),"didn't delete article");
+    for (ArticleRelationship relationship : dummyDataStore.getAll(ArticleRelationship.class)) {
+      if (articleId.equals(relationship.getOtherArticleID())) {
+        fail("failed to delete unlink article relationship: " + relationship);
+      }
+    }
   }
 
   @Test(dataProvider = "storedPublishedArticles", expectedExceptions = { SecurityException.class })

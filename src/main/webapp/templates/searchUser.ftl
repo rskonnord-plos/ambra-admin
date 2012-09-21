@@ -59,16 +59,6 @@
 
     <p>
       <fieldset>
-          <legend><b>Find User by Account Id</b></legend>
-          <@s.form name="findUserByUserIdForm" action="findUserByAccountId" namespace="/" method="post">
-            <@s.textfield name="accountId" label="Account Id" required="true"/>
-            <@s.submit value="Find Account Id" />
-          </@s.form>
-      </fieldset>
-    </p>
-
-    <p>
-      <fieldset>
           <legend><b>Find User by Email</b></legend>
           <@s.form name="findUserByEmailAddressForm" action="findUserByEmailAddress" namespace="/" method="post">
             <@s.textfield name="emailAddress" label="Email Address" required="true"/>

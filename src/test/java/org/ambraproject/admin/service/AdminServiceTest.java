@@ -144,10 +144,9 @@ public class AdminServiceTest extends AdminBaseTest {
     ));
     issue.setImageUri(imageArticle.getDoi());
 
-    Long issueID = adminService.addIssueToVolume(volume.getVolumeUri(), issue);
-    assertNotNull(issue, "returned null issue id");
+    adminService.addIssueToVolume(volume.getVolumeUri(), issue);
 
-    Issue storedIssue = dummyDataStore.get(Issue.class, issueID);
+    Issue storedIssue = dummyDataStore.get(Issue.class, issue.getID());
     assertNotNull(storedIssue, "Issue didn't get stored to the db");
     assertEquals(storedIssue.getArticleDois().toArray(), issue.getArticleDois().toArray(), "storedIssue had incorrect article list");
     assertEquals(storedIssue.getImageUri(), issue.getImageUri(), "storedIssue had incorrect image uri");

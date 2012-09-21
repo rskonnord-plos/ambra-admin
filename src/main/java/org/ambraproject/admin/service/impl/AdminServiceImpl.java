@@ -30,12 +30,8 @@ import org.ambraproject.views.article.ArticleType;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
-import org.ambraproject.models.UserProfile;
-import org.ambraproject.models.UserRole;
 import org.ambraproject.models.Volume;
-import org.ambraproject.service.permission.PermissionsService;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
-import org.ambraproject.util.UriUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -48,11 +44,10 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +70,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public List<ArticleInfo> getPublishableArticles(String eIssn, String orderField,
                                                   boolean isOrderAscending) throws ApplicationException {
@@ -145,6 +141,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public List<String> getCrossPubbedArticles(Journal journal) {
     return hibernateTemplate.findByCriteria(
@@ -183,6 +180,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Volume getVolume(String volumeUri) {
     try {
       return (Volume) hibernateTemplate.findByCriteria(
@@ -196,6 +194,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @SuppressWarnings("unchecked")
   @Override
+  @Transactional(readOnly = true)
   public List<Volume> getVolumes(final String journalKey) {
     //volumes are lazy so we need to access them in a session
     return (List<Volume>) hibernateTemplate.execute(new HibernateCallback() {
@@ -283,6 +282,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional
   public void updateVolume(final String volumeUri, final String displayName, final String issueCsv)
       throws IllegalArgumentException {
     hibernateTemplate.execute(new HibernateCallback() {
@@ -329,32 +329,41 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   @Transactional
-  public void deleteIssue(String issueUri) {
-    try {
-      log.debug("Deleting issue '{}'", issueUri);
-      Volume volume = (Volume) hibernateTemplate.findByCriteria(
-          DetachedCriteria.forClass(Volume.class)
-              .setFetchMode("issues", FetchMode.JOIN)
-              .createAlias("issues", "i")
-              .add(Restrictions.eq("i.issueUri", issueUri))
-              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
-      ).get(0);
-      Iterator<Issue> iterator = volume.getIssues().iterator();
-      while (iterator.hasNext()) {
-        Issue issue = iterator.next();
-        if (issue.getIssueUri().equals(issueUri)) {
-          iterator.remove();
-          hibernateTemplate.delete(issue);
-          break;
+  public void deleteIssue(final String issueUri) {
+    log.debug("Deleting issue '{}'", issueUri);
+    //using hibernateTemplate.execute() instead of hibernateTemplate.findByCriteria() here
+    //because for some reason adding the issue restriction causes issues to be lazy-loaded,
+    //even with fetchMode = JOIN
+    hibernateTemplate.execute(new HibernateCallback<Void>() {
+      @Override
+      public Void doInHibernate(Session session) throws HibernateException, SQLException {
+        Volume volume = (Volume) DataAccessUtils.uniqueResult(
+            session.createCriteria(Volume.class)
+                .setFetchMode("issues", FetchMode.JOIN)
+                .createAlias("issues", "i")
+                .add(Restrictions.eq("i.issueUri", issueUri))
+                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+                .list()
+        );
+        if (volume != null) {
+          Iterator<Issue> iterator = volume.getIssues().iterator();
+          while (iterator.hasNext()) {
+            Issue issue = iterator.next();
+            if (issue.getIssueUri().equals(issueUri)) {
+              iterator.remove();
+              session.delete(issue);
+              break;
+            }
+          }
+          session.update(volume);
         }
+        return null;
       }
-      hibernateTemplate.update(volume);
-    } catch (IndexOutOfBoundsException e) {
-      //it's ok if the issue doesn't exist
-    }
+    });
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Issue getIssue(String issueUri) {
     log.debug("Retrieving issue with uri '{}'", issueUri);
     try {
@@ -369,6 +378,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Issue> getIssues(final String volumeUri) {
     log.debug("Retrieving issues for '{}'", volumeUri);
     try {
@@ -393,7 +403,8 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
-  public Long addIssueToVolume(final String volumeUri, final Issue issue) {
+  @Transactional
+  public void addIssueToVolume(final String volumeUri, final Issue issue) {
     if (StringUtils.isEmpty(issue.getIssueUri())) {
       throw new IllegalArgumentException("Must specify an Issue URI");
     }
@@ -432,10 +443,10 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     }
     storedVolume.getIssues().add(issue);
     hibernateTemplate.update(storedVolume);
-    return issue.getID();
   }
 
   @Override
+  @Transactional
   public void updateIssue(String issueUri, String imageUri, String displayName,
                           boolean respectOrder, List<String> articleDois) {
     log.debug("Updating issue '{}'", issueUri);
@@ -485,6 +496,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional
   public void removeArticlesFromIssue(String issueUri, String... articleDois) {
     log.debug("Removing articles {} to issue '{}'", Arrays.toString(articleDois), issueUri);
     Issue issue;
@@ -505,6 +517,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional
   public void addArticlesToIssue(String issueUri, String... articleDois) {
     log.debug("Adding articles {} to issue '{}'", Arrays.toString(articleDois), issueUri);
     Issue issue;
@@ -541,6 +554,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public List<TOCArticleGroup> getArticleGroupList(final Issue issue) {
     //if the issue doesn't have any dois, return an empty list of groups
@@ -637,6 +651,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Journal getJournal(String journalKey) {
     try {
       return (Journal) hibernateTemplate.findByCriteria(

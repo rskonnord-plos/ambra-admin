@@ -44,7 +44,6 @@
 
     <interceptors>
       <interceptor name="ensureAdmin" class="org.ambraproject.struts2.EnsureRoleInterceptor"/>
-      <interceptor name="transactionInterceptor" class="org.ambraproject.struts2.TransactionInterceptor"/>
 
       <interceptor-stack name="strutsBaseStack">
         <interceptor-ref name="exception">
@@ -77,7 +76,6 @@
       <interceptor-stack name="ambraAdminStack">
         <interceptor-ref name="strutsBaseStack"/>
         <interceptor-ref name="ensureAdmin"/>
-        <interceptor-ref name="transactionInterceptor"/>
       </interceptor-stack>
 
       <interceptor-stack name="minimalStack">

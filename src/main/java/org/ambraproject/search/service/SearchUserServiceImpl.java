@@ -20,6 +20,7 @@ import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class SearchUserServiceImpl extends HibernateServiceImpl implements Searc
   private static final Logger log = LoggerFactory.getLogger(SearchUserServiceImpl.class);
 
   @Override
+  @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public List<UserProfile> findUsersByDisplayName(String displayName) {
     log.debug("Searching for users with display name like: {}", displayName);
@@ -53,6 +55,7 @@ public class SearchUserServiceImpl extends HibernateServiceImpl implements Searc
   }
 
   @Override
+  @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public List<UserProfile> findUsersByEmail(String email) {
     log.debug("Searching for users with email like {}", email);

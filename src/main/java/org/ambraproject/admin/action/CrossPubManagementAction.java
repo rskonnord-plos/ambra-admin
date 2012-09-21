@@ -20,10 +20,9 @@
 
 package org.ambraproject.admin.action;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Required;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +63,6 @@ public class CrossPubManagementAction extends BaseAdminActionSupport {
    * Main entry point for Cross Publication management action.
    */
   @Override
-  @Transactional(rollbackFor = {Throwable.class})
   public String execute() throws Exception {
 
     switch (XP_COMMANDS.toCommand(command)) {

@@ -44,7 +44,6 @@
 
   <bean id="adminTopAction" class="org.ambraproject.admin.action.AdminTopAction">
     <property name="documentManagementService" ref="documentManagementService"/>
-    <property name="transactionManager" ref="transactionManager"/>
     <property name="ingestArchiveProcessor" ref="ingestArchiveProcessor"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>

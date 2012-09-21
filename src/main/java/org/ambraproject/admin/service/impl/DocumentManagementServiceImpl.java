@@ -21,6 +21,7 @@
 
 package org.ambraproject.admin.service.impl;
 
+import org.ambraproject.models.ArticleRelationship;
 import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.filestore.FSIDMapper;
 import org.ambraproject.filestore.FileStoreService;
@@ -166,6 +167,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * @param objectURI URI of the article to delete
    * @throws Exception if id is invalid or Sending of delete message failed.
    */
+  @Override
   @Transactional(rollbackFor = {Throwable.class})
   public void unPublish(String objectURI, final String authId) throws Exception {
     permissionsService.checkPermission(Permission.INGEST_ARTICLE, authId);
@@ -187,6 +189,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * @param objectURI URI of the article to delete
    * @throws Exception if id is invalid or Sending of delete message failed.
    */
+  @Override
   @Transactional(rollbackFor = {Throwable.class})
   public void disable(String objectURI, final String authId) throws Exception {
     permissionsService.checkPermission(Permission.INGEST_ARTICLE, authId);
@@ -204,6 +207,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
     invokeOnDeleteListeners(objectURI);
   }
 
+  @Override
   @Transactional(rollbackFor = {Throwable.class})
   public void delete(String articleDoi, final String authId) throws Exception {
     permissionsService.checkPermission(Permission.DELETE_ARTICLES, authId);
@@ -255,6 +259,10 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
                 .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY))
     );
 
+    //unlink any foreign article relationships
+    hibernateTemplate.bulkUpdate("update ArticleRelationship set otherArticleID = null where otherArticleID = ?",
+        ((Article) articles.get(0)).getID());
+
     //delete any annotations on the article (need to do this recursivly b/c of replies
     List<Annotation> topLevelAnnotations = hibernateTemplate.findByCriteria(
         DetachedCriteria.forClass(Annotation.class)
@@ -275,6 +283,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
     invokeOnDeleteListeners(articleDoi);
   }
 
+  @Transactional
   private void deleteRepliesRecursively(Annotation annotation) {
     //delete any flags on the annotation first
     hibernateTemplate.deleteAll(hibernateTemplate.findByCriteria(
@@ -293,6 +302,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
     hibernateTemplate.delete(annotation);
   }
 
+  @Override
   public void removeFromFileSystem(String articleUri) throws Exception {
     String articleRoot = FSIDMapper.zipToFSID(articleUri, "");
     Map<String, String> files = fileStoreService.listFiles(articleRoot);
@@ -312,6 +322,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * @param uri the article uri
    * @throws java.io.IOException on an error
    */
+  @Override
   public void revertIngestedQueue(String uri) throws IOException {
     // delete any crossref submission file
     File queueDir = new File(documentDirectory);
@@ -347,6 +358,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
   /**
    * @return List of filenames of files in uploadable directory on server
    */
+  @Override
   public List<String> getUploadableFiles() {
     List<String> documents = new ArrayList<String>();
     File dir = new File(documentDirectory);
@@ -390,6 +402,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * @param uris uris to be published.
    * @return a list of messages describing what was successful and what failed
    */
+  @Override
   @Transactional(rollbackFor = {Throwable.class})
   public List<String> publish(String[] uris, final String authId) {
     final List<String> msgs = new ArrayList<String>();
@@ -420,6 +433,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * @throws javax.xml.transform.TransformerException
    *          - if there's a problem transforming the article xml
    */
+  @Override
   public void generateCrossrefInfoDoc(Document articleXml, URI articleId) throws TransformerException {
     log.info("Generating crossref info doc for article " + articleId);
 
@@ -476,7 +490,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    */
   public StreamSource getAsStream(final String filenameOrURL) throws URISyntaxException,
       IOException {
-    final URL resource = DocumentManagementServiceImpl.class.getClassLoader().getResource(filenameOrURL);
+    final URL resource = DocumentManagementServiceImpl.class.getResource(filenameOrURL);
 
     if (resource != null) {
       return new StreamSource(resource.openStream());

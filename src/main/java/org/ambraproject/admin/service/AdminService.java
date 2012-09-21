@@ -181,11 +181,11 @@ public interface AdminService {
    * Issue#title} properties are not set on the issue and there is an article with doi equal to {@link Issue#imageUri},
    * the {@link Issue#description} and {@link Issue#title} will be copied from the article
    *
+   *
    * @param volumeUri the uri of the volume to which the issue will be added
    * @param issue     transient issue object to add to the given volume
-   * @return the generated id for the issue
    */
-  public Long addIssueToVolume(String volumeUri, Issue issue);
+  public void addIssueToVolume(String volumeUri, Issue issue);
 
   /**
    * Update an Issue

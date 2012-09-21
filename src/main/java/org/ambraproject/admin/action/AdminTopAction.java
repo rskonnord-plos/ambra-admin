@@ -21,24 +21,20 @@
 package org.ambraproject.admin.action;
 
 import org.ambraproject.admin.service.AdminService;
+import org.ambraproject.admin.service.DocumentManagementService;
+import org.ambraproject.admin.service.SyndicationService;
+import org.ambraproject.article.service.IngestArchiveProcessor;
+import org.ambraproject.article.service.Ingester;
+import org.ambraproject.models.Article;
+import org.ambraproject.models.Syndication;
 import org.ambraproject.service.article.ArticleService;
 import org.ambraproject.service.article.DuplicateArticleIdException;
 import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.util.UriUtil;
 import org.ambraproject.views.article.ArticleInfo;
-import org.ambraproject.models.Syndication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.ambraproject.admin.service.DocumentManagementService;
-import org.ambraproject.admin.service.SyndicationService;
-import org.ambraproject.article.service.*;
-import org.ambraproject.struts2.ManualTransactionManagement;
-import org.ambraproject.util.UriUtil;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -64,7 +60,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
   private Ingester ingester;
   private SyndicationService syndicationService;
   private IngestArchiveProcessor ingestArchiveProcessor;
-  private PlatformTransactionManager transactionManager;
 
   // Fields used for delete
   private String article;
@@ -92,7 +87,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
    * @throws Exception
    */
   @Override
-  @Transactional(readOnly = true)
   public String execute() throws Exception {
     if (!setCommonFields())
       return ERROR;
@@ -106,10 +100,10 @@ public class AdminTopAction extends BaseAdminActionSupport {
    * @return Struts result
    * @throws Exception when error occurs
    */
-  @Transactional(rollbackFor = {Throwable.class})
   public String unpublish() throws Exception {
-    if (article != null)
+    if (article != null) {
       article = article.trim();
+    }
 
     try {
       UriUtil.validateUri(article, "Article Uri");
@@ -135,12 +129,12 @@ public class AdminTopAction extends BaseAdminActionSupport {
    * @return Struts result
    * @throws Exception when error occurs
    */
-  @Transactional(rollbackFor = {Throwable.class})
   public String disableArticle() throws Exception {
     Boolean result = true;
 
-    if (article != null)
+    if (article != null) {
       article = article.trim();
+    }
 
     UriUtil.validateUri(article, "Article Uri");
 
@@ -158,17 +152,9 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
   /**
    * Ingest the files made available in the ingestion-queue.
-   * <p/>
-   * TODO: Don't manually manage transactions here. We're creating a transaction for each ingest because with the {@link
-   * org.ambraproject.struts2.TransactionInterceptor} there would be a transaction wrapped around the whole
-   * request, and a failure of one article to ingest would cause them all to fail.
-   * <p/>
-   * See the javadoc on that the {@link org.ambraproject.struts2.TransactionInterceptor} for the refactoring
-   * necessary to pass transaction management off to the framework
    *
    * @return SUCCESS/ERROR
    */
-  @ManualTransactionManagement
   public String ingest() {
     if (filesToIngest != null) {
       for (String file : filesToIngest) {
@@ -176,32 +162,15 @@ public class AdminTopAction extends BaseAdminActionSupport {
         final String filename = file.trim();
         final File archive = new File(documentManagementService.getDocumentDirectory(), filename);
         log.info("Starting ingest of " + filename);
-        org.ambraproject.models.Article article = null;
-
+        Article article = null;
         try {
-          TransactionTemplate template = new TransactionTemplate(transactionManager);
-          article = (org.ambraproject.models.Article) template.execute(new TransactionCallback() {
-            @Override
-            public Object doInTransaction(TransactionStatus transactionStatus) {
-              try {
-                return ingester.ingest(new ZipFile(archive), force);
-              } catch (DuplicateArticleIdException de) {
-                addActionError("Error ingesting: " + filename + " - " + getMessages(de));
-                transactionStatus.setRollbackOnly();
-                log.info("attempted to ingest duplicate article without force; archive: " + filename, de);
-                return null;
-              } catch (Exception e) {
-                addActionError("Error ingesting: " + filename + " - " + getMessages(e));
-                transactionStatus.setRollbackOnly();
-                log.info("Error ingesting article: " + filename, e);
-                return null;
-              }
-            }
-          });
-
+          article = ingester.ingest(new ZipFile(archive), force);
+        } catch (DuplicateArticleIdException de) {
+          addActionError("Error ingesting: " + filename + " - " + getMessages(de));
+          log.info("attempted to ingest duplicate article without force; archive: " + filename, de);
         } catch (Exception e) {
-          log.warn("error committing transaction during ingest of " + filename, e);
           addActionError("Error ingesting: " + filename + " - " + getMessages(e));
+          log.info("Error ingesting article: " + filename, e);
         }
         if (article != null) {
           try {
@@ -217,20 +186,12 @@ public class AdminTopAction extends BaseAdminActionSupport {
         }
       }
     }
-
     // create a faux journal object for template
-    TransactionTemplate template = new TransactionTemplate(transactionManager);
-    template.setReadOnly(true);
-    return (String) template.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(TransactionStatus status) {
-        if (!setCommonFields()) {
-          return ERROR;
-        }
+    if (!setCommonFields()) {
+      return ERROR;
+    }
 
-        return SUCCESS;
-      }
-    });
+    return SUCCESS;
   }
 
   /**
@@ -560,19 +521,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
   public void setIngestArchiveProcessor(IngestArchiveProcessor ingestArchiveProcessor) {
     this.ingestArchiveProcessor = ingestArchiveProcessor;
   }
-
-  /**
-   * Set the transaction manager used to manage transactions for ingesting
-   * <p/>
-   * TODO: obviate the need for this.  See comments on ingest()
-   *
-   * @param transactionManager - the transaction manager to use
-   */
-  @Required
-  public void setTransactionManager(PlatformTransactionManager transactionManager) {
-    this.transactionManager = transactionManager;
-  }
-
 
   /**
    * Gets the collection of uploadable files

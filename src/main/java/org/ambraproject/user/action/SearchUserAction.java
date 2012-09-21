@@ -26,7 +26,6 @@ import org.ambraproject.models.UserProfile;
 import org.ambraproject.search.service.SearchUserService;
 import org.ambraproject.service.user.UserService;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,7 +36,6 @@ public class SearchUserAction extends BaseAdminActionSupport {
   private UserService userService;
 
   private String userAuthId;
-  private String accountId;
   private String emailAddress;
   private String name;
   private UserProfile[] users;
@@ -64,7 +62,6 @@ public class SearchUserAction extends BaseAdminActionSupport {
    * @return webwork status
    * @throws Exception Exception
    */
-  @Transactional(readOnly = true)
   public String executeFindUserByAuthId() throws Exception {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
@@ -85,38 +82,11 @@ public class SearchUserAction extends BaseAdminActionSupport {
   }
 
   /**
-   * Find user with a given account id
-   *
-   * @return webwork status
-   * @throws Exception Exception
-   */
-  @Transactional(readOnly = true)
-  public String executeFindUserByAccountId() throws Exception {
-    // create a faux journal object for template
-    journal = adminService.getJournal(getCurrentJournal());
-
-    if(accountId == null || accountId.isEmpty()) {
-      addActionError("You must specify an account Id to search for.");
-      return INPUT;
-    }
-
-    final UserProfile userId = userService.getUserByAccountUri(accountId);
-    if (null == userId) {
-      addActionError("No user found with the accounid:" + accountId);
-      return INPUT;
-    }
-    users = new UserProfile[]{userId};
-
-    return SUCCESS;
-  }
-
-  /**
    * Find user with a given display name
    *
    * @return webwork status
    * @throws Exception Exception
    */
-  @Transactional(readOnly = true)
   public String executeFindUserByName() throws Exception {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
@@ -142,7 +112,6 @@ public class SearchUserAction extends BaseAdminActionSupport {
    * @return webwork status
    * @throws Exception Exception
    */
-  @Transactional(readOnly = true)
   public String executeFindUserByEmailAddress() throws Exception {
     // create a faux journal object for template
     journal = adminService.getJournal(getCurrentJournal());
@@ -169,15 +138,6 @@ public class SearchUserAction extends BaseAdminActionSupport {
    */
   public void setUserAuthId(final String userAuthId) {
     this.userAuthId = userAuthId;
-  }
-
-  /**
-   * Setter for accountId.
-   *
-   * @param accountId Value to set for accountId.
-   */
-  public void setAccountId(String accountId) {
-    this.accountId = accountId;
   }
 
   /**

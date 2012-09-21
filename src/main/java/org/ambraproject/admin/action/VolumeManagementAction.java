@@ -24,7 +24,6 @@ import org.ambraproject.models.Issue;
 import org.ambraproject.models.Volume;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -79,7 +78,6 @@ public class VolumeManagementAction extends BaseAdminActionSupport {
    * Main entry porint for Volume management action.
    */
   @Override
-  @Transactional(rollbackFor = {Throwable.class})
   public String execute() throws Exception {
     // Dispatch on hidden field command
     switch (VM_COMMANDS.toCommand(command)) {

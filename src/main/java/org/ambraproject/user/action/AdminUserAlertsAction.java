@@ -17,7 +17,6 @@ import org.ambraproject.models.UserProfile;
 import org.ambraproject.service.user.UserAlert;
 import org.ambraproject.service.user.UserService;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletException;
 import java.util.Arrays;
@@ -54,7 +53,6 @@ public class AdminUserAlertsAction extends BaseSessionAwareActionSupport {
    * @return webwork status
    * @throws Exception Exception
    */
-  @Transactional(rollbackFor = {Throwable.class})
   public String saveAlerts() throws Exception {
     final String authId = getUserAuthId();
     if (authId == null) {
@@ -70,7 +68,6 @@ public class AdminUserAlertsAction extends BaseSessionAwareActionSupport {
    * @return webwork status
    * @throws Exception Exception
    */
-  @Transactional(readOnly = true)
   public String retrieveAlerts() throws Exception {
     final String authId = getUserAuthId();
     if (authId == null) {

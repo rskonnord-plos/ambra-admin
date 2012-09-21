@@ -277,11 +277,11 @@ public class SyndicationServiceImpl extends HibernateServiceImpl implements Synd
       //  Send message.
       messageService.sendSyndicationMessage(syndicationTarget, articleDoi, archiveName);
       log.info("Successfully sent a Message to plos-queue for {} to be syndicated to {}", articleDoi, syndicationTarget);
+      return syndication;
     } catch (Exception e) {
       log.warn("Error syndicating " + articleDoi + " to " + syndicationTarget, e);
-      //update to failure
-      updateSyndication(articleDoi, syndicationTarget, Syndication.STATUS_FAILURE, e.getMessage());
+      //update to failure and return updated syndication
+      return updateSyndication(articleDoi, syndicationTarget, Syndication.STATUS_FAILURE, e.getMessage());
     }
-    return syndication;
   }
 }

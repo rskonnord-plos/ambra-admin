@@ -364,8 +364,10 @@
                         then $refCit/person-group[@person-group-type = 'editor']/name
                       else ()"/>
           <xsl:with-param name="authors"
-              select="if ($refCit/person-group[@person-group-type = 'author']) then $refCit/person-group[@person-group-type = 'author']/name
-                      else ()"/>
+              select="if ($refCit/person-group[@person-group-type = 'author'])
+                then $refCit/person-group[@person-group-type = 'author']/name
+                else if($refCit/name) then $refCit/name
+                else ()"/>
           <xsl:with-param name="collab-authors" select="$refCit/collab"/>
           <xsl:with-param name="url"      select="$refCit/@xlink:role"/>
           <xsl:with-param name="doi" select="$refCit/ext-link[contains(@xlink:href, 'http://dx.doi.org')]"/>

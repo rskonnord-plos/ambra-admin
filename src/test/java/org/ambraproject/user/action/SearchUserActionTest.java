@@ -54,7 +54,6 @@ public class SearchUserActionTest extends AdminWebTest {
     userProfile.setResearchAreas("areas to research");
     userProfile.setCity("city");
     userProfile.setCountry("country");
-    userProfile.setAccountUri("id:test-user-profile");
 
     dummyDataStore.store(userProfile);
 
@@ -90,19 +89,6 @@ public class SearchUserActionTest extends AdminWebTest {
     assertTrue(topazUserIdList.length == 1, "didn't return correct number of user profiles");
     compareUsers(topazUserIdList[0], storedUser);
     searchUserAction.setEmailAddress(null);
-  }
-
-  @Test(dataProvider = "savedUser")
-  public void testSearchUserByAccountId(UserProfile storedUser) throws Exception {
-    searchUserAction.setAccountId(storedUser.getAccountUri());
-
-    assertEquals(searchUserAction.executeFindUserByAccountId(), Action.SUCCESS,
-        "searchUserAction.executeFindUserByAccountId() didn't return success");
-
-    final UserProfile[] topazUserIdList = searchUserAction.getUsers();
-    assertTrue(topazUserIdList.length == 1, "didn't return correct number of user profiles");
-    compareUsers(topazUserIdList[0], storedUser);
-    searchUserAction.setAccountId(null);
   }
 
   @Test(dataProvider = "savedUser")
