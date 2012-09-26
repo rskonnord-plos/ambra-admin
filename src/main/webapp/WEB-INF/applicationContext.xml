@@ -14,17 +14,14 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/util
-       http://www.springframework.org/schema/util/spring-util-2.0.xsd
-       http://www.springframework.org/schema/context
-       http://www.springframework.org/schema/context/spring-context-2.0.xsd
-       http://activemq.apache.org/schema/core
-       http://activemq.apache.org/schema/core/activemq-core.xsd
-       http://camel.apache.org/schema/spring
-       http://camel.apache.org/schema/spring/camel-spring.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.0.xsd
+       http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
 
 
   <!-- *****************************
@@ -119,6 +116,8 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
     <property name="articleService" ref="articleService"/>
+    <property name="templatesDirectory" value="${ambra.virtualJournals.templateDir}"/>
+    <property name="fileStoreService" ref="fileStoreService"/>
   </bean>
 
   <bean id="profanityCheckingService" class="org.ambraproject.util.ProfanityCheckingServiceImpl">
@@ -308,10 +307,12 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="articleHtmlCache" ref="articleHtmlCache"/>
   </bean>
-  <!--Transaction manager is needed by the transaction interceptor ... at some point we may switch to spring declarative transaction management-->
+
   <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
   </bean>
+
+  <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
 
   <bean id="hibernateSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
     <property name="dataSource" ref="hibernateDataSource"/>

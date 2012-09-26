@@ -131,7 +131,7 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
    *                                     is false
    * @throws IngestException             if there's any other problem ingesting the article
    */
-  @Transactional(rollbackFor = Throwable.class, isolation = Isolation.REPEATABLE_READ)
+  @Transactional(rollbackFor = Throwable.class)
   @SuppressWarnings("unchecked")
   public Article ingest(ZipFile archive, boolean force)
       throws DuplicateArticleIdException, IngestException {
@@ -150,9 +150,6 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
         public Object doInHibernate(Session session) throws HibernateException, SQLException {
           return (Article)session.createCriteria(Article.class)
             .setFetchMode("journals", FetchMode.JOIN)
-            .setFetchMode("volumnes", FetchMode.JOIN)
-            .setFetchMode("issues", FetchMode.JOIN)
-            .setFetchMode("articleDois", FetchMode.JOIN)
             .add(Restrictions.eq("doi", articleDoi))
             .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
             .uniqueResult();
