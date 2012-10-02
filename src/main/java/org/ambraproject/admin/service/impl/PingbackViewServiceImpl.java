@@ -5,10 +5,9 @@ import org.ambraproject.models.Article;
 import org.ambraproject.models.Pingback;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
 
-import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.RandomAccess;
 
 public class PingbackViewServiceImpl extends HibernateServiceImpl implements PingbackViewService {
 
@@ -18,28 +17,18 @@ public class PingbackViewServiceImpl extends HibernateServiceImpl implements Pin
       = "select a, count(distinct p.ID) as c "
       + "from Pingback as p, Article as a where p.articleID = a.ID order by c desc";
 
-  private static <E> List<E> forceRandomAccess(List<E> list) {
-    return (list instanceof RandomAccess) ? list : new ArrayList<E>(list);
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
   public List<PingbackWithArticle> listPingbacksByDate() {
-    final List<?> results = forceRandomAccess(hibernateTemplate.find(PINGBACKS_BY_DATE_HQL));
-    return new AbstractList<PingbackWithArticle>() {
-      @Override
-      public PingbackWithArticle get(int index) {
-        final Object[] result = (Object[]) results.get(index);
-        return new PingbackWithArticle((Pingback) result[0], (Article) result[1]);
-      }
-
-      @Override
-      public int size() {
-        return results.size();
-      }
-    };
+    List<?> results = hibernateTemplate.find(PINGBACKS_BY_DATE_HQL);
+    List<PingbackWithArticle> view = new ArrayList<PingbackWithArticle>(results.size());
+    for (Iterator<?> iterator = results.iterator(); iterator.hasNext(); ) {
+      Object[] result = (Object[]) iterator.next();
+      view.add(new PingbackWithArticle((Pingback) result[0], (Article) result[1]));
+    }
+    return view;
   }
 
   /**
@@ -47,19 +36,13 @@ public class PingbackViewServiceImpl extends HibernateServiceImpl implements Pin
    */
   @Override
   public List<ArticleWithPingbackCount> listArticlesByPingbackCount() {
-    final List<?> results = forceRandomAccess(hibernateTemplate.find(ARTICLES_BY_PINGBACK_COUNT_HQL));
-    return new AbstractList<ArticleWithPingbackCount>() {
-      @Override
-      public ArticleWithPingbackCount get(int index) {
-        final Object[] result = (Object[]) results.get(index);
-        return new ArticleWithPingbackCount((Article) result[0], (Long) result[1]);
-      }
-
-      @Override
-      public int size() {
-        return results.size();
-      }
-    };
+    List<?> results = hibernateTemplate.find(ARTICLES_BY_PINGBACK_COUNT_HQL);
+    List<ArticleWithPingbackCount> view = new ArrayList<ArticleWithPingbackCount>(results.size());
+    for (Iterator<?> iterator = results.iterator(); iterator.hasNext(); ) {
+      Object[] result = (Object[]) iterator.next();
+      view.add(new ArticleWithPingbackCount((Article) result[0], (Long) result[1]));
+    }
+    return view;
   }
 
 }
