@@ -160,4 +160,9 @@
   <bean id="adminRolesService" class="org.ambraproject.admin.service.impl.AdminRolesServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
   </bean>
+
+  <bean id="pingbackViewService" class="org.ambraproject.admin.service.impl.PingbackViewServiceImpl">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
 </beans>

@@ -128,4 +128,12 @@
     <property name="permissionsService" ref="permissionsService"/>
     <property name="adminAnnotationService" ref="adminAnnotationService"/>
   </bean>
+
+  <bean id="viewPingbacksAction" class="org.ambraproject.admin.action.ViewPingbacksAction">
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="pingbackViewService" ref="pingbackViewService"/>
+  </bean>
+
 </beans>

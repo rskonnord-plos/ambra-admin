@@ -26,6 +26,7 @@
 <@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
 <@s.url id="manageCaches" namespace="/" action="manageCaches" />
 <@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
+<@s.url id="viewPingbacks" namespace="/" action="viewPingbacks" />
 <@s.url id="logout" includeParams="none" namespace="/" action="secureRedirect"
   goTo="${freemarker_config.casLogoutURL}?" +
   "service=${Request[freemarker_config.journalContextAttributeKey].baseUrl}/" +
@@ -57,8 +58,11 @@
   |&nbsp;
   </#if>
   <#if permissions?seq_contains("DELETE_ARTICLES")>
-    <@s.a href="${deleteArticle}">Delete Article</@s.a>&nbsp;|&nbsp;
+      <@s.a href="${deleteArticle}">Delete Article</@s.a>&nbsp;|&nbsp;
   </#if>
+  <#--<#if permissions?seq_contains("VIEW_PINGBACKS")>-->
+      <@s.a href="${viewPingbacks}">View Pingbacks</@s.a>&nbsp;|&nbsp;
+  <#--</#if>-->
   <@s.a href="${logout}">Logout</@s.a>
 </p>
 <hr/>

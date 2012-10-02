@@ -130,6 +130,10 @@
     <property name="applicationId" ref="applicationId"/>
   </bean>
 
+  <bean id="pingbackViewService" class="org.ambraproject.admin.service.impl.PingbackViewServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+  </bean>
+
   <!--Caches from ambra.  Must add a bean for each one that we want to be able to clear-->
   <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
     <property name="configLocation" value="file://${ambra.services.ehcache.configFileLocation}"/>

@@ -468,6 +468,12 @@
 
     <action name="selectList" class="org.ambraproject.action.ListingAction"/>
 
+    <action name="viewPingbacks" class="org.ambraproject.admin.action.ViewPingbacksAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/viewPingbacks.ftl</param>
+      </result>
+    </action>
+
   </package>
 
 </struts>
