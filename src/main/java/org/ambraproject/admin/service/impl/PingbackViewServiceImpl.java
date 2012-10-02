@@ -4,8 +4,6 @@ import org.ambraproject.admin.service.PingbackViewService;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.Pingback;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -13,7 +11,6 @@ import java.util.List;
 import java.util.RandomAccess;
 
 public class PingbackViewServiceImpl extends HibernateServiceImpl implements PingbackViewService {
-  private static final Logger log = LoggerFactory.getLogger(PingbackViewServiceImpl.class);
 
   private static final String PINGBACKS_BY_DATE_HQL
       = "from Pingback as p, Article as a where p.articleID = a.ID order by p.created asc";
@@ -25,6 +22,9 @@ public class PingbackViewServiceImpl extends HibernateServiceImpl implements Pin
     return (list instanceof RandomAccess) ? list : new ArrayList<E>(list);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<PingbackWithArticle> listPingbacksByDate() {
     final List<?> results = forceRandomAccess(hibernateTemplate.find(PINGBACKS_BY_DATE_HQL));
@@ -42,6 +42,9 @@ public class PingbackViewServiceImpl extends HibernateServiceImpl implements Pin
     };
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<ArticleWithPingbackCount> listArticlesByPingbackCount() {
     final List<?> results = forceRandomAccess(hibernateTemplate.find(ARTICLES_BY_PINGBACK_COUNT_HQL));
