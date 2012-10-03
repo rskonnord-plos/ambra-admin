@@ -33,8 +33,8 @@
 <h3>Articles with Pingbacks</h3>
 <table border="1" cellpadding="10" cellspacing="0">
     <tr>
-        <td><b>Article</b></td>
-        <td><b>Pingback Count</b></td>
+        <th>Article</th>
+        <th>Pingback Count</th>
     </tr>
 <#list articlesWithPingbackCounts as obj>
     <tr>
@@ -47,9 +47,9 @@
 <h3>Individual Pingbacks</h3>
 <table border="1" cellpadding="10" cellspacing="0">
     <tr>
-        <td><b>Link Source</b></td>
-        <td><b>Linked Article</b></td>
-        <td><b>Timestamp</b></td>
+        <th>Link Source</th>
+        <th>Linked Article</th>
+        <th>Timestamp</th>
     </tr>
 <#list pingbacksByDate as obj>
     <tr>
