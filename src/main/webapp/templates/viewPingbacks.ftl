@@ -38,7 +38,7 @@
     </tr>
 <#list articlesWithPingbackCounts as obj>
     <tr>
-        <td><a href="${obj.article.url}">${obj.article.title}</a></td>
+        <td><a href="${obj.articleUrl}">${obj.articleTitle}</a></td>
         <td>${obj.pingbackCount}</td>
     </tr>
 </#list>
@@ -53,9 +53,9 @@
     </tr>
 <#list pingbacksByDate as obj>
     <tr>
-        <td><a href="${obj.pingback.url}">${obj.pingback.title}</a></td>
-        <td><a href="${obj.article.url}">${obj.article.title}</a></td>
-        <td>${obj.pingback.created}</td>
+        <td><a href="${obj.sourceUrl}">${obj.sourceTitle}</a></td>
+        <td><a href="${obj.articleUrl}">${obj.articleTitle}</a></td>
+        <td>${obj.timestamp}</td>
     </tr>
 </#list>
 </table>

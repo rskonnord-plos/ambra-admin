@@ -1,9 +1,8 @@
 package org.ambraproject.admin.service;
 
-import org.ambraproject.models.Article;
-import org.ambraproject.models.Pingback;
 import org.ambraproject.service.hibernate.HibernateService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,20 +32,38 @@ public interface PingbackViewService extends HibernateService {
    * A pingback paired with the article it belongs to.
    */
   public static class PingbackWithArticle {
-    private final Pingback pingback;
-    private final Article article;
+    private final String sourceUrl;
+    private final String sourceTitle;
+    private final String articleUrl;
+    private final String articleTitle;
+    private final Date timestamp;
 
-    public PingbackWithArticle(Pingback pingback, Article article) {
-      this.pingback = pingback;
-      this.article = article;
+    public PingbackWithArticle(String sourceUrl, String sourceTitle, String articleUrl, String articleTitle, Date timestamp) {
+      this.sourceUrl = sourceUrl;
+      this.sourceTitle = sourceTitle;
+      this.articleUrl = articleUrl;
+      this.articleTitle = articleTitle;
+      this.timestamp = timestamp;
     }
 
-    public Pingback getPingback() {
-      return pingback;
+    public String getSourceUrl() {
+      return sourceUrl;
     }
 
-    public Article getArticle() {
-      return article;
+    public String getSourceTitle() {
+      return sourceTitle;
+    }
+
+    public String getArticleUrl() {
+      return articleUrl;
+    }
+
+    public String getArticleTitle() {
+      return articleTitle;
+    }
+
+    public Date getTimestamp() {
+      return timestamp;
     }
   }
 
@@ -54,16 +71,22 @@ public interface PingbackViewService extends HibernateService {
    * An article paired with the number of pingbacks that it has.
    */
   public static class ArticleWithPingbackCount {
-    private final Article article;
+    private final String articleUrl;
+    private final String articleTitle;
     private final long pingbackCount;
 
-    public ArticleWithPingbackCount(Article article, long pingbackCount) {
-      this.article = article;
+    public ArticleWithPingbackCount(String articleUrl, String articleTitle, long pingbackCount) {
+      this.articleUrl = articleUrl;
+      this.articleTitle = articleTitle;
       this.pingbackCount = pingbackCount;
     }
 
-    public Article getArticle() {
-      return article;
+    public String getArticleUrl() {
+      return articleUrl;
+    }
+
+    public String getArticleTitle() {
+      return articleTitle;
     }
 
     public long getPingbackCount() {
