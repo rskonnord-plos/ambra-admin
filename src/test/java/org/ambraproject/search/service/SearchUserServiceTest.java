@@ -38,18 +38,21 @@ public class SearchUserServiceTest extends AdminBaseTest {
     user1.setAuthId("authId1ForSearchByDisplayName");
     user1.setEmail("email1@SearchByDisplayName.org");
     user1.setDisplayName("search_me");
+    user1.setPassword("pass");
     dummyDataStore.store(user1);
 
     UserProfile user2 = new UserProfile();
     user2.setAuthId("authId2ForSearchByDisplayName");
     user2.setEmail("email2@SearchByDisplayName.org");
     user2.setDisplayName("search_me1234");
+    user2.setPassword("pass");
     dummyDataStore.store(user2);
 
     UserProfile user3 = new UserProfile();
     user3.setAuthId("authId3ForSearchByDisplayName");
     user3.setEmail("email3@SearchByDisplayName.org");
     user3.setDisplayName("search_me12foo");
+    user3.setPassword("pass");
     dummyDataStore.store(user3);
 
     return new Object[][]{
@@ -88,18 +91,21 @@ public class SearchUserServiceTest extends AdminBaseTest {
     user1.setAuthId("authId1ForFindByEmail");
     user1.setEmail("search_email1@FindByEmail.org");
     user1.setDisplayName("displayName1ForFindByEmail");
+    user1.setPassword("pass");
     dummyDataStore.store(user1);
 
     UserProfile user2 = new UserProfile();
     user2.setAuthId("authId2ForFindByEmail");
     user2.setEmail("search_email2@FindByEmail.org");
     user2.setDisplayName("displayName2ForFindByEmail");
+    user2.setPassword("pass");
     dummyDataStore.store(user2);
 
     UserProfile user3 = new UserProfile();
     user3.setAuthId("authId3ForFindByEmail");
     user3.setEmail("search_email3@FindByEmail.org");
     user3.setDisplayName("displayName3ForFindByEmail");
+    user3.setPassword("pass");
     dummyDataStore.store(user3);
 
     return new Object[][]{

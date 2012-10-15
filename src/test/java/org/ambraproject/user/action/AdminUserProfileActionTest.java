@@ -56,6 +56,7 @@ public class AdminUserProfileActionTest extends AdminWebTest {
     user.setCity("my city");
     user.setCountry("my country");
     user.setAuthId("auth-id-for-AdminUserActionTest");
+    user.setPassword("pass");
     dummyDataStore.store(user);
 
     return new Object[][]{
@@ -299,20 +300,6 @@ public class AdminUserProfileActionTest extends AdminWebTest {
     assertEquals(action.getFieldErrors().size(), 1, "action added unexpected field errors for fields: "
         + StringUtils.join(action.getFieldErrors().keySet(), ","));
   }
-
-  @Test(dataProvider = "user")
-  public void testSaveWithDuplicateDisplayName(UserProfile userProfile) throws Exception {
-    action.setUserAuthId("new-auth-key-for-dup-displayName");
-    action.setDisplayName(userProfile.getDisplayName());
-    action.setGivenNames(userProfile.getGivenNames());
-    action.setSurnames(userProfile.getSurname());
-
-    String result = action.executeSaveUser();
-    assertEquals(result, Action.INPUT, "Action didn't return input");
-    assertNotNull(action.getFieldErrors().get("displayName"));
-    assertEquals(action.getFieldErrors().size(), 1, "action added unexpeceted field errors");
-  }
-
 
   @Override
   protected BaseActionSupport getAction() {

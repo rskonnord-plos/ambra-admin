@@ -98,9 +98,9 @@ public class DeleteArticleActionTest extends AdminWebTest {
 
     //add some annotations to the article to see that they get deleted
     UserProfile creator = new UserProfile(
-        "authIdDeleteArticleAction",
         "email@DeleteArticleAction.org",
-        "displayNameDeleteArticleAction"
+        "displayNameDeleteArticleAction",
+        "pass"
     );
     dummyDataStore.store(creator);
     Annotation comment = new Annotation(creator, AnnotationType.COMMENT, article.getID());

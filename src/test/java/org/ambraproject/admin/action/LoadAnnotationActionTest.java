@@ -51,9 +51,9 @@ public class LoadAnnotationActionTest extends AdminWebTest {
   @DataProvider(name = "annotation")
   public Object[][] getAnnotation() throws ParseException {
     UserProfile creator = new UserProfile(
-        "authIdForLoadAnnotationActionTest",
         "email@loadAnnotationActionTest.org",
-        "displayNameForLoadAnnotationActionTest"
+        "displayNameForLoadAnnotationActionTest",
+        "pass"
     );
     dummyDataStore.store(creator);
 

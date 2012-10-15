@@ -28,7 +28,7 @@
     <camel.version>2.6.0</camel.version>
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
-    <ambra.version>2.4.4</ambra.version>
+    <ambra.version>2.4.6-SNAPSHOT</ambra.version>
     <filestore.version>1.0.1</filestore.version>
   </properties>
 

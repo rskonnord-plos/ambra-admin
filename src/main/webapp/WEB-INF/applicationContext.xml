@@ -84,8 +84,6 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
     <property name="configuration" ref="ambraConfiguration"/>
-    <property name="emailAddressUrl" value="${ambra.services.cas.url.base}/email"/>
-    <property name="authIdParam" value="guid"/>
   </bean>
 
   <bean id="annotationService" class="org.ambraproject.service.annotation.AnnotationServiceImpl">
