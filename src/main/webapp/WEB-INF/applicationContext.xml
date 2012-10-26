@@ -165,6 +165,15 @@
     *
     *
     *****************************************-->
+  <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <property name="host" value="${ambra.network.hosts.mailhost}"/>
+  </bean>
+
+  <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <property name="templateLoaderPath" value="/WEB-INF/emailTemplates/"/>
+    <property name="defaultEncoding" ref="defaultEncodingCharset"/>
+  </bean>
+
 
   <bean id="ambraMailer" class="org.ambraproject.service.mailer.AmbraMailerImpl">
     <property name="fromEmailAddress" value="application@plosone.org"/>
@@ -192,17 +201,18 @@
         <entry key="subject" value="An ambra error has occured"/>
       </map>
     </property>
+    <property name="mailSender" ref="mailSender"/>
+    <property name="freemarkerConfig" ref="freemarkerConfig"/>
   </bean>
   <bean id="configurationStore" class="org.topazproject.ambra.configuration.ConfigurationStore"
         factory-method="getInstance"/>
 
   <bean id="ambraConfiguration" factory-bean="configurationStore" factory-method="getConfiguration"/>
 
-  <bean id="documentBuilderFactory" class="org.ambraproject.util.DocumentBuilderFactoryCreator"
-        factory-method="createFactory"/>
-
-  <bean id="documentBuilder" class="javax.xml.parsers.DocumentBuilder" factory-bean="documentBuilderFactory"
-        factory-method="newDocumentBuilder"/>
+  <import resource="classpath:dtds-context.xml"/>
+  <bean id="documentBuilderFactory" class="org.ambraproject.util.DocumentBuilderFactoryCreator" factory-method="createFactory">
+    <constructor-arg ref="dtds"/>
+  </bean>
 
   <!-- *****************************
   *
@@ -240,7 +250,7 @@
   </util:map>
 
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
-    <property name="documentBuilder" ref="documentBuilder"/>
+    <property name="documentBuilderFactory" ref="documentBuilderFactory"/>
     <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
     <property name="xslTemplateMap" ref="xslTemplateMap"/>
     <property name="configuration" ref="ambraConfiguration"/>

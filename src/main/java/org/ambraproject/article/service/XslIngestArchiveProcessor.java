@@ -23,7 +23,6 @@ package org.ambraproject.article.service;
 
 import net.sf.saxon.Controller;
 import net.sf.saxon.TransformerFactoryImpl;
-import net.sf.saxon.serialize.Emitter;
 import net.sf.saxon.serialize.MessageWarner;
 import org.ambraproject.article.ArchiveProcessException;
 import org.ambraproject.models.Article;
@@ -36,10 +35,10 @@ import org.ambraproject.models.CitedArticle;
 import org.ambraproject.models.CitedArticleAuthor;
 import org.ambraproject.models.CitedArticleEditor;
 import org.ambraproject.models.Journal;
-import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -53,6 +52,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -86,7 +87,7 @@ import java.util.zip.ZipFile;
 public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
   private static final Logger log = LoggerFactory.getLogger(XslIngestArchiveProcessor.class);
 
-  private DocumentBuilder documentBuilder;
+  private DocumentBuilderFactory documentBuilderFactory;
   private TransformerFactory transformerFactory;
   private InputStream xslDefaultTemplate;
   private Map<String, String> xslTemplateMap;
@@ -213,11 +214,11 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
   /**
    * Set the document builder to use for constructing documents from the zip file entries
    *
-   * @param documentBuilder - the document builder to use
+   * @param documentBuilderFactory - the document builder to use
    */
   @Required
-  public void setDocumentBuilder(DocumentBuilder documentBuilder) {
-    this.documentBuilder = documentBuilder;
+  public void setDocumentBuilderFactory(DocumentBuilderFactory documentBuilderFactory) {
+    this.documentBuilderFactory = documentBuilderFactory;
   }
 
   @Required
@@ -660,7 +661,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
    */
   private Document transformZip(ZipFile zip, String zipInfo, Document articleXml, String doiUrlPrefix)
       throws TransformerException, URISyntaxException {
-    Transformer t = getTranslet(articleXml);
+    Transformer t = getTranslet(articleXml, documentBuilderFactory);
     t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
     t.setURIResolver(new ZipURIResolver(zip));
 
@@ -734,7 +735,9 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     InputStream inputStream = null;
     try {
       inputStream = zipFile.getInputStream(zipFile.getEntry(fileName));
-      return documentBuilder.parse(inputStream);
+      return documentBuilderFactory.newDocumentBuilder().parse(inputStream);
+    } catch (ParserConfigurationException e) {
+      throw new IOException(e);
     } finally {
       if (inputStream != null) {
         try {
@@ -853,11 +856,13 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
    * IF the DTD version does not exist use the default template else use the
    * template associated with that version.
    *
+   *
    * @param  doc  the dtd version of document
+   * @param documentBuilderFactory
    * @return Translet for the xslTemplate.
    * @throws javax.xml.transform.TransformerException TransformerException.
    */
-  private Transformer getTranslet(Document doc) throws TransformerException, URISyntaxException {
+  private Transformer getTranslet(Document doc, final DocumentBuilderFactory documentBuilderFactory) throws TransformerException, URISyntaxException {
     final TransformerFactory tFactory = TransformerFactory.newInstance();    // key is "" if the Attribute does not exist
     InputStream templateStream;
 
@@ -870,6 +875,23 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     }
 
     Templates translet = tFactory.newTemplates(new StreamSource(templateStream));
-    return translet.newTransformer();
+    Transformer transformer = translet.newTransformer();
+    transformer.setURIResolver(new URIResolver() {
+      @Override
+      public Source resolve(String href, String base) throws TransformerException {
+        InputStream inputStream = null;
+        try {
+          inputStream = this.getClass().getClassLoader().getResourceAsStream(href);
+          return new DOMSource(documentBuilderFactory.newDocumentBuilder().parse(inputStream));
+        } catch(Exception ex) {
+          throw new TransformerException(ex.getMessage(), ex);
+        } finally {
+          if (inputStream != null) {
+            IOUtils.closeQuietly(inputStream);
+          }
+        }
+      }
+    });
+    return transformer;
   }
 }
