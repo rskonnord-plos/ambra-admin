@@ -23,7 +23,6 @@ package org.ambraproject.article.service;
 
 import net.sf.saxon.Controller;
 import net.sf.saxon.TransformerFactoryImpl;
-import net.sf.saxon.serialize.Emitter;
 import net.sf.saxon.serialize.MessageWarner;
 import org.ambraproject.article.ArchiveProcessException;
 import org.ambraproject.models.Article;
@@ -36,7 +35,6 @@ import org.ambraproject.models.CitedArticle;
 import org.ambraproject.models.CitedArticleAuthor;
 import org.ambraproject.models.CitedArticleEditor;
 import org.ambraproject.models.Journal;
-import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
@@ -243,6 +241,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       journal.seteIssn(article.geteIssn());
       article.setJournals(new HashSet<Journal>());
       article.getJournals().add(journal);
+      article.setStrkImgURI(extractStrikingImageURI(archive));
       return article;
     } catch (IOException e) {
       throw new ArchiveProcessException("Error reading from Zip archive", e);
@@ -719,6 +718,18 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     } catch (Exception e) {
       throw new ArchiveProcessException("Error extracting article xml from archive: " + archive.getName(), e);
     }
+  }
+
+  @Override
+  public String extractStrikingImageURI(ZipFile archive) throws ArchiveProcessException {
+     String strkImg = "";
+     try {
+       Document manifest = extractXml(archive, "MANIFEST.xml");
+       strkImg = xPathUtil.evaluate(manifest, "//object[@strkImage='True']/@uri");
+     } catch (Exception e) {
+       log.info("No Striking image selected in manifest.xml. " + archive.getName());
+     }
+     return strkImg;
   }
 
   /**
