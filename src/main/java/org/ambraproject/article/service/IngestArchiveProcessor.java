@@ -58,4 +58,12 @@ public interface IngestArchiveProcessor {
    * @return - the article xml
    */
   public Document extractArticleXml(ZipFile archive) throws ArchiveProcessException;
+
+  /**
+   * Pull the article striking image uri from the MANIFEST.xml
+   *
+   * @param archive - the ingest archive
+   * @return - the article striking image URI
+   */
+  public String extractStrikingImageURI(ZipFile archive) throws ArchiveProcessException;
 }

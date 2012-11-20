@@ -65,6 +65,9 @@ public class AdminRolesServiceTest extends AdminBaseTest {
 
     UserProfile up = new UserProfile();
     up.setDisplayName("Test User");
+    up.setDisplayName("adminRolesServiceTest");
+    up.setEmail("adminRolesServiceTest@example.org");
+    up.setPassword("pass");
     up.setRoles(roles);
 
     dummyDataStore.store(up);
@@ -119,7 +122,9 @@ public class AdminRolesServiceTest extends AdminBaseTest {
     roles.add(ur2);
 
     UserProfile up = new UserProfile();
-    up.setDisplayName("Test User2");
+    up.setDisplayName("adminRolesServiceTest2");
+    up.setEmail("adminRolesServiceTest2@example.org");
+    up.setPassword("pass");
     up.setRoles(roles);
 
     dummyDataStore.store(up);
@@ -147,7 +152,9 @@ public class AdminRolesServiceTest extends AdminBaseTest {
   public Object[][] roles()
   {
     UserProfile up = new UserProfile();
-    up.setDisplayName("Test User5");
+    up.setDisplayName("roles5");
+    up.setEmail("roles5@example.org");
+    up.setPassword("pass");
 
     dummyDataStore.store(up);
 
@@ -204,7 +211,9 @@ public class AdminRolesServiceTest extends AdminBaseTest {
     roles.add(ur2);
 
     UserProfile up = new UserProfile();
-    up.setDisplayName("Test User6");
+    up.setDisplayName("assignedRoles");
+    up.setEmail("assignedRoles@example.org");
+    up.setPassword("pass");
     up.setRoles(roles);
 
     dummyDataStore.store(up);
@@ -268,7 +277,9 @@ public class AdminRolesServiceTest extends AdminBaseTest {
     roles.add(ur2);
 
     UserProfile up = new UserProfile();
-    up.setDisplayName("Test User3");
+    up.setDisplayName("roles3");
+    up.setEmail("roles3@example.org");
+    up.setPassword("pass");
     up.setRoles(roles);
 
     dummyDataStore.store(up);

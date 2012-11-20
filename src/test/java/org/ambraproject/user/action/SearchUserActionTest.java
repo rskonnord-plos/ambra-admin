@@ -54,6 +54,7 @@ public class SearchUserActionTest extends AdminWebTest {
     userProfile.setResearchAreas("areas to research");
     userProfile.setCity("city");
     userProfile.setCountry("country");
+    userProfile.setPassword("pass");
 
     dummyDataStore.store(userProfile);
 

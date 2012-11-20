@@ -50,6 +50,7 @@ public class EditRolesActionTest extends AdminWebTest {
     up.setAuthId("AUTHID");
     up.setDisplayName("user name 1");
     up.setEmail("test@ambraproject.org");
+    up.setPassword("pass");
 
     dummyDataStore.store(up);
 
@@ -80,6 +81,8 @@ public class EditRolesActionTest extends AdminWebTest {
     UserProfile up = new UserProfile();
     up.setDisplayName("user name 2");
     up.setAuthId("TESTUSER2");
+    up.setEmail("twoRoles@example.org");
+    up.setPassword("pass");
     dummyDataStore.store(up);
 
     UserRole ur1 = new UserRole();
@@ -149,6 +152,8 @@ public class EditRolesActionTest extends AdminWebTest {
     UserProfile up = new UserProfile();
     up.setDisplayName("user name 3");
     up.setAuthId("USERAUTH5");
+    up.setEmail("threeRoles@example.com");
+    up.setPassword("pass");
     up.setRoles(roles);
     dummyDataStore.store(up);
 

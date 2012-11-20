@@ -12,11 +12,9 @@
  */
 package org.ambraproject.user.action;
 
-import org.ambraproject.ApplicationException;
 import org.ambraproject.Constants;
 import org.ambraproject.action.BaseSessionAwareActionSupport;
 import org.ambraproject.models.UserProfile;
-import org.ambraproject.service.user.DuplicateDisplayNameException;
 import org.ambraproject.service.user.UserService;
 import org.ambraproject.util.ProfanityCheckingService;
 import org.ambraproject.util.TextUtils;
@@ -28,8 +26,6 @@ import org.springframework.beans.factory.annotation.Required;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static org.ambraproject.Constants.SINGLE_SIGNON_EMAIL_KEY;
 
 /**
  * User Profile Action to be used by the admin to update the profile of any member user
@@ -109,20 +105,14 @@ public class AdminUserProfileAction extends BaseSessionAwareActionSupport {
   public String execute() throws Exception {
     String authId = getUserAuthId();
     UserProfile userProfile = userService.getUserByAuthId(authId);
-    if (userProfile != null) {
-      setFieldsFromProfile(userProfile);
-      showDisplayName = false;
-      //If there is no display name, this is an old user without one, and we need to return a specific code
-      //(otherwise we'll loop infinitely because EnsureAccountUserInterceptor will keep returning UPDATE_PROFILE
-      if (displayName == null || displayName.isEmpty()) {
-        return Constants.ReturnCode.UPDATE_PROFILE;
-      } else {
-        return SUCCESS;
-      }
+    setFieldsFromProfile(userProfile);
+    showDisplayName = false;
+    //If there is no display name, this is an old user without one, and we need to return a specific code
+    //(otherwise we'll loop infinitely because EnsureAccountUserInterceptor will keep returning UPDATE_PROFILE
+    if (displayName == null || displayName.isEmpty()) {
+      return Constants.ReturnCode.UPDATE_PROFILE;
     } else {
-      //this is a new user
-      email = fetchUserEmailAddress();
-      return Constants.ReturnCode.NEW_PROFILE;
+      return SUCCESS;
     }
   }
 
@@ -136,13 +126,8 @@ public class AdminUserProfileAction extends BaseSessionAwareActionSupport {
     //Make sure to set the auth id so the user service can see if this account already exists
     String userAuthId = getUserAuthId();
     profile.setAuthId(userAuthId);
-    try {
-      UserProfile savedProfile = userService.saveOrUpdateUser(profile);
-      afterSave(savedProfile);
-    } catch (DuplicateDisplayNameException e) {
-      addFieldError(DISPLAY_NAME, "A user already exists with the given user name");
-      return INPUT;
-    }
+    UserProfile savedProfile = userService.updateProfile(profile);
+    afterSave(savedProfile);
     return SUCCESS;
   }
 
@@ -291,29 +276,6 @@ public class AdminUserProfileAction extends BaseSessionAwareActionSupport {
     }
 
     return userProfile;
-  }
-
-  /**
-   * Get the email address of the user being edited. This is taken from the session, if it's there, or else from CAS
-   * <p/>
-   * We only need to call this if we're editing a new user whose email isn't in ambra's database
-   *
-   * @return the email address of the user being edited
-   * @throws org.ambraproject.ApplicationException if there was a problem talking to the CAS server
-   */
-  @SuppressWarnings("unchecked")
-  protected String fetchUserEmailAddress() throws ApplicationException {
-    String presetEmail = (String) session.get(SINGLE_SIGNON_EMAIL_KEY);
-    if (presetEmail != null) {
-      return presetEmail;
-    } else {
-      String email = userService.fetchUserEmailFromCas(getUserAuthId());
-      if (email == null) {
-        throw new ApplicationException("Unable to fetch user email address for authid: " + getUserAuthId());
-      }
-      session.put(SINGLE_SIGNON_EMAIL_KEY, email);
-      return email;
-    }
   }
 
   private String makeValidUrl(final String url) throws MalformedURLException {

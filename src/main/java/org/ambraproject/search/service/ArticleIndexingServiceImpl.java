@@ -45,6 +45,10 @@ import org.ambraproject.service.mailer.AmbraMailer;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.ambraproject.models.Article;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.*;
@@ -53,6 +57,7 @@ import java.util.*;
  * Service class that handles article search indexing. It is plugged in as OnPublishListener into
  * DocumentManagementService.
  *
+ * @author Bill OConnor
  * @author Dragisa Krsmanovic
  */
 public class ArticleIndexingServiceImpl extends HibernateServiceImpl
@@ -180,12 +185,13 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
     }
 
     Document doc = articleDocumentService.getFullDocument(articleId);
+    String strkImagURI = getStrikingImage(articleId);
 
     if (doc == null) {
       log.error("Search indexing failed for " + articleId + ". Returned document is NULL.");
       return;
     }
-
+    doc = addStrikingImage(doc, strkImagURI);
     messageSender.sendMessage(indexingQueue, doc);
   }
 
@@ -198,12 +204,13 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
   private void indexOneArticle(String articleId) throws Exception {
 
     Document doc = articleDocumentService.getFullDocument(articleId);
+    String strkImagURI = getStrikingImage(articleId);
 
     if (doc == null) {
       log.error("Search indexing failed for " + articleId + ". Returned document is NULL.");
       return;
     }
-
+    doc = addStrikingImage(doc, strkImagURI);
     messageSender.sendMessage(Routes.SEARCH_INDEX, doc);
   }
 
@@ -285,17 +292,23 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
     while (bContinue) {
       try {
         // get the list of articles
-        List<String> articleDois = hibernateTemplate.findByCriteria(
+        List<Object[]> articleDoiStrkImgs = (List<Object[]>)hibernateTemplate.findByCriteria(
             DetachedCriteria.forClass(Article.class)
                 .add(Restrictions.eq("state", Article.STATE_ACTIVE))
-                .setProjection(Projections.property("doi")),
+                .setProjection(Projections.projectionList()
+                    .add(Projections.property("doi"))
+                    .add(Projections.property("strkImgURI"))),
             offset, incrementLimitSize
         );
 
-        for (String articleId : articleDois) {
+        for (Object[] row  : articleDoiStrkImgs) {
+          String articleId = (String)row[0];
+          String strkImgURI = ((row.length > 1) && (row[1] != null)) ? (String)row[1] : "";
+
           try {
-            // get the article xml and add the necessary information to the xml
+            // Append the article striking image to the <article-meta> node list
             Document doc = articleDocumentService.getFullDocument(articleId);
+            doc = addStrikingImage(doc, strkImgURI);
 
             // send the article xml to plos-queue to be indexed
             messageSender.sendMessage(indexingQueue, doc);
@@ -340,6 +353,20 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
   }
 
   /**
+   *  Add the article-strkImg tag as a child  to the article-meta
+   *  tag of the article ml.
+   */
+  private Document addStrikingImage(Document doc, String strkImagURI ) {
+    NodeList metaNodeLst = doc.getElementsByTagName("article-meta");
+    Node metaNode = metaNodeLst.item(0);
+    Element strkImgElem = doc.createElement("article-strkImg");
+
+    strkImgElem.setTextContent(strkImagURI);
+    metaNode.appendChild(strkImgElem.cloneNode(true));
+    return doc;
+  }
+
+  /**
    * Transfer object for 3 values
    */
   private static class Result {
@@ -352,6 +379,29 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
       this.failed = failed;
       this.partialUpdate = partialUpdate;
     }
+  }
+
+  /**
+   * Return the striking image URI using the doi for the article.
+   *
+   * @param doi
+   * @return striking image uri
+   */
+  private String getStrikingImage(String doi) {
+    // get the list of articles
+    List<String> articleStrkImg = hibernateTemplate.findByCriteria(
+        DetachedCriteria.forClass(Article.class)
+            .add(Restrictions.eq("state", Article.STATE_ACTIVE))
+            .add(Restrictions.eq("doi", doi))
+            .setProjection(Projections.property("strkImgURI")),
+        0, incrementLimitSize
+    );
+
+    String rslt = "";
+    if ((articleStrkImg.size() != 0) && (articleStrkImg.get(0) != null))
+      rslt = articleStrkImg.get(0);
+
+    return rslt;
   }
 
 }
