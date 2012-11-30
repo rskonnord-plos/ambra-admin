@@ -139,7 +139,6 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
     try {
       final Document articleXml = ingestArchiveProcessor.extractArticleXml(archive);
       article = ingestArchiveProcessor.processArticle(archive, articleXml);
-      updateWithExistingCategories(article);
       updateWithExistingJournal(article);
 
       final String articleDoi = article.getDoi();
@@ -196,36 +195,6 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
     } catch (NoSuchArticleIdException e) {
       throw new IngestException("Article wasn't stored to the database", e);
     }
-  }
-
-  /**
-   * Update the article to reference any already existing categories in the database.
-   *
-   * @param article the article to update
-   */
-  private void updateWithExistingCategories(Article article) {
-    Set<Category> correctCategories = new HashSet<Category>(article.getCategories().size());
-    for (Category category : article.getCategories()) {
-      try {
-        Category existingCategory;
-        if (category.getSubCategory() != null) {
-          existingCategory = (Category) hibernateTemplate.findByCriteria(
-              DetachedCriteria.forClass(Category.class)
-                  .add(Restrictions.eq("mainCategory", category.getMainCategory()))
-                  .add(Restrictions.eq("subCategory", category.getSubCategory())), 0, 1).get(0);
-        } else {
-          existingCategory = (Category) hibernateTemplate.findByCriteria(
-              DetachedCriteria.forClass(Category.class)
-                  .add(Restrictions.eq("mainCategory", category.getMainCategory()))
-                  .add(Restrictions.isNull("subCategory")), 0, 1).get(0);
-        }
-        correctCategories.add(existingCategory);
-      } catch (IndexOutOfBoundsException e) {
-        //category must not have existed
-        correctCategories.add(category);
-      }
-    }
-    article.setCategories(correctCategories);
   }
 
   @SuppressWarnings("unchecked")
