@@ -59,10 +59,12 @@ public class SampleArticleData {
 
     Set<Category> categories = new HashSet<Category>(2);
     Category category1 = new Category();
-    category1.setMainCategory("Mental Health");
+    category1.setMainCategory("TopLevel1");
+    category1.setSubCategory("term1");
     categories.add(category1);
     Category category2 = new Category();
-    category2.setMainCategory("Public Health and Epidemiology");
+    category2.setMainCategory("TopLevel2");
+    category2.setSubCategory("term2");
     categories.add(category2);
     article.setCategories(categories);
 

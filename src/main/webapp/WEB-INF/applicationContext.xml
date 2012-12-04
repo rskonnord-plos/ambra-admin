@@ -58,6 +58,23 @@
     <property name="ambraFreemarkerConfig" ref="ambraFreemarkerConfig"/>
   </bean>
 
+  <!--Http Client-->
+  <bean id="httpConnectionManagerParams" class="org.apache.commons.httpclient.params.HttpConnectionManagerParams">
+    <!-- time out after 30 sec -->
+    <property name="soTimeout" value="30000"/>
+    <property name="connectionTimeout" value="30000"/>
+  </bean>
+
+  <bean id="multiThreadedHttpConnectionManager"
+        class="org.apache.commons.httpclient.MultiThreadedHttpConnectionManager">
+    <property name="params" ref="httpConnectionManagerParams"/>
+  </bean>
+
+  <bean id="httpClient" class="org.apache.commons.httpclient.HttpClient">
+    <constructor-arg index="0" ref="multiThreadedHttpConnectionManager"/>
+  </bean>
+
+
   <!--service beans-->
 
   <bean id="articleService" class="org.ambraproject.service.article.ArticleServiceImpl">
@@ -243,11 +260,17 @@
            value="${ambra.services.ingest.dtd_3_0}"/>
   </util:map>
 
+  <bean id="articleClassifier" class="org.ambraproject.service.article.AIArticleClassifier">
+    <property name="httpClient" ref="httpClient"/>
+    <property name="serviceUrl" value="${ambra.services.ai.url}"/>
+  </bean>
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
     <property name="documentBuilder" ref="documentBuilder"/>
     <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
     <property name="xslTemplateMap" ref="xslTemplateMap"/>
     <property name="configuration" ref="ambraConfiguration"/>
+    <property name="articleClassifier" ref="articleClassifier"/>
+    <property name="articleService" ref="articleService"/>
   </bean>
 
   <bean id="ingester" class="org.ambraproject.article.service.IngesterImpl">

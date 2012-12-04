@@ -35,6 +35,9 @@ import org.ambraproject.models.CitedArticle;
 import org.ambraproject.models.CitedArticleAuthor;
 import org.ambraproject.models.CitedArticleEditor;
 import org.ambraproject.models.Journal;
+import org.ambraproject.service.article.ArticleClassifier;
+import org.ambraproject.service.article.ArticleService;
+import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
@@ -51,7 +54,14 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.*;
+import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -69,7 +79,12 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -90,6 +105,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
   private Map<String, String> xslTemplateMap;
   private Configuration configuration;
   private XPathUtil xPathUtil;
+  private ArticleClassifier articleClassifier;
+  private ArticleService articleService;
 
   public XslIngestArchiveProcessor() {
     transformerFactory = new TransformerFactoryImpl();
@@ -223,6 +240,16 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     this.configuration = configuration;
   }
 
+  @Required
+  public void setArticleClassifier(ArticleClassifier articleClassifier) {
+    this.articleClassifier = articleClassifier;
+  }
+
+  @Required
+  public void setArticleService(ArticleService articleService) {
+    this.articleService = articleService;
+  }
+
   @Override
   public Article processArticle(ZipFile archive, Document articleXml) throws ArchiveProcessException {
     InputStream xsl = null;
@@ -237,6 +264,18 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
           ? archive.getName().substring(archive.getName().lastIndexOf(File.separator) + 1)
           : archive.getName();
       article.setArchiveName(archiveName);
+
+      // Attempt to assign categories to the article based on the taxonomy server.  However,
+      // we still want to ingest the article even if this process fails.
+      List<String> terms = null;
+      try {
+        terms = articleClassifier.classifyArticle(articleXml);
+      } catch (Exception e) {
+        log.warn("Taxonomy server not responding, but ingesting article anyway", e);
+      }
+      if (terms != null && terms.size() > 0) {
+        articleService.setArticleCategories(article, terms);
+      }
       Journal journal = new Journal();
       journal.seteIssn(article.geteIssn());
       article.setJournals(new HashSet<Journal>());
@@ -253,6 +292,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       throw new ArchiveProcessException("Error parsing transformed xml", e);
     } catch (URISyntaxException e) {
       throw new ArchiveProcessException("Error malformed uri", e);
+    } catch (Exception e) {
+      throw new ArchiveProcessException("Error parsing xml", e);
     } finally {
       if (xsl != null) {
         try {
@@ -343,10 +384,6 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     //types
     Set<String> articleTypes = parseArticleTypes(transformedXml);
     article.setTypes(articleTypes);
-
-    //categories
-    Set<Category> categories = parseArticleCategories(transformedXml);
-    article.setCategories(categories);
 
     //authors
     List<ArticleAuthor> authors = parseArticleAuthors(transformedXml);
@@ -513,6 +550,11 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     return references;
   }
 
+  // TODO: consider deleting this method.  It is not presently called.  This is the old taxonomy,
+  // where we get category information from the article XML.  We are changing this over to the
+  // new AI taxonomy, which we get from a call to an external server.  I'm keeping this method
+  // around for the time being since it's not clear what we should do if the taxonomy server
+  // is down (perhaps fall back to this)?
   private Set<Category> parseArticleCategories(Document transformedXml) throws XPathExpressionException {
     int categoryCount = Integer.valueOf(xPathUtil.evaluate(transformedXml, "count(//Article/categories)"));
     Set<Category> categories = new HashSet<Category>(categoryCount);

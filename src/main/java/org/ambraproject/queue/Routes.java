@@ -54,7 +54,7 @@ public class Routes extends SpringRouteBuilder {
    * <p>
    * Response queues are obtained from configuration file.
    * Beans that consume response queue are named <target_lowercase>ResponseConsumer and should already
-   * be defined in Spring context. For examle for PMC, consumer bean is named "pmcResponseConsumer".
+   * be defined in Spring context. For example for PMC, consumer bean is named "pmcResponseConsumer".
    * </p>
    * <p>
    * In addition to normal route, two routes for testing are configuret for each target:
