@@ -76,31 +76,29 @@
             <@s.checkbox name="commentsToUnflag" label="Remove Flag" fieldValue="${flaggedComment.ID}"/>
             <br/>
             <@s.checkbox name="commentsToDelete" label="${deleteLabel}" fieldValue="${flaggedComment.ID}"/>
-          <#--NOTE: Admins cannot convert general comments to corrections.-->
-            <#if flaggedComment.isCorrection || flaggedComment.isNote>
+            <#--NOTE: Admins cannot convert general comments to corrections.-->
+            <br/>
+            Convert to:
+            <br/>
+            <#if !flaggedComment.isMinorCorrection >
+              <@s.checkbox name="convertToMinorCorrection" label="Minor Correction"
+              fieldValue="${flaggedComment.ID}"/>
               <br/>
-              Convert to:
+            </#if>
+            <#if !flaggedComment.isFormalCorrection >
+              <@s.checkbox name="convertToFormalCorrection" label="Formal Correction"
+              fieldValue="${flaggedComment.ID}"/>
               <br/>
-              <#if !flaggedComment.isMinorCorrection >
-                <@s.checkbox name="convertToMinorCorrection" label="Minor Correction"
-                fieldValue="${flaggedComment.ID}"/>
-                <br/>
-              </#if>
-              <#if !flaggedComment.isFormalCorrection >
-                <@s.checkbox name="convertToFormalCorrection" label="Formal Correction"
-                fieldValue="${flaggedComment.ID}"/>
-                <br/>
-              </#if>
-              <#if !flaggedComment.isRetraction >
-                <@s.checkbox name="convertToRetraction" label="Retraction"
-                fieldValue="${flaggedComment.ID}"/>
-                <br/>
-              </#if>
-              <#if flaggedComment.isCorrection >
-                <@s.checkbox name="convertToNote" label="Note"
-                fieldValue="${flaggedComment.ID}"/>
-                <br/>
-              </#if>
+            </#if>
+            <#if !flaggedComment.isRetraction >
+              <@s.checkbox name="convertToRetraction" label="Retraction"
+              fieldValue="${flaggedComment.ID}"/>
+              <br/>
+            </#if>
+            <#if flaggedComment.isCorrection >
+              <@s.checkbox name="convertToNote" label="Note"
+              fieldValue="${flaggedComment.ID}"/>
+              <br/>
             </#if>
           </td>
         </tr>
