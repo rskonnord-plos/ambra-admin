@@ -30,6 +30,7 @@ import org.ambraproject.views.TOCArticleGroup;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -64,7 +65,7 @@ public class AdminServiceTest extends AdminBaseTest {
 
   //get the configuration autowired to be sure it's been intitialized by the time we test article types
   @Autowired
-  protected Configuration configuraion;
+  protected @Qualifier("ambraConfiguration") Configuration configuraion;
 
   @Test
   public void testUpdateIssue() {

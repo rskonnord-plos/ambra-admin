@@ -17,6 +17,7 @@ import org.ambraproject.admin.AdminBaseTest;
 import org.ambraproject.web.VirtualJournalContext;
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -37,7 +38,7 @@ public class RedirectToAmbraFilterTest extends AdminBaseTest {
 
   //Make sure we load up the ambra test config
   @Autowired
-  protected Configuration configuration;
+  protected @Qualifier("ambraConfiguration") Configuration configuration;
 
   private RedirectToAmbraFilter filter;
 
