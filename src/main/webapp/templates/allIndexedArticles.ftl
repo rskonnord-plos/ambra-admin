@@ -28,7 +28,7 @@
   <h1 style="text-align: center">Article Re Indexing</h1>
   <#include "includes/navigation.ftl">
 
-  <h2>Artice indexing started. Response will be sent to ${email}.</h2>
+  <h2>Article indexing started. Response will be sent to ${email}.</h2>
 
 </body>
 </html>

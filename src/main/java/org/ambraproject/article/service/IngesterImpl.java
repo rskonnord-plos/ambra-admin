@@ -286,7 +286,10 @@ public class IngesterImpl extends HibernateServiceImpl implements Ingester {
           if (Collection.class.isAssignableFrom(property.getPropertyType())) {
             Collection orig = (Collection) destination.getPropertyValue(name);
             orig.clear();
-            orig.addAll((Collection) source.getPropertyValue(name));
+            Collection sourcePropertyValue = (Collection) source.getPropertyValue(name);
+            if (sourcePropertyValue != null) {
+              orig.addAll((Collection) source.getPropertyValue(name));
+            }
           } else {
             //just set the new value
             destination.setPropertyValue(name, source.getPropertyValue(name));

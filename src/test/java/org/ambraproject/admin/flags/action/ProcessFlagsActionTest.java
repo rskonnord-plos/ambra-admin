@@ -23,7 +23,6 @@ import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAuthor;
 import org.ambraproject.models.Flag;
 import org.ambraproject.models.FlagReasonCode;
-import org.ambraproject.models.Rating;
 import org.ambraproject.models.UserProfile;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +58,6 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     action.setCommentsToUnflag(EMPTY_ARRAY);
     action.setConvertToFormalCorrection(EMPTY_ARRAY);
     action.setConvertToMinorCorrection(EMPTY_ARRAY);
-    action.setConvertToNote(EMPTY_ARRAY);
     action.setConvertToRetraction(EMPTY_ARRAY);
   }
 
@@ -105,14 +103,6 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     Flag flagReply = new Flag(creator, FlagReasonCode.SPAM, reply);
     dummyDataStore.store(flagReply);
     flagIds.add(flagReply.getID());
-
-    Rating rating = new Rating(creator, article.getID());
-    dummyDataStore.store(rating);
-    annotationIds.add(rating.getID());
-
-    Flag flagRating = new Flag(creator, FlagReasonCode.OTHER, rating);
-    dummyDataStore.store(flagRating);
-    flagIds.add(flagRating.getID());
 
     return new Object[][]{
         {flagIds, annotationIds}
@@ -204,25 +194,4 @@ public class ProcessFlagsActionTest extends AdminWebTest {
     }
   }
 
-  @Test(dataProvider = "flags")
-  public void testConvertToNote(List<Long> flagIds, List<Long> annotationIds) throws Exception {
-    action.setConvertToNote(flagIds.toArray(new Long[flagIds.size()]));
-
-    String result = action.execute();
-    assertEquals(result, Action.SUCCESS, "action didn't return success");
-    assertEquals(action.getActionErrors().size(), 0,
-        "Action had error messages: " + StringUtils.join(action.getActionErrors(), ";"));
-    assertEquals(action.getFieldErrors().size(), 0,
-        "Action had field error messages: " + StringUtils.join(action.getFieldErrors().values(), ";"));
-
-    for (Long flagId : flagIds) {
-      assertNull(dummyDataStore.get(Flag.class, flagId), "Didn't delete flag: " + flagId);
-    }
-    for (Long annotationId : annotationIds) {
-      Annotation storedAnnotation = dummyDataStore.get(Annotation.class, annotationId);
-      assertNotNull(storedAnnotation, "deleted annotation");
-      assertEquals(storedAnnotation.getType(), AnnotationType.NOTE, "Didn't convert to correct type");
-      assertNull(storedAnnotation.getAnnotationCitation(), "Didn't remove citation");
-    }
-  }
 }

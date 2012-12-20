@@ -275,12 +275,17 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       }
       if (terms != null && terms.size() > 0) {
         articleService.setArticleCategories(article, terms);
+      } else {
+        article.setCategories(new HashSet<Category>());
       }
+
       Journal journal = new Journal();
       journal.seteIssn(article.geteIssn());
       article.setJournals(new HashSet<Journal>());
       article.getJournals().add(journal);
+
       article.setStrkImgURI(extractStrikingImageURI(archive));
+
       return article;
     } catch (IOException e) {
       throw new ArchiveProcessException("Error reading from Zip archive", e);
@@ -561,13 +566,15 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     for (int i = 1; i <= categoryCount; i++) {
       String mainCategory = xPathUtil.evaluate(transformedXml, "//Article/categories[" + i + "]/mainCategory/text()");
       String subCategory = xPathUtil.evaluate(transformedXml, "//Article/categories[" + i + "]/subCategory/text()");
+      String categoryStr = "";
       Category category = new Category();
       if (!mainCategory.isEmpty()) {
-        category.setMainCategory(mainCategory);
+        categoryStr = "/" + mainCategory;
       }
       if (!subCategory.isEmpty()) {
-        category.setSubCategory(subCategory);
+        categoryStr = categoryStr + "/" + subCategory;
       }
+      category.setPath(categoryStr);
       categories.add(category);
     }
     return categories;

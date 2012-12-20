@@ -52,10 +52,8 @@
         <@s.url id="flagURL" namespace="/" action="manageAnnotationLoad" annotationId="${flaggedComment.annotationID}"/>
         <#if flaggedComment.isCorrection>
           <#assign deleteLabel = "Delete Correction">
-        <#elseif flaggedComment.isComment || flaggedComment.isNote>
+        <#elseif flaggedComment.isComment>
           <#assign deleteLabel = "Delete Comment">
-        <#elseif flaggedComment.isRating>
-          <#assign deleteLabel = "Delete Rating">
         <#elseif flaggedComment.isReply>
           <#assign deleteLabel = "Delete Reply (Sub-thread)">
         </#if>
@@ -92,11 +90,6 @@
             </#if>
             <#if !flaggedComment.isRetraction >
               <@s.checkbox name="convertToRetraction" label="Retraction"
-              fieldValue="${flaggedComment.ID}"/>
-              <br/>
-            </#if>
-            <#if flaggedComment.isCorrection >
-              <@s.checkbox name="convertToNote" label="Note"
               fieldValue="${flaggedComment.ID}"/>
               <br/>
             </#if>

@@ -80,14 +80,6 @@ public class FlagView {
     return type == AnnotationType.COMMENT;
   }
 
-  public boolean getIsNote() {
-    return type == AnnotationType.NOTE;
-  }
-
-  public boolean getIsRating() {
-    return type == AnnotationType.RATING;
-  }
-
   public boolean getIsReply() {
     return type == AnnotationType.REPLY;
   }

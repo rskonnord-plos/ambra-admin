@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import javax.annotation.Resource;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;

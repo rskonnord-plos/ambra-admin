@@ -21,7 +21,6 @@ import org.ambraproject.models.AnnotationCitation;
 import org.ambraproject.models.AnnotationType;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAuthor;
-import org.ambraproject.models.Rating;
 import org.ambraproject.models.UserProfile;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +69,7 @@ public class LoadAnnotationActionTest extends AdminWebTest {
     article.seteIssn("1234");
     dummyDataStore.store(article);
 
-    Annotation comment = new Annotation(creator, AnnotationType.NOTE, article.getID());
-    comment.setXpath("xpath");
+    Annotation comment = new Annotation(creator, AnnotationType.COMMENT, article.getID());
     comment.setAnnotationUri("id:comment-for-LoadAnnotationActionTest");
     comment.setTitle("Test annotation title");
     comment.setBody("This is a test comment");
@@ -92,21 +90,10 @@ public class LoadAnnotationActionTest extends AdminWebTest {
     reply.setParentID(comment.getID());
     dummyDataStore.store(reply);
 
-    Rating rating = new Rating(creator, article.getID());
-    rating.setAnnotationUri("id:rating-for-LoadAnnotationActionTest");
-    rating.setTitle("Test rating title");
-    rating.setBody("This is a test rating");
-    rating.setInsight(3);
-    rating.setReliability(2);
-    rating.setStyle(1);
-    rating.setParentID(comment.getID());
-    dummyDataStore.store(rating);
-
     return new Object[][]{
         {comment},
         {correction},
-        {reply},
-        {rating}
+        {reply}
     };
   }
 

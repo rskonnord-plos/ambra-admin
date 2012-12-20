@@ -278,13 +278,13 @@ public class FlagServiceTest extends AdminBaseTest {
     Flag flag1 = new Flag(creator, FlagReasonCode.SPAM, annotation);
     Long id1 = Long.valueOf(dummyDataStore.store(flag1));
 
-    flagService.convertToType(AnnotationType.NOTE, id1);
+    flagService.convertToType(AnnotationType.COMMENT, id1);
 
     assertNull(dummyDataStore.get(Flag.class, id1), "didn't delete first flag");
 
     Annotation storedAnnotation = dummyDataStore.get(Annotation.class, annotation.getID());
     assertNotNull(storedAnnotation, "deleted annotation");
-    assertEquals(storedAnnotation.getType(), AnnotationType.NOTE, "Didn't set correct type");
+    assertEquals(storedAnnotation.getType(), AnnotationType.COMMENT, "Didn't set correct type");
     assertNull(storedAnnotation.getAnnotationCitation(), "Didn't disassociate citation from annotation");
     assertNull(dummyDataStore.get(AnnotationCitation.class, annotation.getAnnotationCitation().getID()),
         "Didn't delete citation");
@@ -335,9 +335,6 @@ public class FlagServiceTest extends AdminBaseTest {
     Article noteArticle = new Article("id:article-with-note-to-delete");
     dummyDataStore.store(noteArticle);
 
-    //put the note article in cache to see that it gets kicked out
-    articleHtmlCache.put(noteArticle.getDoi(), new Cache.Item(article));
-
     Annotation comment1 = new Annotation(creator, AnnotationType.COMMENT, article.getID());
     dummyDataStore.store(comment1);
     
@@ -345,8 +342,7 @@ public class FlagServiceTest extends AdminBaseTest {
     reply.setParentID(comment1.getID());
     dummyDataStore.store(reply);
 
-    Annotation note = new Annotation(creator, AnnotationType.NOTE, noteArticle.getID());
-    note.setXpath("test xpath");
+    Annotation note = new Annotation(creator, AnnotationType.COMMENT, noteArticle.getID());
     dummyDataStore.store(note);
 
     Flag flag1 = new Flag(creator, FlagReasonCode.CORRECTION, comment1);
@@ -370,8 +366,6 @@ public class FlagServiceTest extends AdminBaseTest {
     assertNull(dummyDataStore.get(Annotation.class, comment1.getID()), "didn't delete first annotation");
     assertNull(dummyDataStore.get(Annotation.class, reply.getID()), "didn't delete second annotation");
     assertNull(dummyDataStore.get(Annotation.class, note.getID()), "didn't delete third annotation");
-
-    assertNull(articleHtmlCache.get(noteArticle.getDoi()),"article with note didn't get kicked out of cache");
   }
 
 }

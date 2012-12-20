@@ -125,11 +125,6 @@ public class FlagServiceImpl extends HibernateServiceImpl implements FlagService
     for(Iterator it=annotationMap.entrySet().iterator(); it.hasNext();) {
       Annotation annotation = (Annotation)((Map.Entry)it.next()).getValue();
       listDeleteCommentTree(annotation);
-      //if we deleted an inline note, kick the article out of cache
-      if (annotation.getType() == AnnotationType.NOTE) {
-        String doi = getArticleDoi(annotation);
-        articleHtmlCache.remove(doi);
-      }
     }
   }
 

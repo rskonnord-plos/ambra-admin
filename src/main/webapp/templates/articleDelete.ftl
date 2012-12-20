@@ -40,7 +40,7 @@
     <@messages />
 
     <fieldset>
-      <legend><strong>Delete and Revert Article Ingest (This will revert the ingestion queue and remove the article data and all annotations, comments and ratings)</strong></legend>
+      <legend><strong>Delete and Revert Article Ingest (This will revert the ingestion queue and remove the article data and all annotations and comments)</strong></legend>
       <@s.form name="deleteArticle" action="deleteArticleDelete" method="post" namespace="/" onsubmit="return confirmDeleteArticle();">
         Article Uri: <input type="article" name="article" label="Article Uri" size="80" value=""/>&nbsp;
         <input type="submit" name="action" value="Delete" />

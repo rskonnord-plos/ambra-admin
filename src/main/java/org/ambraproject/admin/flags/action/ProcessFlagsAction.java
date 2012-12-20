@@ -33,7 +33,6 @@ public class ProcessFlagsAction extends BaseAdminActionSupport {
   private Long[] convertToFormalCorrection;
   private Long[] convertToMinorCorrection;
   private Long[] convertToRetraction;
-  private Long[] convertToNote;
 
   @Override
   public String execute() throws Exception {
@@ -57,10 +56,6 @@ public class ProcessFlagsAction extends BaseAdminActionSupport {
       if (!ArrayUtils.isEmpty(convertToRetraction)) {
         flagService.convertToType(AnnotationType.RETRACTION, convertToRetraction);
         addActionMessage("Successfully converted " + convertToRetraction.length + " annotations to retraction");
-      }
-      if (!ArrayUtils.isEmpty(convertToNote)) {
-        flagService.convertToType(AnnotationType.NOTE, convertToNote);
-        addActionMessage("Successfully converted " + convertToNote.length + " annotations to note");
       }
     } catch (Exception e) {
       log.error("error processing flags", e);
@@ -95,7 +90,4 @@ public class ProcessFlagsAction extends BaseAdminActionSupport {
     this.convertToRetraction = convertToRetraction;
   }
 
-  public void setConvertToNote(Long[] convertToNote) {
-    this.convertToNote = convertToNote;
-  }
 }

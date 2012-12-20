@@ -87,16 +87,8 @@
         <td><@s.textarea name="body" value="${annotation.originalBody!}" rows="9" cols="100"/></td>
       </tr>
       <tr>
-        <td><b>Context</b></td>
-        <td><@s.textarea name="xpath" value="${annotation.xpath!}" rows="3" cols="100"/></td>
-      </tr>
-      <tr>
         <td><b>Id</b></td>
-        <#if annotation.type == "Rating">
-          <#assign annotationURL = "rate/getArticleRatings.action?articleURI=${annotation.articleDoi!}#${annotation.ID?c!}" />
-        <#else>
-          <#assign annotationURL = "annotation/listThread.action?root=${annotation.ID?c!}" />
-        </#if>
+        <#assign annotationURL = "annotation/listThread.action?root=${annotation.ID?c!}" />
         <td>
           <a href="${annotationURL}">${annotation.ID?c!}</a>
         </td>

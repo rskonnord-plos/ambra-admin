@@ -69,7 +69,6 @@ public class SaveAnnotationActionTest extends AdminWebTest {
         "free Katherine from her tomb. Back in Mystic Falls, Stefan tries to help Bonnie understand her " +
         "wican powers and gets to meet her grandmother Tituba. Meanwhile, Jeremy meets a new local girl, " +
         "named Anna, who give him insight on the vampire legends about the town as he continues to research his ...");
-    original.setXpath("old xpath");
     original.setAnnotationUri("id:annotationUriToChange");
 
     original.setAnnotationCitation(new AnnotationCitation());
@@ -88,7 +87,6 @@ public class SaveAnnotationActionTest extends AdminWebTest {
 
     action.setAnnotationId(original.getID());
     action.getModel().setBody("New body");
-    action.getModel().setXpath("new xpath");
     action.getModel().setAnnotationUri("new annotation uri");
     action.getModel().getAnnotationCitation().setTitle("New Title");
     action.getModel().getAnnotationCitation().setYear("2010");
@@ -117,7 +115,6 @@ public class SaveAnnotationActionTest extends AdminWebTest {
 
     assertEquals(storedAnnotation.getBody(), action.getModel().getBody(), "Action didn't update annotation body");
     assertEquals(storedAnnotation.getAnnotationUri(), action.getModel().getAnnotationUri(), "Action didn't update annotation uri");
-    assertEquals(storedAnnotation.getXpath(), action.getModel().getXpath(), "Action didn't update annotation xpath");
 
     assertNotNull(storedAnnotation.getAnnotationCitation(), "Annotation citation got deleted");
     assertEquals(storedAnnotation.getAnnotationCitation().getTitle(), action.getModel().getAnnotationCitation().getTitle(),

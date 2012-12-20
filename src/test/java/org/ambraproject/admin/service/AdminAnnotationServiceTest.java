@@ -67,7 +67,6 @@ public class AdminAnnotationServiceTest extends AdminBaseTest {
     originalCorrection.setTitle("Old Correction Title");
     originalCorrection.setAnnotationUri("old correction annotation uri");
     originalCorrection.setBody("Old correction annotation body");
-    originalCorrection.setXpath("Old correction xpath");
     originalCorrection.setCompetingInterestBody("old correction competing interest");
     originalCorrection.setAnnotationCitation(new AnnotationCitation(article));
     originalCorrection.getAnnotationCitation().setNote("Old note");
@@ -79,7 +78,6 @@ public class AdminAnnotationServiceTest extends AdminBaseTest {
     changeBasicProperties.setTitle("Change Basic Properties Title");
     changeBasicProperties.setAnnotationUri("Change Basic Properties annotation uri");
     changeBasicProperties.setBody("Change Basic Properties body");
-    changeBasicProperties.setXpath("Change Basic Properties xpath");
     changeBasicProperties.setCompetingInterestBody("Change Basic Properties competing interest");
     //keep the same annotation citation
     changeBasicProperties.setAnnotationCitation(new AnnotationCitation(article));

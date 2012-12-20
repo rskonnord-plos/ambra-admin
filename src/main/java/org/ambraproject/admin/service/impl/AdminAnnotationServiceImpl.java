@@ -43,7 +43,6 @@ public class AdminAnnotationServiceImpl extends HibernateServiceImpl implements 
     storedAnnotation.setAnnotationUri(properties.getAnnotationUri());
     storedAnnotation.setTitle(properties.getTitle());
     storedAnnotation.setBody(properties.getBody());
-    storedAnnotation.setXpath(properties.getXpath());
     storedAnnotation.setCompetingInterestBody(properties.getCompetingInterestBody());
 
     if (storedAnnotation.getAnnotationCitation() != null && properties.getAnnotationCitation() != null) {

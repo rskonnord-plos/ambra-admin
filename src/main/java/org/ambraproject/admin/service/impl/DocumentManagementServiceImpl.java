@@ -30,7 +30,6 @@ import org.ambraproject.models.AnnotationType;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleView;
 import org.ambraproject.models.Flag;
-import org.ambraproject.models.RatingSummary;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.models.Trackback;
 import org.ambraproject.models.UserRole.Permission;
@@ -228,15 +227,6 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
     hibernateTemplate.deleteAll(
         hibernateTemplate.findByCriteria(
             DetachedCriteria.forClass(ArticleView.class)
-                .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
-                .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
-        )
-    );
-
-    //delete any rating summaries on the article
-    hibernateTemplate.deleteAll(
-        hibernateTemplate.findByCriteria(
-            DetachedCriteria.forClass(RatingSummary.class)
                 .add(Restrictions.eq("articleID", ((Article) articles.get(0)).getID()))
                 .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
         )
