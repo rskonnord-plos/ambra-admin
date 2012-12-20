@@ -16,6 +16,7 @@ import org.ambraproject.action.BaseSessionAwareActionSupport;
 import org.ambraproject.models.UserProfile;
 import org.ambraproject.service.user.UserAlert;
 import org.ambraproject.service.user.UserService;
+import org.ambraproject.views.SavedSearchView;
 import org.springframework.beans.factory.annotation.Required;
 
 import javax.servlet.ServletException;
@@ -34,6 +35,8 @@ public class AdminUserAlertsAction extends BaseSessionAwareActionSupport {
   private String displayName;
   private String[] monthlyAlerts = new String[]{};
   private String[] weeklyAlerts = new String[]{};
+  private String[] deleteAlerts = new String[]{};
+  private List<SavedSearchView> savedSearches;
 
   public String getUserAuthId() {
     return userAuthId;
@@ -81,6 +84,35 @@ public class AdminUserAlertsAction extends BaseSessionAwareActionSupport {
     monthlyAlerts = monthlyAlertsList.toArray(new String[monthlyAlertsList.size()]);
     weeklyAlerts = weeklyAlertsList.toArray(new String[weeklyAlertsList.size()]);
     displayName = user.getDisplayName();
+
+    return SUCCESS;
+  }
+
+  public Collection<SavedSearchView> getUserSearchAlerts() {
+    return savedSearches;
+  }
+
+  /**
+   * save the user search alerts
+   * @return webwork status
+   * @throws Exception
+   */
+  public String saveSearchAlerts() throws Exception {
+    final String authId = getUserAuthId();
+    if (authId == null) {
+      throw new ServletException("Unable to resolve ambra user");
+    }
+    userService.setSavedSearchAlerts(authId, Arrays.asList(monthlyAlerts), Arrays.asList(weeklyAlerts), Arrays.asList(deleteAlerts));
+    return SUCCESS;
+  }
+
+  public String retrieveSearchAlerts() throws Exception {
+    final String authId = getUserAuthId();
+    if (authId == null) {
+      throw new ServletException("Unable to resolve ambra user");
+    }
+    final UserProfile user = userService.getUserByAuthId(authId);
+    savedSearches = userService.getSavedSearches(user.getID());
 
     return SUCCESS;
   }
@@ -137,5 +169,13 @@ public class AdminUserAlertsAction extends BaseSessionAwareActionSupport {
   @Required
   public void setUserService(UserService userService) {
     this.userService = userService;
+  }
+
+  public String[] getDeleteAlerts() {
+    return deleteAlerts;
+  }
+
+  public void setDeleteAlerts(String[] deleteAlerts) {
+    this.deleteAlerts = deleteAlerts;
   }
 }

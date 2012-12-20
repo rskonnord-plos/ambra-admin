@@ -49,11 +49,14 @@
           userAuthId="${userAuthId}" includeParams="none"/>
         <@s.url id="editPreferencesByAdminURL" action="retrieveUserAlertsByAdmin" namespace="/"
           userAuthId="${userAuthId}" includeParams="none"/>
+        <@s.url id="editSearchAlertsByAdminURL" action="retrieveUserSearchAlertsByAdmin" namespace="/"
+          userAuthId="${userAuthId}" includeParams="none"/>
         <@s.url id="editRolesURL" action="editRoles" namespace="/"
           userAuthId="${userAuthId}" includeParams="none"/>
 
         <@s.a href="%{editProfileByAdminURL}">Profile</@s.a>,
         <@s.a href="%{editPreferencesByAdminURL}">Alerts/Preferences</@s.a>,
+        <@s.a href="%{editSearchAlertsByAdminURL}">Search Alerts</@s.a>,
         <@s.a href="%{editRolesURL}">Roles</@s.a>
 
         <br/><br/>

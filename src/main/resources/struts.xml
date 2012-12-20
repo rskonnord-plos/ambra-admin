@@ -336,6 +336,24 @@
       </result>
     </action>
 
+    <action name="retrieveUserSearchAlertsByAdmin" class="org.ambraproject.user.action.AdminUserAlertsAction" method="retrieveSearchAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/editUserSearchAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/editUserSearchAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="saveSearchAlertsByAdmin" class="org.ambraproject.user.action.AdminUserAlertsAction" method="saveSearchAlerts">
+      <result name="success" type="chain">
+        <param name="actionName">retrieveUserSearchAlertsByAdmin</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/editUserSearchAlerts.ftl</param>
+      </result>
+    </action>
+
     <!-- Navigate to the Manage Flags page without doing any processing of those flags -->
     <action name="manageFlags" class="org.ambraproject.admin.flags.action.ListFlagsAction">
       <result name="success" type="freemarker">
