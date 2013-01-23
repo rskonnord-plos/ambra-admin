@@ -1,6 +1,6 @@
 /*
- * $HeadURL$
- * $Id$
+ * $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/test/java/org/ambraproject/search/service/ArticleIndexingServiceTest.java $
+ * $Id: ArticleIndexingServiceTest.java 11490 2012-08-30 22:46:10Z akudlick $
  *
  * Copyright (c) 2006-2011 by Public Library of Science
  * http://plos.org
@@ -138,26 +138,6 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
   }
 
   @Test(dataProvider = "articleData", groups = {"originalConfig"})
-  public void testIndexAllArticles(Article article) throws Exception {
-
-    String message = articleIndexingService.indexAllArticles();
-
-    assertTrue(message.contains(" 2 articles "), "Wrong count of articles");
-
-    SolrQuery query = new SolrQuery("*:*");
-    QueryResponse solrRes = solrServerFactory.getServer().query(query);
-
-    SolrDocumentList sdl = solrRes.getResults();
-    assertEquals(sdl.getNumFound(), getArticleData().length, "didn't index correct number of articles");
-  }
-
-
-  @Test(expectedExceptions = {ApplicationException.class}, groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
-  public void testIndexAllNoQueueSet() throws Exception {
-    articleIndexingService.indexAllArticles();
-  }
-
-  @Test(dataProvider = "articleData", groups = {"originalConfig"})
   public void testIndexArticle(Article article) throws Exception {
     articleIndexingService.indexArticle(article.getDoi());
   }
@@ -166,11 +146,6 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
   @Test(expectedExceptions = {ApplicationException.class}, groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testIndexArticleNoQueueSet() throws Exception {
     articleIndexingService.indexArticle(oneArticleId);
-  }
-
-  @Test(groups = {"originalConfig"})
-  public void testStartIndexingAllArticles() throws Exception {
-    articleIndexingService.startIndexingAllArticles();
   }
 }
 

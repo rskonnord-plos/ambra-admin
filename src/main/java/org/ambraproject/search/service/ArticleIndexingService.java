@@ -1,6 +1,6 @@
 /*
- * $HeadURL$
- * $Id$
+ * $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/main/java/org/ambraproject/search/service/ArticleIndexingService.java $
+ * $Id: ArticleIndexingService.java 10898 2012-04-23 22:53:23Z josowski $
  *
  * Copyright (c) 2006-2010 by Public Library of Science
  * http://plos.org
@@ -36,22 +36,6 @@ public interface ArticleIndexingService {
    * @throws Exception if operation fails
    */
   public void indexArticle(String articleId) throws Exception;
-
-  /**
-   * Start asynchronous process that will index all articles.
-   *
-   * @throws Exception if operation fails
-   */
-  public void startIndexingAllArticles() throws Exception;
-
-  /**
-   * Send all articles for re-indexing (slow). This method is invoked asynchronously after
-   * startIndexingAllArticles() is called.
-   *
-   * @return Confirmation email body
-   * @throws Exception if operation fails
-   */
-  public String indexAllArticles() throws Exception;
 
   /**
    * Method that is fired on article publish operation.

@@ -19,21 +19,6 @@ public class DummyArticleIndexingService implements ArticleIndexingService {
     indexedArticles.add(articleId);
   }
 
-  @Override
-  public synchronized void startIndexingAllArticles() throws Exception {
-    indexAllCount++;
-  }
-
-  @Override
-  public synchronized String indexAllArticles() throws Exception {
-    indexAllCount++;
-    return "Successfully indexed 123 articles";
-  }
-
-  public synchronized int getIndexAllCount() {
-    return indexAllCount;
-  }
-
   public synchronized List<String> getIndexedArticles() {
     return Collections.unmodifiableList(indexedArticles);
   }

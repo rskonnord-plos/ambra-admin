@@ -475,15 +475,6 @@
       </result>
     </action>
 
-    <action name="indexAllArticles" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexAll">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/allIndexedArticles.ftl</param>
-      </result>
-      <result name="error" type="freemarker">
-        <param name="location">/templates/indexAllArticlesFailed.ftl</param>
-      </result>
-    </action>
-
     <action name="selectList" class="org.ambraproject.action.ListingAction"/>
 
   </package>

@@ -1,6 +1,6 @@
 /*
- * $HeadURL$
- * $Id$
+ * $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/main/java/org/ambraproject/admin/action/IndexArticlesAction.java $
+ * $Id: IndexArticlesAction.java 9932 2011-12-14 22:32:27Z akudlick $
  *
  * Copyright (c) 2006-2010 by Public Library of Science
  * http://plos.org
@@ -35,7 +35,6 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
 
   private ArticleIndexingService articleIndexingService;
   private String articleId;
-  private String email;
 
   @Override
   public String execute() throws Exception {
@@ -50,31 +49,12 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
     this.articleIndexingService = articleIndexingService;
   }
 
-  public String getEmail() {
-    return email;
-  }
-
   public String getArticleId() {
     return articleId;
   }
 
   public void setArticleId(String articleId) {
     this.articleId = articleId;
-  }
-
-  public String indexAll() throws Exception {
-    // create a faux journal object for template
-    initJournal();
-
-    email = configuration.getString("ambra.services.search.indexingMailReceiver", null);
-
-    if (email != null) {
-      articleIndexingService.startIndexingAllArticles();
-      return SUCCESS;
-    } else {
-      addActionError("ambra.services.search.indexingMailReceiver not defined");
-      return ERROR;
-    }
   }
 
   public String indexOne() throws Exception {

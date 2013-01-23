@@ -1,6 +1,6 @@
 <#--
- $HeadURL$
- $Id$
+ $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/main/webapp/templates/indexArticle.ftl $
+ $Id: indexArticle.ftl 10080 2012-01-19 18:40:33Z akudlick $
 
  Copyright (c) 2006-2010 by Public Library of Science
  http://plos.org
@@ -23,14 +23,6 @@
 <head>
   <title>Manage Article Search Index</title>
   <#include "includes/header.ftl">
-  <@s.url id="indexAllUrl" namespace="/" action="indexAllArticles" />
-  <script type="text/javascript">
-    function indexAll() {
-      if(confirm("Re-indexing of entire corpus may slow down server. Do you want to continue ?")) {
-        window.location = "${indexAllUrl}";
-      }
-    }
-  </script>
 </head>
 <body>
   <h1 style="text-align: center">Manage Article Search Index</h1>
@@ -46,10 +38,6 @@
       <input type="text" id="articleId" name="articleId" label="Article Uri" size="50" maxlength="50"/>
       &nbsp;<input type="submit" name="action" value="Re-Index" />
     </@s.form>
-  </fieldset>
-  <fieldset>
-    <legend>Re-index entire corpus. Spawns a background task that sends all articles in the system for re-indexing. <em>(CAN RUN A LONG TIME)</em></legend>
-    <input type="button" onclick="indexAll()" value="Start"/>
   </fieldset>
 </body>
 </html>
