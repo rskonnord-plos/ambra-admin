@@ -37,7 +37,7 @@ import org.ambraproject.models.CitedArticleEditor;
 import org.ambraproject.models.Journal;
 import org.ambraproject.service.article.ArticleClassifier;
 import org.ambraproject.service.article.ArticleService;
-import org.ambraproject.util.FileUtils;
+import org.ambraproject.util.Rhino;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
@@ -330,7 +330,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
     //properties that used to be in dublin core
     if (xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/title") != null) {
-      article.setTitle(getAllText(xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/title")));
+      article.setTitle(Rhino.getAllText(xPathUtil.selectSingleNode(
+          transformedXml, "//Article/dublinCore/title")));
     }
     if (!xPathUtil.evaluate(transformedXml, "//Article/dublinCore/format/text()").isEmpty()) {
       article.setFormat(xPathUtil.evaluate(transformedXml, "//Article/dublinCore/format/text()"));
@@ -339,7 +340,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       article.setLanguage(xPathUtil.evaluate(transformedXml, "//Article/dublinCore/language/text()"));
     }
     if (xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/description") != null) {
-      article.setDescription(getAllText(xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/description")));
+      article.setDescription(Rhino.getAllText(xPathUtil.selectSingleNode(transformedXml,
+          "//Article/dublinCore/description")));
     }
     if (!xPathUtil.evaluate(transformedXml, "//Article/dublinCore/rights/text()").isEmpty()) {
       article.setRights(xPathUtil.evaluate(transformedXml, "//Article/dublinCore/rights/text()"));
@@ -514,15 +516,15 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
       Node noteNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/note");
       if (noteNode != null) {
-        citedArticle.setNote(getAllText(noteNode));
+        citedArticle.setNote(Rhino.getAllText(noteNode));
       }
       Node titleNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/title");
       if (titleNode != null) {
-        citedArticle.setTitle(getAllText(titleNode));
+        citedArticle.setTitle(Rhino.getAllText(titleNode));
       }
       Node summaryNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/summary");
       if (summaryNode != null) {
-        citedArticle.setSummary(getAllText(summaryNode));
+        citedArticle.setSummary(Rhino.getAllText(summaryNode));
       }
 
       //Set the people referenced by the article in this citation
@@ -671,28 +673,6 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       }
     }
     return assets;
-  }
-
-  /**
-   * Helper method to get all the text of child nodes of a given node
-   *
-   * @param node - the node to use as base
-   * @return - all nested text in the node
-   */
-  private String getAllText(Node node) {
-
-    String text = "";
-    for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-      Node childNode = node.getChildNodes().item(i);
-      if (Node.TEXT_NODE == childNode.getNodeType()) {
-        text += childNode.getNodeValue();
-      } else if (Node.ELEMENT_NODE == childNode.getNodeType()) {
-        text += "<" + childNode.getNodeName() + ">";
-        text += getAllText(childNode);
-        text += "</" + childNode.getNodeName() + ">";
-      }
-    }
-    return text.replaceAll("[\n\t]", "").trim();
   }
 
   /**
