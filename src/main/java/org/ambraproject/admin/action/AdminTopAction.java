@@ -88,10 +88,19 @@ public class AdminTopAction extends BaseAdminActionSupport {
    */
   @Override
   public String execute() throws Exception {
+    generateIngestionTestCase();
     if (!setCommonFields())
       return ERROR;
 
     return SUCCESS;
+  }
+
+  private void generateIngestionTestCase() throws Exception {
+    log.info("Beginning hacked-in article ingestion (see IngestTestCaseGenerator javadoc)");
+    File file = new File(IngestTestCaseGenerator.ingestCasePath);
+    ZipFile zipFile = new ZipFile(file);
+    Article article = ingester.ingest(zipFile, true);
+    IngestTestCaseGenerator.writeCase(article);
   }
 
   /**
