@@ -60,7 +60,6 @@ public class IndexingServiceImpl extends HibernateServiceImpl
 
   protected static final int DEFAULT_INCREMENT_LIMIT_SIZE = 200;
 
-  private AmbraMailer mailer;
   private ArticleDocumentService articleDocumentService;
   private MessageSender messageSender;
   private String indexingQueue;
@@ -70,11 +69,6 @@ public class IndexingServiceImpl extends HibernateServiceImpl
   @Required
   public void setArticleDocumentService(ArticleDocumentService articleDocumentService) {
     this.articleDocumentService = articleDocumentService;
-  }
-
-  @Required
-  public void setAmbraMailer(AmbraMailer m) {
-    this.mailer = m;
   }
 
   @Required
