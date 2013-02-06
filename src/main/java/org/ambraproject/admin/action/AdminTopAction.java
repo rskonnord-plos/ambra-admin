@@ -88,7 +88,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
    */
   @Override
   public String execute() throws Exception {
-    generateIngestionTestCase();
+//    generateIngestionTestCase();
     if (!setCommonFields())
       return ERROR;
 

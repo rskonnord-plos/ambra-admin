@@ -37,7 +37,6 @@ import org.ambraproject.models.CitedArticleEditor;
 import org.ambraproject.models.Journal;
 import org.ambraproject.service.article.ArticleClassifier;
 import org.ambraproject.service.article.ArticleService;
-import org.ambraproject.util.FileUtils;
 import org.ambraproject.util.XPathUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.Configuration;
@@ -53,6 +52,18 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Arrays;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
@@ -67,8 +78,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -250,6 +259,26 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     this.articleService = articleService;
   }
 
+  private static final Gson DEBUG_GSON = new GsonBuilder()
+      .setPrettyPrinting()
+
+      .setExclusionStrategies(new ExclusionStrategy() {
+        private final Set<String> transientFieldNames = new HashSet<String>(Arrays.asList(
+            "ID", "created", "lastModified"));
+
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+          return transientFieldNames.contains(f.getName());
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+          return clazz.isAssignableFrom(Class.class);
+        }
+      })
+
+      .create();
+
   @Override
   public Article processArticle(ZipFile archive, Document articleXml) throws ArchiveProcessException {
     InputStream xsl = null;
@@ -264,7 +293,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
           ? archive.getName().substring(archive.getName().lastIndexOf(File.separator) + 1)
           : archive.getName();
       article.setArchiveName(archiveName);
-
+/*
       // Attempt to assign categories to the article based on the taxonomy server.  However,
       // we still want to ingest the article even if this process fails.
       List<String> terms = null;
@@ -278,6 +307,11 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       } else {
         article.setCategories(new HashSet<Category>());
       }
+*/
+      List<String> terms = new ArrayList<String>(2);
+      terms.add("/TopLevel1/term1");
+      terms.add("/TopLevel2/term2");
+      articleService.setArticleCategories(article, terms);
 
       Journal journal = new Journal();
       journal.seteIssn(article.geteIssn());
@@ -285,6 +319,21 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       article.getJournals().add(journal);
 
       article.setStrkImgURI(extractStrikingImageURI(archive));
+
+      String articleJson = DEBUG_GSON.toJson(article);
+      Writer output = null;
+      String debugJson = String.format("/tmp/%s.json",
+          article.getDoi().substring(article.getDoi().length() - 12));
+      try {
+        output = new FileWriter(new File(debugJson));
+        output = new BufferedWriter(output);
+        output.write(articleJson);
+      } finally {
+        if (output != null) {
+          output.close();
+        }
+      }
+      log.info("Saved JSON representation of article at " + debugJson);
 
       return article;
     } catch (IOException e) {
