@@ -35,15 +35,12 @@ import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.ambraproject.ApplicationException;
-import org.ambraproject.action.BaseTest;
-
-import java.net.URI;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Test for {@link ArticleIndexingService}.  The test methods belong to two groups:
+ * Test for {@link IndexingService}.  The test methods belong to two groups:
  * <ol><li>originalConfig</li><li>badConfig</li></ol>
  * <p/>
  * The methods in the &quot;originalConfig&quot; group must run before those in the &quot;badConfig&quot; group since
@@ -53,13 +50,13 @@ import static org.testng.Assert.assertTrue;
  * @author Dragisa Krsmanovic
  * @author Joe Osowski
  */
-public class ArticleIndexingServiceTest extends AdminBaseTest {
+public class IndexingServiceTest extends AdminBaseTest {
 
   private static String oneArticleId = "info:doi/10.1371/journal.pgen.1000096";
   private static String badConfigFile = "org/ambraproject/search/searchConfig-badValues.xml";
 
   @Autowired
-  protected ArticleIndexingService articleIndexingService;
+  protected IndexingService indexingService;
 
   @Autowired
   protected SolrServerFactory solrServerFactory;
@@ -68,7 +65,7 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
   private void setBadConfig() throws ConfigurationException {
     String fileName = getClass().getClassLoader().getResource(badConfigFile).getFile();
     Configuration tempConfiguration = new XMLConfiguration(fileName);
-    articleIndexingService.setAmbraConfiguration(tempConfiguration);
+    indexingService.setAmbraConfiguration(tempConfiguration);
   }
 
   @DataProvider(name = "articleData")
@@ -89,7 +86,7 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
   public void testArticlePublished(Article article) throws Exception {
     String articleId = article.getDoi();
 
-    articleIndexingService.articlePublished(articleId);
+    indexingService.articlePublished(articleId);
 
     String solrID = articleId.replaceAll("info:doi/", "");
     SolrQuery query = new SolrQuery("id:" + solrID);
@@ -101,17 +98,17 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
 
   @Test(groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testNoIndexingQueueConfigured() throws Exception {
-    articleIndexingService.articlePublished(oneArticleId);
+    indexingService.articlePublished(oneArticleId);
   }
 
   @Test(dataProvider = "articleData", groups = {"originalConfig"}, dependsOnMethods = {"testIndexArticle"})
   public void testArticleDeleted(Article article) throws Exception {
     String articleId = article.getDoi();
-    articleIndexingService.indexArticle(articleId);
+    indexingService.indexArticle(articleId);
     String solrID = articleId.replaceAll("info:doi/", "");
 
     //delete it.
-    articleIndexingService.articleDeleted(articleId);
+    indexingService.articleDeleted(articleId);
 
     //confirm it was removed.
     SolrQuery query = new SolrQuery("id:" + solrID);
@@ -123,29 +120,29 @@ public class ArticleIndexingServiceTest extends AdminBaseTest {
 
   @Test(groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testNoDeleteQueueConfigured() throws Exception {
-    articleIndexingService.articleDeleted(oneArticleId);
+    indexingService.articleDeleted(oneArticleId);
   }
 
   @Test(groups = {"originalConfig"})
   public void testArticleCrossPublished() throws Exception {
     dummyDataStore.store(new Article(oneArticleId));
-    articleIndexingService.articleCrossPublished(oneArticleId);
+    indexingService.articleCrossPublished(oneArticleId);
   }
 
   @Test(groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testNoCrossPublishIndexingQueueConfigured() throws Exception {
-    articleIndexingService.articleCrossPublished(oneArticleId);
+    indexingService.articleCrossPublished(oneArticleId);
   }
 
   @Test(dataProvider = "articleData", groups = {"originalConfig"})
   public void testIndexArticle(Article article) throws Exception {
-    articleIndexingService.indexArticle(article.getDoi());
+    indexingService.indexArticle(article.getDoi());
   }
 
 
   @Test(expectedExceptions = {ApplicationException.class}, groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testIndexArticleNoQueueSet() throws Exception {
-    articleIndexingService.indexArticle(oneArticleId);
+    indexingService.indexArticle(oneArticleId);
   }
 }
 

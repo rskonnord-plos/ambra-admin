@@ -21,10 +21,10 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.search.service.IndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.ambraproject.search.service.ArticleIndexingService;
 
 /**
  * @author Dragisa Krsmanovic
@@ -33,7 +33,7 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
 
   private static final Logger log = LoggerFactory.getLogger(IndexArticlesAction.class);
 
-  private ArticleIndexingService articleIndexingService;
+  private IndexingService indexingService;
   private String articleId;
 
   @Override
@@ -45,8 +45,8 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
   }
 
   @Required
-  public void setArticleIndexingService(ArticleIndexingService articleIndexingService) {
-    this.articleIndexingService = articleIndexingService;
+  public void setIndexingService(IndexingService indexingService) {
+    this.indexingService = indexingService;
   }
 
   public String getArticleId() {
@@ -69,7 +69,7 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
     articleId = articleId.trim().toLowerCase();
 
     try {
-      articleIndexingService.indexArticle(articleId);
+      indexingService.indexArticle(articleId);
       addActionMessage(articleId + " sent for re-indexing");
     } catch (Exception e) {
       log.error("Re-indexing of article " + articleId + " failed", e);

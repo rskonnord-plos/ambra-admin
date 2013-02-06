@@ -145,7 +145,7 @@
     <property name="syndicationService" ref="syndicationService"/>
   </bean>
 
-  <bean id="articleIndexingService" class="org.ambraproject.search.service.ArticleIndexingServiceImpl">
+  <bean id="indexingService" class="org.ambraproject.search.service.IndexingServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
     <property name="ambraMailer" ref="ambraMailer"/>
     <property name="articleDocumentService" ref="articleDocumentService"/>

@@ -226,7 +226,7 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="onCrossPubListener">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
   </bean>
@@ -295,12 +295,12 @@
     <property name="fileStoreService" ref="fileStoreService"/>
     <property name="onPublishListeners">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
     <property name="onDeleteListeners">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
     <property name="xslDefaultTemplate" value="${ambra.services.xreftransform.default}"/>
@@ -408,7 +408,7 @@
   </bean>
 
 
-  <bean id="articleIndexingService" class="org.ambraproject.search.service.ArticleIndexingServiceImpl">
+  <bean id="indexingService" class="org.ambraproject.search.service.IndexingServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="articleDocumentService" ref="articleDocumentService"/>
     <property name="messageSender" ref="messageSender"/>
@@ -429,7 +429,7 @@
   queues from configuration
   -->
   <bean id="routeBuilder" class="org.ambraproject.queue.Routes"
-        depends-on="pmcResponseConsumer, crossrefResponseConsumer, activemq, PROPAGATION_REQUIRED, articleIndexingService, shutdownStrategy">
+        depends-on="pmcResponseConsumer, crossrefResponseConsumer, activemq, PROPAGATION_REQUIRED, indexingService, shutdownStrategy">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="mailEndpoint" value="smtp://${ambra.network.hosts.mailhost}"/>
     <!-- property name="redeliveryInterval" value="10"/ -->

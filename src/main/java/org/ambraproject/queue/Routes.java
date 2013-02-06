@@ -21,7 +21,6 @@
 
 package org.ambraproject.queue;
 
-import org.ambraproject.search.service.ArticleIndexingService;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.apache.commons.configuration.Configuration;
@@ -166,7 +165,7 @@ public class Routes extends SpringRouteBuilder {
               "&showBodyType=false" +
               "&showBody=false" +
               "&showExchangeId=true")
-          .to("bean:articleIndexingService?method=indexAllArticles")
+          .to("bean:indexingService?method=indexAllArticles")
           .setHeader("to", constant(searchMailReceiver))
           .setHeader("from", constant("do-not-reply@plos.org"))
           .setHeader("subject", constant("Finished queueing articles for indexing (" + ambraHost + ")"))

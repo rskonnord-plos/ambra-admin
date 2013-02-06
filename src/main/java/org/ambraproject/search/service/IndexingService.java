@@ -27,7 +27,7 @@ import org.apache.commons.configuration.Configuration;
  * Service class for (re)indexing articles
  * @author Dragisa Krsmanovic
  */
-public interface ArticleIndexingService {
+public interface IndexingService {
 
   /**
    * Send one articles for re-indexing.

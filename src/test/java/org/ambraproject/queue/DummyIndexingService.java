@@ -1,6 +1,6 @@
 package org.ambraproject.queue;
 
-import org.ambraproject.search.service.ArticleIndexingService;
+import org.ambraproject.search.service.IndexingService;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author Alex Kudlick 5/9/12
  */
-public class DummyArticleIndexingService implements ArticleIndexingService {
+public class DummyIndexingService implements IndexingService {
   private int indexAllCount = 0;
   private List<String> indexedArticles = new ArrayList<String>();
 

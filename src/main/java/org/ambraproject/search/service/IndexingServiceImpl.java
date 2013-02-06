@@ -21,18 +21,13 @@
 
 package org.ambraproject.search.service;
 
-import org.apache.camel.Handler;
 import org.apache.commons.configuration.Configuration;
-import org.hibernate.HibernateException;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
 import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.OnCrossPubListener;
@@ -49,8 +44,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.net.URI;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -60,10 +53,10 @@ import java.util.*;
  * @author Bill OConnor
  * @author Dragisa Krsmanovic
  */
-public class ArticleIndexingServiceImpl extends HibernateServiceImpl
-  implements OnPublishListener, OnDeleteListener, OnCrossPubListener, ArticleIndexingService {
+public class IndexingServiceImpl extends HibernateServiceImpl
+  implements OnPublishListener, OnDeleteListener, OnCrossPubListener, IndexingService {
 
-  private static final Logger log = LoggerFactory.getLogger(ArticleIndexingServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(IndexingServiceImpl.class);
 
   protected static final int DEFAULT_INCREMENT_LIMIT_SIZE = 200;
 
