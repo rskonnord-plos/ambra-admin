@@ -469,18 +469,18 @@
       </result>
     </action>
 
-    <action name="indexArticle" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexOne">
+    <action name="indexAE" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexAE">
       <result name="success" type="freemarker">
+        <param name="location">/templates/indexArticle.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
         <param name="location">/templates/indexArticle.ftl</param>
       </result>
     </action>
 
-    <action name="indexAllArticles" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexAll">
+    <action name="indexArticle" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexOne">
       <result name="success" type="freemarker">
-        <param name="location">/templates/allIndexedArticles.ftl</param>
-      </result>
-      <result name="error" type="freemarker">
-        <param name="location">/templates/indexAllArticlesFailed.ftl</param>
+        <param name="location">/templates/indexArticle.ftl</param>
       </result>
     </action>
 

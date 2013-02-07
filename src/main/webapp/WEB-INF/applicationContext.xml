@@ -226,7 +226,7 @@
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="onCrossPubListener">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
   </bean>
@@ -295,12 +295,12 @@
     <property name="fileStoreService" ref="fileStoreService"/>
     <property name="onPublishListeners">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
     <property name="onDeleteListeners">
       <list>
-        <ref bean="articleIndexingService"/>
+        <ref bean="indexingService"/>
       </list>
     </property>
     <property name="xslDefaultTemplate" value="${ambra.services.xreftransform.default}"/>
@@ -407,13 +407,18 @@
     <property name="journalService" ref="journalService"/>
   </bean>
 
+  <bean id="solrHttpService" class="org.ambraproject.service.search.SolrHttpServiceImpl">
+    <property name="config" ref="ambraConfiguration"/>
+    <property name="httpClient" ref="httpClient"/>
+  </bean>
 
-  <bean id="articleIndexingService" class="org.ambraproject.search.service.ArticleIndexingServiceImpl">
+  <bean id="indexingService" class="org.ambraproject.search.service.IndexingServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="articleDocumentService" ref="articleDocumentService"/>
     <property name="messageSender" ref="messageSender"/>
+    <property name="raptorService" ref="raptorService"/>
+    <property name="solrHttpService" ref="solrHttpService"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
-    <property name="ambraMailer" ref="ambraMailer"/>
   </bean>
 
   <bean id="shutdownStrategy" class="org.apache.camel.impl.DefaultShutdownStrategy">
@@ -429,7 +434,7 @@
   queues from configuration
   -->
   <bean id="routeBuilder" class="org.ambraproject.queue.Routes"
-        depends-on="pmcResponseConsumer, crossrefResponseConsumer, activemq, PROPAGATION_REQUIRED, articleIndexingService, shutdownStrategy">
+        depends-on="pmcResponseConsumer, crossrefResponseConsumer, activemq, PROPAGATION_REQUIRED, indexingService, shutdownStrategy">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="mailEndpoint" value="smtp://${ambra.network.hosts.mailhost}"/>
     <!-- property name="redeliveryInterval" value="10"/ -->
@@ -443,6 +448,11 @@
 
   <bean id="messageSender" class="org.ambraproject.queue.CamelSender">
     <property name="producerTemplate" ref="messageProducerTemplate"/>
+  </bean>
+
+  <bean id="raptorService" class="org.ambraproject.service.raptor.RaptorServiceImpl">
+    <property name="httpClient" ref="httpClient"/>
+    <property name="serviceUrl" value="${ambra.services.raptor.url}" />
   </bean>
 
   <bean id="messageService" class="org.ambraproject.queue.MessageServiceImpl">
