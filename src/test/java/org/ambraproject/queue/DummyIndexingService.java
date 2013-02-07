@@ -42,4 +42,9 @@ public class DummyIndexingService implements IndexingService {
   public void articleDeleted(String articleId) throws Exception {
 
   }
+
+  @Override
+  public void reindexAcademicEditors() throws Exception {
+
+  }
 }
