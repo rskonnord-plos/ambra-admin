@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -88,7 +89,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
    */
   @Override
   public String execute() throws Exception {
-//    generateIngestionTestCase();
+    generateIngestionTestCase();
     if (!setCommonFields())
       return ERROR;
 
@@ -97,10 +98,18 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
   private void generateIngestionTestCase() throws Exception {
     log.info("Beginning hacked-in article ingestion (see IngestTestCaseGenerator javadoc)");
-    File file = new File(IngestTestCaseGenerator.ingestCasePath);
-    ZipFile zipFile = new ZipFile(file);
-    Article article = ingester.ingest(zipFile, true);
-    IngestTestCaseGenerator.writeCase(article);
+    File path = new File(IngestTestCaseGenerator.ingestCasePath);
+    File[] zipFiles = path.listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.endsWith(".zip");
+      }
+    });
+    for (File zipFilePath : zipFiles) {
+      ZipFile zipFile = new ZipFile(zipFilePath);
+      Article article = ingester.ingest(zipFile, true);
+//    IngestTestCaseGenerator.writeCase(article);
+    }
   }
 
   /**

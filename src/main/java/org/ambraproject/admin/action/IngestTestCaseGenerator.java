@@ -30,8 +30,8 @@ public class IngestTestCaseGenerator {
 
   // Edit these before building to specify input and output.
   // These are local paths to the server's (i.e., your workstations's) native file system.
-  public static final String ingestCasePath = "/home/rskonnord/pone.0005723.zip";
-  public static final String jsonSavePath = "/home/rskonnord/pone.0005723.json";
+  public static final String ingestCasePath = "/home/rskonnord/rhino/src/test/python/zips";
+  public static final String jsonSavePath = ingestCasePath;
 
 
   private static final Gson GSON = new GsonBuilder()

@@ -21,9 +21,14 @@
 
 package org.ambraproject.article.service;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.sf.saxon.Controller;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.serialize.MessageWarner;
+import org.ambraproject.admin.action.IngestTestCaseGenerator;
 import org.ambraproject.article.ArchiveProcessException;
 import org.ambraproject.models.Article;
 import org.ambraproject.models.ArticleAsset;
@@ -52,18 +57,6 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Arrays;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
@@ -78,9 +71,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -89,6 +87,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -264,7 +263,9 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
       .setExclusionStrategies(new ExclusionStrategy() {
         private final Set<String> transientFieldNames = new HashSet<String>(Arrays.asList(
-            "ID", "created", "lastModified"));
+            "ID", "created", "lastModified",
+            "parentArticle" // circular references (TODO: Apply type adapter instead of skipping?)
+            ));
 
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
@@ -293,7 +294,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
           ? archive.getName().substring(archive.getName().lastIndexOf(File.separator) + 1)
           : archive.getName();
       article.setArchiveName(archiveName);
-/*
+
       // Attempt to assign categories to the article based on the taxonomy server.  However,
       // we still want to ingest the article even if this process fails.
       List<String> terms = null;
@@ -307,11 +308,11 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       } else {
         article.setCategories(new HashSet<Category>());
       }
-*/
-      List<String> terms = new ArrayList<String>(2);
-      terms.add("/TopLevel1/term1");
-      terms.add("/TopLevel2/term2");
-      articleService.setArticleCategories(article, terms);
+
+//      List<String> terms = new ArrayList<String>(2);
+//      terms.add("/TopLevel1/term1");
+//      terms.add("/TopLevel2/term2");
+//      articleService.setArticleCategories(article, terms);
 
       Journal journal = new Journal();
       journal.seteIssn(article.geteIssn());
@@ -320,20 +321,22 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
       article.setStrkImgURI(extractStrikingImageURI(archive));
 
-      String articleJson = DEBUG_GSON.toJson(article);
       Writer output = null;
-      String debugJson = String.format("/tmp/%s.json",
-          article.getDoi().substring(article.getDoi().length() - 12));
       try {
-        output = new FileWriter(new File(debugJson));
+        String articleJson = DEBUG_GSON.toJson(article);
+        String doiSnippet = article.getDoi().substring(article.getDoi().length() - 12);
+        File saveFile = new File(IngestTestCaseGenerator.jsonSavePath, doiSnippet + ".json");
+        output = new FileWriter(saveFile);
         output = new BufferedWriter(output);
         output.write(articleJson);
+        log.info("Saved JSON representation of article at " + saveFile);
+      } catch (Exception e) {
+        log.error("Could not save JSON representation of article", e);
       } finally {
         if (output != null) {
           output.close();
         }
       }
-      log.info("Saved JSON representation of article at " + debugJson);
 
       return article;
     } catch (IOException e) {
@@ -770,9 +773,9 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
      * t.setErrorListener(), but Saxon does not forward <xls:message>'s to the error listener.
      * Hence we need to use Saxon's API's in order to get at those messages.
      */
-    final StringWriter msgs = new StringWriter(); 
+    final StringWriter msgs = new StringWriter();
     MessageWarner em = new MessageWarner();
-    ((Controller) t).setMessageEmitter(em);   
+    ((Controller) t).setMessageEmitter(em);
     t.setErrorListener(new ErrorListener() {
       public void warning(TransformerException te) {
         log.warn("Warning received while processing zip", te);
