@@ -79,4 +79,11 @@ public interface IndexingService {
    * @throws Exception if message send fails
    */
   public void articleDeleted(String articleId) throws Exception;
+
+  /**
+   * Grab all the academic editors from the raptor service and send them to SOLR for a reindex
+   *
+   * @throws Exception if anything fails
+   */
+  public void reindexAcademicEditors() throws Exception;
 }

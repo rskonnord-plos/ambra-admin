@@ -25,7 +25,7 @@
   <#include "includes/header.ftl">
 </head>
 <body>
-  <h1 style="text-align: center">Manage Article Search Index</h1>
+  <h1 style="text-align: center">Manage Search Indexes</h1>
   <#include "includes/navigation.ftl">
 
   <@messages />
@@ -39,5 +39,13 @@
       &nbsp;<input type="submit" name="action" value="Re-Index" />
     </@s.form>
   </fieldset>
+
+  <fieldset>
+    <legend>Re-Index Academic Editors</legend>
+    <@s.form method="post" namespace="/" action="indexAE" name="indexAE" id="indexAE" >
+      <input type="submit" name="action" value="Re-Index" />
+    </@s.form>
+  </fieldset>
+
 </body>
 </html>

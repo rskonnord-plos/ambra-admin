@@ -469,6 +469,15 @@
       </result>
     </action>
 
+    <action name="indexAE" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexAE">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/indexArticle.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/indexArticle.ftl</param>
+      </result>
+    </action>
+
     <action name="indexArticle" class="org.ambraproject.admin.action.IndexArticlesAction" method="indexOne">
       <result name="success" type="freemarker">
         <param name="location">/templates/indexArticle.ftl</param>

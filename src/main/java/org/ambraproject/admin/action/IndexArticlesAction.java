@@ -57,6 +57,18 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
     this.articleId = articleId;
   }
 
+  public String indexAE() throws Exception {
+    try {
+      indexingService.reindexAcademicEditors();
+      addActionMessage("Academic editors are re-indexed");
+      return SUCCESS;
+    } catch (Exception e) {
+      log.error("Re-indexing of academic editors failed", e);
+      addActionError(e.getMessage());
+      return ERROR;
+    }
+  }
+
   public String indexOne() throws Exception {
     // create a faux journal object for template
     initJournal();

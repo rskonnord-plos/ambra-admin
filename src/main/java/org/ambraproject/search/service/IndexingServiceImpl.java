@@ -21,7 +21,14 @@
 
 package org.ambraproject.search.service;
 
+import com.googlecode.jcsv.CSVStrategy;
+import com.googlecode.jcsv.writer.CSVEntryConverter;
+import com.googlecode.jcsv.writer.CSVWriter;
+import com.googlecode.jcsv.writer.internal.CSVWriterBuilder;
+import org.ambraproject.service.search.SolrHttpService;
+import org.ambraproject.views.AcademicEditorView;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -36,7 +43,7 @@ import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.article.service.ArticleDocumentService;
 import org.ambraproject.queue.MessageSender;
 import org.ambraproject.queue.Routes;
-import org.ambraproject.service.mailer.AmbraMailer;
+import org.ambraproject.service.raptor.RaptorService;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.ambraproject.models.Article;
 import org.w3c.dom.Document;
@@ -44,6 +51,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -61,6 +69,8 @@ public class IndexingServiceImpl extends HibernateServiceImpl
   protected static final int DEFAULT_INCREMENT_LIMIT_SIZE = 200;
 
   private ArticleDocumentService articleDocumentService;
+  private SolrHttpService solrHttpService;
+  private RaptorService raptorService;
   private MessageSender messageSender;
   private String indexingQueue;
   private String deleteQueue;
@@ -74,6 +84,16 @@ public class IndexingServiceImpl extends HibernateServiceImpl
   @Required
   public void setMessageSender(MessageSender messageSender) {
     this.messageSender = messageSender;
+  }
+
+  @Required
+  public void setRaptorService(RaptorService raptorService) {
+    this.raptorService = raptorService;
+  }
+
+  @Required
+  public void setSolrHttpService(SolrHttpService solrHttpService) {
+    this.solrHttpService = solrHttpService;
   }
 
   @Required
@@ -156,6 +176,59 @@ public class IndexingServiceImpl extends HibernateServiceImpl
   public void startIndexingAllArticles() throws Exception {
      // Message content is unimportant here
     messageSender.sendMessage(Routes.SEARCH_INDEXALL, "start");
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public void reindexAcademicEditors() throws Exception {
+    List<AcademicEditorView> editors = this.raptorService.getAcademicEditor();
+
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("separator","\t");
+    params.put("f.ae_subject.split","true");
+    params.put("f.ae_subject.separator",";");
+
+    StringWriter sw = new StringWriter();
+    CSVWriter csvWriter = new CSVWriterBuilder(sw)
+      .entryConverter(new AcademicEditorConverter()).strategy(
+      new CSVStrategy('\t', '\"', '#', false, true)).build();
+
+    //Add the header row
+    sw.write("id\tae_name\tae_last_name\tae_institute\tae_country\tae_subject\tdoc_type\tcross_published_journal_key\n");
+
+    csvWriter.writeAll(editors);
+
+    String csvData = sw.toString();
+
+    //Post the updates
+    this.solrHttpService.makeSolrPostRequest(params, csvData, true);
+
+    //Delete old data
+    this.solrHttpService.makeSolrPostRequest(
+      Collections.<String,String>emptyMap(),
+      "<delete><query>timestamp:[* TO NOW-1HOUR] AND doc_type:(academic_editor OR section_editor)</query></delete>",
+      false);
+  }
+
+  /**
+   * A parser class for the csv engine
+   */
+  private class AcademicEditorConverter implements CSVEntryConverter<AcademicEditorView> {
+    @Override
+    public String[] convertEntry(AcademicEditorView view) {
+      List<String> result = new ArrayList<String>();
+
+      result.add(view.getId());
+      result.add(view.getName());
+      result.add(view.getLastName());
+      result.add(view.getInstitute());
+      result.add(view.getCountry());
+      result.add(StringUtils.join(view.getSubjects(), ';'));
+      result.add(view.getType());
+      result.add(view.getJournalKey());
+
+      return result.toArray(new String[result.size()]);
+    }
   }
 
   /**
