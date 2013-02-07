@@ -29,7 +29,7 @@
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
     <conf-helper.version>2.2.1</conf-helper.version>
-    <ambra.version>2.5.4</ambra.version>
+    <ambra.version>2.5.5</ambra.version>
     <filestore.version>1.0.1</filestore.version>
   </properties>
 
