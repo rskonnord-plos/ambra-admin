@@ -31,6 +31,7 @@
     <conf-helper.version>2.2.1</conf-helper.version>
     <ambra.version>2.5.4</ambra.version>
     <filestore.version>1.0.1</filestore.version>
+    <solr.version>4.0.0</solr.version>
   </properties>
 
   <repositories>
@@ -270,7 +271,7 @@
     <dependency>
       <artifactId>solr-core</artifactId>
       <groupId>org.apache.solr</groupId>
-      <version>3.6.0</version>
+      <version>${solr.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -283,7 +284,7 @@
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-test-framework</artifactId>
-      <version>3.6.0</version>
+      <version>${solr.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
