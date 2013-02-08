@@ -31,7 +31,7 @@
     <conf-helper.version>2.2.1</conf-helper.version>
     <ambra.version>2.5.4</ambra.version>
     <filestore.version>1.0.1</filestore.version>
-    <solr.version>4.0.0</solr.version>
+    <solr.version>4.1.0</solr.version>
   </properties>
 
   <repositories>
@@ -277,6 +277,32 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+
+        <!--
+        Unfortunately, the version of jetty used internally by this solr
+        testing library conflicts with a version that we depend on (camel-jetty).
+        The symptom is a mysterious IncompatibleClassChangeError when running
+        a test that depends on both of these dependencies.  We fix this by
+        excluding the following.  Luckily, solr-test-framework, in the way we
+        use it, either doesn't need these or can get by with the conflicting
+        version.
+        -->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-security</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
