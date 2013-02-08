@@ -145,9 +145,15 @@
     <property name="syndicationService" ref="syndicationService"/>
   </bean>
 
+  <bean id="solrHttpService" class="org.ambraproject.service.search.SolrHttpServiceImpl">
+    <property name="config" ref="ambraConfiguration"/>
+    <property name="httpClient" ref="httpClient"/>
+  </bean>
+
   <bean id="indexingService" class="org.ambraproject.search.service.IndexingServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
-    <property name="ambraMailer" ref="ambraMailer"/>
+    <property name="raptorService" ref="raptorService"/>
+    <property name="solrHttpService" ref="solrHttpService"/>
     <property name="articleDocumentService" ref="articleDocumentService"/>
     <property name="messageSender" ref="messageSender"/>
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
