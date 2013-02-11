@@ -88,11 +88,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -321,6 +324,21 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
       article.setStrkImgURI(extractStrikingImageURI(archive));
 
+      // Make set orders consistent for JSON
+      article.setTypes(toSorted(article.getTypes(), null));
+      article.setCategories(toSorted(article.getCategories(), new Comparator<Category>() {
+        @Override
+        public int compare(Category o1, Category o2) {
+          return o1.getPath().compareTo(o2.getPath());
+        }
+      }));
+      article.setJournals(toSorted(article.getJournals(), new Comparator<Journal>() {
+        @Override
+        public int compare(Journal o1, Journal o2) {
+          return o1.geteIssn().compareTo(o2.geteIssn());
+        }
+      }));
+
       Writer output = null;
       try {
         String articleJson = DEBUG_GSON.toJson(article);
@@ -360,6 +378,15 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
         }
       }
     }
+  }
+
+  private static <E> SortedSet<E> toSorted(Set<? extends E> set, Comparator<? super E> comparator) {
+    if (set == null) {
+      return null;
+    }
+    SortedSet<E> sorted = new TreeSet<E>(comparator);
+    sorted.addAll(set);
+    return sorted;
   }
 
   /**
