@@ -96,6 +96,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -520,6 +522,8 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     return relatedArticles;
   }
 
+  private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
+
   private List<CitedArticle> parseCitedArticles(Document transformedXml) throws XPathExpressionException {
     int referenceCount = Integer.valueOf(xPathUtil.evaluate(transformedXml, "count(" + "//Article/dublinCore/references)"));
     List<CitedArticle> references = new ArrayList<CitedArticle>(referenceCount);
@@ -550,7 +554,9 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       if (!volume.isEmpty()) {
         citedArticle.setVolume(volume);
       }
-      String volumeNumber = xPathUtil.evaluate(transformedXml, nodeXpath + "/volumeNumber/text()");
+      Matcher volumeNumberMatcher = NUMBER_PATTERN.matcher(volume);
+      String volumeNumber = volumeNumberMatcher.find() ? volumeNumberMatcher.group()
+          : xPathUtil.evaluate(transformedXml, nodeXpath + "/volumeNumber/text()");
       if (!volumeNumber.isEmpty()) {
         citedArticle.setVolumeNumber(Integer.valueOf(volumeNumber));
       }
