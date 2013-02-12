@@ -43,7 +43,7 @@ public class AdminUserProfileActionTest extends AdminWebTest {
   @DataProvider(name = "user")
   public Object[][] getUser() {
     UserProfile user = new UserProfile();
-    user.setEmail("userActionTest@topazproject.org");
+    user.setEmail("userActionTest@ambraproject.org");
     user.setDisplayName("TEST_USERNAME");
     user.setGivenNames("my GIVENNAMES");
     user.setSurname("my Surnames");
