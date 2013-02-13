@@ -20,7 +20,6 @@
 
 package org.ambraproject.admin.service.impl;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import org.ambraproject.admin.service.AdminRolesService;
 import org.ambraproject.admin.views.RolePermissionView;
 import org.ambraproject.admin.views.UserRoleView;
@@ -32,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.ambraproject.service.permission.PermissionsService;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
@@ -39,12 +39,14 @@ import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.orm.hibernate3.HibernateCallback;
 
 /**
  * Methods to Administer user roles
  */
 public class AdminRolesServiceImpl extends HibernateServiceImpl implements AdminRolesService {
+  private PermissionsService permissionsService;
   /**
    * Get all the roles associated with a user
    *
@@ -133,6 +135,8 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
     up.setRoles(new HashSet<UserRole>());
 
     hibernateTemplate.update(up);
+
+    this.permissionsService.clearCache();
   }
 
   /**
@@ -160,6 +164,8 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
         return null;
       }
     });
+
+    this.permissionsService.clearCache();
   }
 
   /**
@@ -201,6 +207,8 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
       return null;
       }
     });
+
+    this.permissionsService.clearCache();
   }
 
   /**
@@ -255,5 +263,17 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
         return null;
       }
     });
+
+    this.permissionsService.clearCache();
+  }
+
+  /**
+   * Sets the PermissionsService.
+   *
+   * @param permService The PermissionsService to set.
+   */
+  @Required
+  public void setPermissionsService(PermissionsService permService) {
+    this.permissionsService = permService;
   }
 }

@@ -95,6 +95,7 @@
 
   <bean id="adminRolesService" class="org.ambraproject.admin.service.impl.AdminRolesServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
   <bean id="userService" class="org.ambraproject.service.user.UserServiceImpl">
