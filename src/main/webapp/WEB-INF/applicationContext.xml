@@ -32,7 +32,7 @@
     *
     *****************************************-->
 
-  <bean id="propertyConfigurer" class="org.ambraproject.ambra.configuration.SpringPlaceholderConfigurer"/>
+  <bean id="propertyConfigurer" class="org.ambraproject.configuration.SpringPlaceholderConfigurer"/>
 
   <bean id="defaultEncodingCharset" class="java.lang.String">
     <constructor-arg value="UTF-8"/>
@@ -203,7 +203,7 @@
       </map>
     </property>
   </bean>
-  <bean id="configurationStore" class="org.ambraproject.ambra.configuration.ConfigurationStore"
+  <bean id="configurationStore" class="org.ambraproject.configuration.ConfigurationStore"
         factory-method="getInstance"/>
 
   <bean id="ambraConfiguration" factory-bean="configurationStore" factory-method="getConfiguration"/>
