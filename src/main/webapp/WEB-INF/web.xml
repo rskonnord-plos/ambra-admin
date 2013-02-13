@@ -188,7 +188,7 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
   </listener>
 
   <welcome-file-list>
-    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>adminTop.action</welcome-file>
   </welcome-file-list>
 
   <error-page>
