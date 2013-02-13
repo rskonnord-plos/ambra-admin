@@ -20,7 +20,9 @@
 
 package org.ambraproject.admin.service.impl;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import org.ambraproject.admin.service.AdminRolesService;
+import org.ambraproject.admin.views.RolePermissionView;
 import org.ambraproject.admin.views.UserRoleView;
 import org.ambraproject.models.UserRole;
 import org.ambraproject.models.UserProfile;
@@ -47,6 +49,7 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
    * Get all the roles associated with a user
    *
    * @param userProfileID
+   *
    * @return
    */
   public Set<UserRoleView> getUserRoles(final Long userProfileID)
@@ -153,6 +156,101 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
 
         //Save the changes
         session.save(up);
+
+        return null;
+      }
+    });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public Long createRole(final String roleName)
+  {
+    return (Long)hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        UserRole ur = new UserRole(roleName, null);
+
+        //Add the role to the collection
+        session.save(ur);
+
+        return ur.getID();
+      }
+    });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public void deleteRole(final Long roleId) {
+    hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+      UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+
+      session.createSQLQuery("delete from userProfileRoleJoinTable where " +
+        "userRoleID = " + roleId).executeUpdate();
+
+      session.delete(ur);
+
+      return null;
+      }
+    });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public List<RolePermissionView> getRolePermissions(final Long roleId)
+  {
+    Set<UserRole.Permission> permissions = (Set<UserRole.Permission>)hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+
+        return ur.getPermissions();
+      }
+    });
+
+    List<RolePermissionView> results = new ArrayList<RolePermissionView>();
+
+    for(UserRole.Permission p : UserRole.Permission.values()) {
+      if(permissions.contains(p)) {
+        results.add(new RolePermissionView(p.toString(), true));
+      } else {
+        results.add(new RolePermissionView(p.toString(), false));
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public void setRolePermissions(final Long roleId, final String[] permissions)
+  {
+    hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Set<UserRole.Permission> newPerms = new HashSet<UserRole.Permission>(permissions.length);
+
+        for(String p : permissions) {
+          newPerms.add(UserRole.Permission.valueOf(p));
+        }
+
+        UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+        ur.setPermissions(newPerms);
+        session.save(ur);
 
         return null;
       }
