@@ -98,6 +98,9 @@
     </virtualJournals>
 
     <services>
+      <quartz>
+
+      </quartz>
 
       <ingest>
         <default>org/ambraproject/article/service/pmc2obj.xslt</default>

@@ -18,5 +18,4 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-    <style type="text/css" media="all"> @import "${request.contextPath}/css/admin.css";</style>
-    <script type="text/javascript" src="${request.contextPath}/javascript/dojo.js"></script>
+<style type="text/css" media="all"> @import "${request.contextPath}/css/admin.css";</style>

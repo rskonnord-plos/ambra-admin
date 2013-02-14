@@ -1,6 +1,6 @@
 /*
- * $HeadURL$
- * $Id$
+ * $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/main/java/org/ambraproject/admin/action/IndexArticlesAction.java $
+ * $Id: IndexArticlesAction.java 9932 2011-12-14 22:32:27Z akudlick $
  *
  * Copyright (c) 2006-2010 by Public Library of Science
  * http://plos.org
@@ -21,10 +21,10 @@
 
 package org.ambraproject.admin.action;
 
+import org.ambraproject.search.service.IndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.ambraproject.search.service.ArticleIndexingService;
 
 /**
  * @author Dragisa Krsmanovic
@@ -33,9 +33,8 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
 
   private static final Logger log = LoggerFactory.getLogger(IndexArticlesAction.class);
 
-  private ArticleIndexingService articleIndexingService;
+  private IndexingService indexingService;
   private String articleId;
-  private String email;
 
   @Override
   public String execute() throws Exception {
@@ -46,12 +45,8 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
   }
 
   @Required
-  public void setArticleIndexingService(ArticleIndexingService articleIndexingService) {
-    this.articleIndexingService = articleIndexingService;
-  }
-
-  public String getEmail() {
-    return email;
+  public void setIndexingService(IndexingService indexingService) {
+    this.indexingService = indexingService;
   }
 
   public String getArticleId() {
@@ -62,17 +57,14 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
     this.articleId = articleId;
   }
 
-  public String indexAll() throws Exception {
-    // create a faux journal object for template
-    initJournal();
-
-    email = configuration.getString("ambra.services.search.indexingMailReceiver", null);
-
-    if (email != null) {
-      articleIndexingService.startIndexingAllArticles();
+  public String indexAE() throws Exception {
+    try {
+      indexingService.reindexAcademicEditors();
+      addActionMessage("Academic editors are re-indexed");
       return SUCCESS;
-    } else {
-      addActionError("ambra.services.search.indexingMailReceiver not defined");
+    } catch (Exception e) {
+      log.error("Re-indexing of academic editors failed", e);
+      addActionError(e.getMessage());
       return ERROR;
     }
   }
@@ -89,7 +81,7 @@ public class IndexArticlesAction extends BaseAdminActionSupport {
     articleId = articleId.trim().toLowerCase();
 
     try {
-      articleIndexingService.indexArticle(articleId);
+      indexingService.indexArticle(articleId);
       addActionMessage(articleId + " sent for re-indexing");
     } catch (Exception e) {
       log.error("Re-indexing of article " + articleId + " failed", e);

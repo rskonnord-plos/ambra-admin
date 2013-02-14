@@ -1,6 +1,6 @@
 /*
- * $HeadURL$
- * $Id$
+ * $HeadURL: http://svn.ambraproject.org/svn/ambra/ambra-admin/branches/january_fixes/src/main/java/org/ambraproject/search/service/ArticleIndexingServiceImpl.java $
+ * $Id: ArticleIndexingServiceImpl.java 12312 2012-11-19 21:37:01Z josowski $
  *
  * Copyright (c) 2006-2010 by Public Library of Science
  * http://plos.org
@@ -21,18 +21,20 @@
 
 package org.ambraproject.search.service;
 
-import org.apache.camel.Handler;
+import com.googlecode.jcsv.CSVStrategy;
+import com.googlecode.jcsv.writer.CSVEntryConverter;
+import com.googlecode.jcsv.writer.CSVWriter;
+import com.googlecode.jcsv.writer.internal.CSVWriterBuilder;
+import org.ambraproject.service.search.SolrHttpService;
+import org.ambraproject.views.AcademicEditorView;
 import org.apache.commons.configuration.Configuration;
-import org.hibernate.HibernateException;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
 import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.OnCrossPubListener;
@@ -41,7 +43,7 @@ import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.article.service.ArticleDocumentService;
 import org.ambraproject.queue.MessageSender;
 import org.ambraproject.queue.Routes;
-import org.ambraproject.service.mailer.AmbraMailer;
+import org.ambraproject.service.raptor.RaptorService;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.ambraproject.models.Article;
 import org.w3c.dom.Document;
@@ -49,8 +51,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.net.URI;
-import java.sql.SQLException;
+import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -60,15 +61,16 @@ import java.util.*;
  * @author Bill OConnor
  * @author Dragisa Krsmanovic
  */
-public class ArticleIndexingServiceImpl extends HibernateServiceImpl
-  implements OnPublishListener, OnDeleteListener, OnCrossPubListener, ArticleIndexingService {
+public class IndexingServiceImpl extends HibernateServiceImpl
+  implements OnPublishListener, OnDeleteListener, OnCrossPubListener, IndexingService {
 
-  private static final Logger log = LoggerFactory.getLogger(ArticleIndexingServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(IndexingServiceImpl.class);
 
   protected static final int DEFAULT_INCREMENT_LIMIT_SIZE = 200;
 
-  private AmbraMailer mailer;
   private ArticleDocumentService articleDocumentService;
+  private SolrHttpService solrHttpService;
+  private RaptorService raptorService;
   private MessageSender messageSender;
   private String indexingQueue;
   private String deleteQueue;
@@ -80,13 +82,18 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
   }
 
   @Required
-  public void setAmbraMailer(AmbraMailer m) {
-    this.mailer = m;
+  public void setMessageSender(MessageSender messageSender) {
+    this.messageSender = messageSender;
   }
 
   @Required
-  public void setMessageSender(MessageSender messageSender) {
-    this.messageSender = messageSender;
+  public void setRaptorService(RaptorService raptorService) {
+    this.raptorService = raptorService;
+  }
+
+  @Required
+  public void setSolrHttpService(SolrHttpService solrHttpService) {
+    this.solrHttpService = solrHttpService;
   }
 
   @Required
@@ -171,6 +178,59 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
     messageSender.sendMessage(Routes.SEARCH_INDEXALL, "start");
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public void reindexAcademicEditors() throws Exception {
+    List<AcademicEditorView> editors = this.raptorService.getAcademicEditor();
+
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("separator","\t");
+    params.put("f.ae_subject.split","true");
+    params.put("f.ae_subject.separator",";");
+
+    StringWriter sw = new StringWriter();
+    CSVWriter csvWriter = new CSVWriterBuilder(sw)
+      .entryConverter(new AcademicEditorConverter()).strategy(
+      new CSVStrategy('\t', '\"', '#', false, true)).build();
+
+    //Add the header row
+    sw.write("id\tae_name\tae_last_name\tae_institute\tae_country\tae_subject\tdoc_type\tcross_published_journal_key\n");
+
+    csvWriter.writeAll(editors);
+
+    String csvData = sw.toString();
+
+    //Post the updates
+    this.solrHttpService.makeSolrPostRequest(params, csvData, true);
+
+    //Delete old data
+    this.solrHttpService.makeSolrPostRequest(
+      Collections.<String,String>emptyMap(),
+      "<delete><query>timestamp:[* TO NOW-1HOUR] AND doc_type:(academic_editor OR section_editor)</query></delete>",
+      false);
+  }
+
+  /**
+   * A parser class for the csv engine
+   */
+  private class AcademicEditorConverter implements CSVEntryConverter<AcademicEditorView> {
+    @Override
+    public String[] convertEntry(AcademicEditorView view) {
+      List<String> result = new ArrayList<String>();
+
+      result.add(view.getId());
+      result.add(view.getName());
+      result.add(view.getLastName());
+      result.add(view.getInstitute());
+      result.add(view.getCountry());
+      result.add(StringUtils.join(view.getSubjects(), ';'));
+      result.add(view.getType());
+      result.add(view.getJournalKey());
+
+      return result.toArray(new String[result.size()]);
+    }
+  }
+
   /**
    * Index one article. Disables filters so can be applied in any journal context.
    *
@@ -212,144 +272,6 @@ public class ArticleIndexingServiceImpl extends HibernateServiceImpl
     }
     doc = addStrikingImage(doc, strkImagURI);
     messageSender.sendMessage(Routes.SEARCH_INDEX, doc);
-  }
-
-
-    /**
-   * Send all articles for re-indexing.
-   * <p/>
-   * Queries to fetch all articles and to get all cross-published articles are separated to
-   * speed up the process.
-   * <p/>
-   * This is Apache Camel handler. It is invoked asynchronously after user submits a message to SEDA
-   * queue.
-   *
-   * @return Email message body
-   * @throws Exception
-   * @see org.ambraproject.queue.Routes
-   */
-  @Handler
-  public String indexAllArticles() throws Exception {
-    if (indexingQueue != null) {
-      long timestamp = System.currentTimeMillis();
-
-      Result result = indexAll(articleDocumentService, messageSender,
-        indexingQueue, mailer, this.incrementLimitSize);
-
-      StringBuilder message = new StringBuilder();
-      message.append("Queued ")
-          .append(Integer.toString(result.total))
-          .append(" articles for indexing in ")
-          .append(Long.toString((System.currentTimeMillis() - timestamp) / 1000l))
-          .append(" sec.");
-      log.info(message.toString());
-
-      if (result.failed > 0) {
-        log.warn("Failed to queue " + result.failed + " articles");
-        message.append("\nFailed to queue ")
-            .append(Integer.toString(result.failed))
-            .append(" articles.");
-      }
-
-      if (result.partialUpdate) {
-        message.append("\nThere was an error while trying to index all the articles.  Only a subset of articles " +
-          "have been reindexed.  Try reindexing all the articles again later.");
-      }
-
-      return message.toString();
-    } else {
-      throw new ApplicationException("Indexing queue not defined");
-    }
-  }
-
-  /**
-   * Index all documents
-   *
-   * @param articleDocumentService ArticleDocumentService
-   * @param messageSender MessageSender
-   * @param indexingQueue IndexingQueue
-   * @param mailer ambra mailer
-
-   * @param incrementLimitSize batch size for processing articles
-   * @return Number of articles indexed
-   * @throws Exception If operation fails
-   */
-  @SuppressWarnings("unchecked")
-  private Result indexAll(
-      final ArticleDocumentService articleDocumentService,
-      final MessageSender messageSender,
-      final String indexingQueue, final AmbraMailer mailer,
-      final int incrementLimitSize) throws Exception {
-
-    boolean bContinue = true;
-
-    List<URI> failedArticles = new ArrayList<URI>();
-    int totalIndexed = 0;
-    int totalFailed = 0;
-    boolean partialUpdate = false;
-    int offset = 0;
-
-    while (bContinue) {
-      try {
-        // get the list of articles
-        List<Object[]> articleDoiStrkImgs = (List<Object[]>)hibernateTemplate.findByCriteria(
-            DetachedCriteria.forClass(Article.class)
-                .add(Restrictions.eq("state", Article.STATE_ACTIVE))
-                .setProjection(Projections.projectionList()
-                    .add(Projections.property("doi"))
-                    .add(Projections.property("strkImgURI"))),
-            offset, incrementLimitSize
-        );
-
-        for (Object[] row  : articleDoiStrkImgs) {
-          String articleId = (String)row[0];
-          String strkImgURI = ((row.length > 1) && (row[1] != null)) ? (String)row[1] : "";
-
-          try {
-            // Append the article striking image to the <article-meta> node list
-            Document doc = articleDocumentService.getFullDocument(articleId);
-            doc = addStrikingImage(doc, strkImgURI);
-
-            // send the article xml to plos-queue to be indexed
-            messageSender.sendMessage(indexingQueue, doc);
-            totalIndexed++;
-          } catch (Exception e) {
-            log.error("Error indexing article " + articleId, e);
-            totalFailed++;
-          }
-        }
-
-        offset = offset + incrementLimitSize;
-        log.info("Offset " + offset);
-
-        if (offset > (totalIndexed + totalFailed)) {
-          // we have processed all the articles, exit the while loop
-          bContinue = false;
-        }
-      } catch (Exception e) {
-        bContinue = false;
-        log.error("Error while gathering a list of articles", e);
-
-        StringBuilder message = new StringBuilder("Error while gathering a list of articles. \n");
-        message.append(e.getMessage());
-        mailer.sendError(message.toString());
-
-        partialUpdate = true;
-      }
-    } // end of while
-
-    if (failedArticles.size() > 0) {
-      StringBuilder message = new StringBuilder("Error getting XML for articles:\n");
-
-      for (URI article : failedArticles) {
-        message.append(article.toString());
-        message.append("\n");
-      }
-
-      mailer.sendError(message.toString());
-    }
-
-    return new Result(totalIndexed, totalFailed, partialUpdate);
   }
 
   /**

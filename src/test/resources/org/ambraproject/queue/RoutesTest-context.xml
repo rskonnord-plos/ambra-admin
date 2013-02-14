@@ -8,7 +8,7 @@
     <constructor-arg value="queue/configuration.xml"/>
   </bean>
 
-  <bean id="articleIndexingService" class="org.ambraproject.queue.DummyArticleIndexingService"/>
+  <bean id="indexingService" class="org.ambraproject.queue.DummyIndexingService"/>
 
   <bean id="pmcResponseConsumer" class="org.ambraproject.queue.DummyResponseConsumer"/>
 

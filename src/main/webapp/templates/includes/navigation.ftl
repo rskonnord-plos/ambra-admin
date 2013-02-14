@@ -47,7 +47,7 @@
     <@s.a href="${manageVirtualJournalsURL}">Virtual Journals</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("MANAGE_SEARCH")>
-    <@s.a href="${manageSearchIndexing}">Search Index</@s.a>,&nbsp;
+    <@s.a href="${manageSearchIndexing}">Search Indexes</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("MANAGE_CACHES")>
     <@s.a href="${manageCaches}">Caches</@s.a>
