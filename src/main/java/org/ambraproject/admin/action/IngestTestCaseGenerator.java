@@ -30,7 +30,7 @@ public class IngestTestCaseGenerator {
 
   // Edit these before building to specify input and output.
   // These are local paths to the server's (i.e., your workstations's) native file system.
-  public static final String ingestCasePath = "/home/rskonnord/rhino/src/test/python/zips";
+  public static final String ingestCasePath = "/home/rskonnord/rhino/src/test/python/case_generation/output";
   public static final String jsonSavePath = ingestCasePath;
 
 
