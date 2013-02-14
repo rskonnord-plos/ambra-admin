@@ -41,6 +41,7 @@ import java.io.FilenameFilter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +106,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
         return name.endsWith(".zip");
       }
     });
+    Arrays.sort(zipFiles);
     for (File zipFilePath : zipFiles) {
       ZipFile zipFile = new ZipFile(zipFilePath);
       Article article = ingester.ingest(zipFile, true);
