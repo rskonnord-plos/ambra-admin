@@ -1,7 +1,4 @@
 <#--
-  $HeadURL::                                                                            $
-  $Id$
-
   Copyright (c) 2007-2013 by Public Library of Science
   http://plos.org
   http://ambraproject.org

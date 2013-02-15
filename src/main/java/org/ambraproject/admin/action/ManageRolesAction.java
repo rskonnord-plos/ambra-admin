@@ -1,17 +1,16 @@
 package org.ambraproject.admin.action;
 
-import com.sun.java.swing.plaf.nimbus.InternalFrameInternalFrameTitlePaneInternalFrameTitlePaneCloseButtonPainter;
 import org.ambraproject.admin.service.AdminRolesService;
 import org.ambraproject.admin.views.RolePermissionView;
 import org.ambraproject.admin.views.UserRoleView;
 import org.ambraproject.models.UserProfile;
 import org.ambraproject.models.UserRole;
+import org.ambraproject.service.permission.PermissionsService;
 import org.ambraproject.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Manage permissions and roles
@@ -72,6 +71,8 @@ public class ManageRolesAction extends BaseAdminActionSupport {
    */
   public String setRolePermissions()
   {
+    permissionsService.checkPermission(UserRole.Permission.MANAGE_ROLES, this.getAuthId());
+
     adminRolesService.setRolePermissions(this.roleID, this.newPermissions);
 
     this.permissions = adminRolesService.getRolePermissions(this.roleID);
@@ -83,6 +84,8 @@ public class ManageRolesAction extends BaseAdminActionSupport {
 
   public String createRole()
   {
+    permissionsService.checkPermission(UserRole.Permission.MANAGE_ROLES, this.getAuthId());
+
     if(this.roleName == null || this.roleName.length() == 0) {
       execute();
       this.addFieldError("roleName","Role Name must not be empty");
@@ -109,6 +112,8 @@ public class ManageRolesAction extends BaseAdminActionSupport {
   }
 
   public String deleteRole() {
+    permissionsService.checkPermission(UserRole.Permission.MANAGE_ROLES, this.getAuthId());
+
     this.adminRolesService.deleteRole(this.roleID);
 
     addActionMessage("Deleted Role");

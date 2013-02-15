@@ -1,7 +1,5 @@
-/* $HeadURL$
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -178,12 +176,12 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
     {
       @Override
       public Object doInHibernate(Session session) throws HibernateException, SQLException {
-        UserRole ur = new UserRole(roleName, null);
+        UserRole userRole = new UserRole(roleName, null);
 
         //Add the role to the collection
-        session.save(ur);
+        session.save(userRole);
 
-        return ur.getID();
+        return userRole.getID();
       }
     });
   }
@@ -199,6 +197,10 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
       public Object doInHibernate(Session session) throws HibernateException, SQLException {
       UserRole ur = (UserRole)session.load(UserRole.class, roleId);
 
+      /*
+       If there is a way to do this with hibernate, I am all ears, I played with it a bit
+       but didn't want it to be a timesink
+      */
       session.createSQLQuery("delete from userProfileRoleJoinTable where " +
         "userRoleID = " + roleId).executeUpdate();
 
