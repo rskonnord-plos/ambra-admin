@@ -21,7 +21,6 @@
 
 package org.ambraproject.queue;
 
-import org.ambraproject.search.service.ArticleIndexingService;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.apache.commons.configuration.Configuration;
@@ -44,6 +43,7 @@ public class Routes extends SpringRouteBuilder {
   public static final String SEARCH_INDEXALL = "seda:search.indexall";
   public static final String SEARCH_INDEX = "seda:search.index";
   public static final String SEARCH_DELETE = "seda:search.delete";
+  public static final String AE_REINDEX = "seda:ae.index";
 
   private String mailEndpoint;
 
@@ -166,7 +166,7 @@ public class Routes extends SpringRouteBuilder {
               "&showBodyType=false" +
               "&showBody=false" +
               "&showExchangeId=true")
-          .to("bean:articleIndexingService?method=indexAllArticles")
+          .to("bean:indexingService?method=indexAllArticles")
           .setHeader("to", constant(searchMailReceiver))
           .setHeader("from", constant("do-not-reply@plos.org"))
           .setHeader("subject", constant("Finished queueing articles for indexing (" + ambraHost + ")"))
@@ -184,5 +184,43 @@ public class Routes extends SpringRouteBuilder {
       log.warn("ambra.services.search.indexingMailReceiver not set. Index all queue not created.");
     }
 
+    String aeIndexMailReceiver =
+      configuration.getString("ambra.services.academic-editor-reindex.indexingMailReceiver", null);
+
+    if (aeIndexMailReceiver != null) {
+      String ambraHost = configuration.getString("ambra.network.hosts.default");
+
+      log.info("Creating AE reindex route");
+      from(AE_REINDEX)
+        .onException(Exception.class)
+          .handled(true)
+          .maximumRedeliveries(0) // do not retry
+          .setHeader("to", constant(aeIndexMailReceiver))
+          .setHeader("from", constant("do-not-reply@plos.org"))
+          .setHeader("subject", constant("Failed to run AE Reindex (" + ambraHost + ")"))
+          .setBody(exceptionMessage())
+          .to(mailEndpoint)
+        .end()
+        .to("log:org.ambraproject.queue.ae.reindex.MessageReceived?level=INFO" +
+          "&showBodyType=false" +
+          "&showBody=false" +
+          "&showExchangeId=true")
+        .to("bean:indexingService?method=reindexAcademicEditors")
+        .setHeader("to", constant(aeIndexMailReceiver))
+        .setHeader("from", constant("do-not-reply@plos.org"))
+        .setHeader("subject", constant("Finished AE Reindex (" + ambraHost + ")"))
+        .to(mailEndpoint);
+
+      String aeIndexCron = configuration.getString("ambra.services.academic-editor-reindex.reindex-cron", null);
+      if (aeIndexCron != null) {
+        log.info("Configuring cron for indexing all articles with value: {}", aeIndexCron);
+        from("quartz://ambra/aeReindex?cron=" + aeIndexCron)
+          .to(AE_REINDEX);
+      } else {
+        log.warn("ambra.services.academic-editor-reindex.reindex-cron not defined. Not creating automatic indexing route.");
+      }
+    } else {
+      log.warn("ambra.services.academic-editor-reindex.indexingMailReceiver not set. Reindex queue not created.");
+    }
   }
 }
