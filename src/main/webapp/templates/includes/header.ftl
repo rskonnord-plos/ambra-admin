@@ -19,3 +19,4 @@
   limitations under the License.
 -->
 <style type="text/css" media="all"> @import "${request.contextPath}/css/admin.css";</style>
+<script type="text/javascript" src="${request.contextPath}/javascript/dojo.js"></script>
