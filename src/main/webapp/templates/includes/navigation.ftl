@@ -25,6 +25,7 @@
 <@s.url id="manageVirtualJournalsURL" namespace="/" action="manageVirtualJournals" />
 <@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
 <@s.url id="manageCaches" namespace="/" action="manageCaches" />
+<@s.url id="manageRoles" namespace="/" action="manageRoles" />
 <@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
 <@s.url id="logout" includeParams="none" namespace="/" action="secureRedirect"
   goTo="${freemarker_config.casLogoutURL}?" +
@@ -32,7 +33,7 @@
   "${request.contextPath}/logout.action"/>
 <#if journal??><@s.url id="crossPubManagement" namespace="/" action="crossPubManagement" journalKey="${journal.journalKey}" journalEIssn="${journal.eIssn}" /></#if>
 <p style="text-align:center;">
-  <@s.a href="${adminTop}">Admin Top</@s.a>&nbsp; |&nbsp;
+  <@s.a href="/admin/">Admin Top</@s.a>&nbsp; |&nbsp;
   <strong>Manage:</strong>
   <#if permissions?seq_contains("MANAGE_FLAGS")>
     <@s.a href="${manageFlags}">Flags</@s.a>,&nbsp;
@@ -50,7 +51,10 @@
     <@s.a href="${manageSearchIndexing}">Search Indexes</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("MANAGE_CACHES")>
-    <@s.a href="${manageCaches}">Caches</@s.a>
+    <@s.a href="${manageCaches}">Caches</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_ROLES")>
+    <@s.a href="${manageRoles}">Roles</@s.a>
   </#if>
   <#if permissions?seq_contains("CROSS_PUB_ARTICLES")>
     <#if journal??>&nbsp;| &nbsp;<@s.a href="${crossPubManagement}">Cross Publish Articles</@s.a></#if>

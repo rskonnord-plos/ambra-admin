@@ -76,22 +76,24 @@
             <@s.checkbox name="commentsToDelete" label="${deleteLabel}" fieldValue="${flaggedComment.ID}"/>
             <#--NOTE: Admins cannot convert general comments to corrections.-->
             <br/>
-            Convert to:
-            <br/>
-            <#if !flaggedComment.isMinorCorrection >
-              <@s.checkbox name="convertToMinorCorrection" label="Minor Correction"
-              fieldValue="${flaggedComment.ID}"/>
+            <#if permissions?seq_contains("MANAGE_CORRECTIONS")>
+              Convert to:
               <br/>
-            </#if>
-            <#if !flaggedComment.isFormalCorrection >
-              <@s.checkbox name="convertToFormalCorrection" label="Formal Correction"
-              fieldValue="${flaggedComment.ID}"/>
-              <br/>
-            </#if>
-            <#if !flaggedComment.isRetraction >
-              <@s.checkbox name="convertToRetraction" label="Retraction"
-              fieldValue="${flaggedComment.ID}"/>
-              <br/>
+              <#if !flaggedComment.isMinorCorrection >
+                <@s.checkbox name="convertToMinorCorrection" label="Minor Correction"
+                fieldValue="${flaggedComment.ID}"/>
+                <br/>
+              </#if>
+              <#if !flaggedComment.isFormalCorrection >
+                <@s.checkbox name="convertToFormalCorrection" label="Formal Correction"
+                fieldValue="${flaggedComment.ID}"/>
+                <br/>
+              </#if>
+              <#if !flaggedComment.isRetraction >
+                <@s.checkbox name="convertToRetraction" label="Retraction"
+                fieldValue="${flaggedComment.ID}"/>
+                <br/>
+              </#if>
             </#if>
           </td>
         </tr>

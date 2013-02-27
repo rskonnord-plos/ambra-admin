@@ -72,9 +72,9 @@ public class SearchUserActionTest extends AdminWebTest {
     assertEquals(searchUserAction.executeFindUserByAuthId(), Action.SUCCESS,
         "searchUserAction.executeFindUserByAuthId() didn't return success");
 
-    final UserProfile[] topazUserIdList = searchUserAction.getUsers();
-    assertTrue(topazUserIdList.length == 1, "Didn't return correct number of users");
-    compareUsers(topazUserIdList[0], storedUser);
+    final UserProfile[] ambraUserIdList = searchUserAction.getUsers();
+    assertTrue(ambraUserIdList.length == 1, "Didn't return correct number of users");
+    compareUsers(ambraUserIdList[0], storedUser);
     searchUserAction.setUserAuthId(null);
   }
 
@@ -86,9 +86,9 @@ public class SearchUserActionTest extends AdminWebTest {
     assertEquals(searchUserAction.executeFindUserByEmailAddress(), Action.SUCCESS,
         "searchUserAction.executeFindUserByEmailAddress() didn't return success");
 
-    final UserProfile[] topazUserIdList = searchUserAction.getUsers();
-    assertTrue(topazUserIdList.length == 1, "didn't return correct number of user profiles");
-    compareUsers(topazUserIdList[0], storedUser);
+    final UserProfile[] ambraUserIdList = searchUserAction.getUsers();
+    assertTrue(ambraUserIdList.length == 1, "didn't return correct number of user profiles");
+    compareUsers(ambraUserIdList[0], storedUser);
     searchUserAction.setEmailAddress(null);
   }
 
@@ -99,9 +99,9 @@ public class SearchUserActionTest extends AdminWebTest {
     assertEquals(searchUserAction.executeFindUserByName(), Action.SUCCESS,
         "searchUserAction.executeFindUserByName() didn't return success");
 
-    final UserProfile[] topazUserIdList = searchUserAction.getUsers();
-    assertTrue(topazUserIdList.length == 1, "didn't return correct number of user profiles");
-    compareUsers(topazUserIdList[0], storedUser);
+    final UserProfile[] ambraUserIdList = searchUserAction.getUsers();
+    assertTrue(ambraUserIdList.length == 1, "didn't return correct number of user profiles");
+    compareUsers(ambraUserIdList[0], storedUser);
     searchUserAction.setName(null);
   }
 
