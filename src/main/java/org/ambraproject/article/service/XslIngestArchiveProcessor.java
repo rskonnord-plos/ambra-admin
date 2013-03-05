@@ -49,8 +49,8 @@ import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.topazproject.xml.transform.EntityResolvingSource;
-import org.topazproject.xml.transform.cache.CachedSource;
+import org.ambraproject.xml.transform.EntityResolvingSource;
+import org.ambraproject.xml.transform.cache.CachedSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -623,6 +623,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
         author.setFullName(xPathUtil.evaluate(transformedXml, nodeXpath + "/authors[" + j + "]/realName/text()"));
         author.setGivenNames(xPathUtil.evaluate(transformedXml, nodeXpath + "/authors[" + j + "]/givenNames/text()"));
         author.setSurnames(xPathUtil.evaluate(transformedXml, nodeXpath + "/authors[" + j + "]/surnames/text()"));
+        author.setSuffix(xPathUtil.evaluate(transformedXml, nodeXpath + "/authors[" + j + "]/suffix/text()"));
         authors.add(author);
       }
       for (int j = 1; j <= editorCount; j++) {
@@ -630,6 +631,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
         editor.setFullName(xPathUtil.evaluate(transformedXml, nodeXpath + "/editors[" + j + "]/realName/text()"));
         editor.setGivenNames(xPathUtil.evaluate(transformedXml, nodeXpath + "/editors[" + j + "]/givenNames/text()"));
         editor.setSurnames(xPathUtil.evaluate(transformedXml, nodeXpath + "/editors[" + j + "]/surnames/text()"));
+        editor.setSuffix(xPathUtil.evaluate(transformedXml, nodeXpath + "/editors[" + j + "]/suffix/text()"));
         editors.add(editor);
       }
       citedArticle.setAuthors(authors);

@@ -173,6 +173,7 @@
   </bean>
 
   <bean id="adminRolesService" class="org.ambraproject.admin.service.impl.AdminRolesServiceImpl">
+    <property name="permissionsService" ref="permissionsService"/>
     <property name="sessionFactory" ref="sessionFactory"/>
   </bean>
 </beans>

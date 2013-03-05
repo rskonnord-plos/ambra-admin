@@ -21,6 +21,7 @@
 
 package org.ambraproject.admin.service;
 
+import org.ambraproject.admin.views.RolePermissionView;
 import org.ambraproject.admin.views.UserRoleView;
 import java.util.List;
 import java.util.Set;
@@ -55,4 +56,36 @@ public interface AdminRolesService {
    * @param roleId
    */
   public void grantRole(final Long userProfileID, final Long roleId);
+
+  /**
+   * Create a new role with an empty set of permissions
+   *
+   * @param roleName the name of the role to create
+   * @return the new roleID
+   */
+  public Long createRole(final String roleName);
+
+  /**
+   * Delete a role
+   *
+   * @param roleId the id of the role to delete
+   */
+  public void deleteRole(final Long roleId);
+
+  /**
+   * Get the permissions associated with a role
+   *
+   * @param roleId The ID of the role to fetch permissions for
+   *
+   * @return the list of permissions
+   */
+  public List<RolePermissionView> getRolePermissions(final Long roleId);
+
+  /**
+   * Edit the permissions associated with a role
+   *
+   * @param roleId the roleID
+   * @param permissions the permissions to grant a user
+   */
+  public void setRolePermissions(final Long roleId, final String[] permissions);
 }

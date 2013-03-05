@@ -32,7 +32,7 @@
     *
     *****************************************-->
 
-  <bean id="propertyConfigurer" class="org.topazproject.ambra.configuration.SpringPlaceholderConfigurer"/>
+  <bean id="propertyConfigurer" class="org.ambraproject.configuration.SpringPlaceholderConfigurer"/>
 
   <bean id="defaultEncodingCharset" class="java.lang.String">
     <constructor-arg value="UTF-8"/>
@@ -95,6 +95,7 @@
 
   <bean id="adminRolesService" class="org.ambraproject.admin.service.impl.AdminRolesServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
   <bean id="userService" class="org.ambraproject.service.user.UserServiceImpl">
@@ -203,7 +204,7 @@
       </map>
     </property>
   </bean>
-  <bean id="configurationStore" class="org.topazproject.ambra.configuration.ConfigurationStore"
+  <bean id="configurationStore" class="org.ambraproject.configuration.ConfigurationStore"
         factory-method="getInstance"/>
 
   <bean id="ambraConfiguration" factory-bean="configurationStore" factory-method="getConfiguration"/>

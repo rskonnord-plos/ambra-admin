@@ -439,6 +439,51 @@
       </result>
     </action>
 
+    <action name="manageRoles" class="org.ambraproject.admin.action.ManageRolesAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+    </action>
+
+    <action name="createRole" class="org.ambraproject.admin.action.ManageRolesAction" method="createRole">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+    </action>
+
+    <action name="deleteRole" class="org.ambraproject.admin.action.ManageRolesAction" method="deleteRole">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageRoles.ftl</param>
+      </result>
+    </action>
+
+    <action name="getRolePermissions" class="org.ambraproject.admin.action.ManageRolesAction" method="getRolePermissions">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/editRolePermissions.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/editRolePermissions.ftl</param>
+      </result>
+    </action>
+
+    <action name="editPermissionsAssign" class="org.ambraproject.admin.action.ManageRolesAction" method="setRolePermissions">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/editRolePermissions.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/editRolePermissions.ftl</param>
+      </result>
+    </action>
+
     <action name="volumeManagement" class="org.ambraproject.admin.action.VolumeManagementAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/volumeManagement.ftl</param>

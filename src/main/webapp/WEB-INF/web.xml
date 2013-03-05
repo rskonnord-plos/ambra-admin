@@ -176,7 +176,7 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
 
   <!-- The configuration WebAppListener to pull in the configuration stuff automatically. -->
   <listener>
-    <listener-class>org.topazproject.ambra.configuration.WebAppListener</listener-class>
+    <listener-class>org.ambraproject.configuration.WebAppListener</listener-class>
   </listener>
   <!-- to hook in the spring container -->
   <listener>
@@ -188,7 +188,7 @@ If so, wrap request with virtual journal override values in FilterChain.</descri
   </listener>
 
   <welcome-file-list>
-    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>adminTop.action</welcome-file>
   </welcome-file-list>
 
   <error-page>

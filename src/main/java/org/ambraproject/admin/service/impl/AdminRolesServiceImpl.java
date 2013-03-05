@@ -1,7 +1,5 @@
-/* $HeadURL$
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -21,6 +19,7 @@
 package org.ambraproject.admin.service.impl;
 
 import org.ambraproject.admin.service.AdminRolesService;
+import org.ambraproject.admin.views.RolePermissionView;
 import org.ambraproject.admin.views.UserRoleView;
 import org.ambraproject.models.UserRole;
 import org.ambraproject.models.UserProfile;
@@ -30,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.ambraproject.service.permission.PermissionsService;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
@@ -37,16 +37,19 @@ import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.orm.hibernate3.HibernateCallback;
 
 /**
  * Methods to Administer user roles
  */
 public class AdminRolesServiceImpl extends HibernateServiceImpl implements AdminRolesService {
+  private PermissionsService permissionsService;
   /**
    * Get all the roles associated with a user
    *
    * @param userProfileID
+   *
    * @return
    */
   public Set<UserRoleView> getUserRoles(final Long userProfileID)
@@ -130,6 +133,8 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
     up.setRoles(new HashSet<UserRole>());
 
     hibernateTemplate.update(up);
+
+    this.permissionsService.clearCache();
   }
 
   /**
@@ -157,5 +162,120 @@ public class AdminRolesServiceImpl extends HibernateServiceImpl implements Admin
         return null;
       }
     });
+
+    this.permissionsService.clearCache();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public Long createRole(final String roleName)
+  {
+    return (Long)hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        UserRole userRole = new UserRole(roleName, null);
+
+        //Add the role to the collection
+        session.save(userRole);
+
+        return userRole.getID();
+      }
+    });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public void deleteRole(final Long roleId) {
+    hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+      UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+
+      /*
+       If there is a way to do this with hibernate, I am all ears, I played with it a bit
+       but didn't want it to be a timesink
+      */
+      session.createSQLQuery("delete from userProfileRoleJoinTable where " +
+        "userRoleID = " + roleId).executeUpdate();
+
+      session.delete(ur);
+
+      return null;
+      }
+    });
+
+    this.permissionsService.clearCache();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public List<RolePermissionView> getRolePermissions(final Long roleId)
+  {
+    Set<UserRole.Permission> permissions = (Set<UserRole.Permission>)hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+
+        return ur.getPermissions();
+      }
+    });
+
+    List<RolePermissionView> results = new ArrayList<RolePermissionView>();
+
+    for(UserRole.Permission p : UserRole.Permission.values()) {
+      if(permissions.contains(p)) {
+        results.add(new RolePermissionView(p.toString(), true));
+      } else {
+        results.add(new RolePermissionView(p.toString(), false));
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @SuppressWarnings("unchecked")
+  public void setRolePermissions(final Long roleId, final String[] permissions)
+  {
+    hibernateTemplate.execute(new HibernateCallback()
+    {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Set<UserRole.Permission> newPerms = new HashSet<UserRole.Permission>(permissions.length);
+
+        for(String p : permissions) {
+          newPerms.add(UserRole.Permission.valueOf(p));
+        }
+
+        UserRole ur = (UserRole)session.load(UserRole.class, roleId);
+        ur.setPermissions(newPerms);
+        session.save(ur);
+
+        return null;
+      }
+    });
+
+    this.permissionsService.clearCache();
+  }
+
+  /**
+   * Sets the PermissionsService.
+   *
+   * @param permService The PermissionsService to set.
+   */
+  @Required
+  public void setPermissionsService(PermissionsService permService) {
+    this.permissionsService = permService;
   }
 }
