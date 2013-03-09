@@ -97,7 +97,7 @@ public class AdminTopAction extends BaseAdminActionSupport {
     return SUCCESS;
   }
 
-  private void generateIngestionTestCase() throws Exception {
+  private void generateIngestionTestCase() {
     log.info("Beginning hacked-in article ingestion (see IngestTestCaseGenerator javadoc)");
     File path = new File(IngestTestCaseGenerator.ingestCasePath);
     File[] zipFiles = path.listFiles(new FilenameFilter() {
@@ -107,9 +107,15 @@ public class AdminTopAction extends BaseAdminActionSupport {
       }
     });
     Arrays.sort(zipFiles);
-    for (File zipFilePath : zipFiles) {
-      ZipFile zipFile = new ZipFile(zipFilePath);
-      Article article = ingester.ingest(zipFile, true);
+    for (int i = 0; i < zipFiles.length; i++) {
+      File zipFilePath = zipFiles[i];
+      log.debug("\n\nIngesting {} of {}\n", i, zipFiles.length);
+      try {
+        ZipFile zipFile = new ZipFile(zipFilePath);
+        Article article = ingester.ingest(zipFile, true);
+      } catch (Exception e) {
+        log.error("Error on " + zipFilePath, e);
+      }
 //    IngestTestCaseGenerator.writeCase(article);
     }
   }
