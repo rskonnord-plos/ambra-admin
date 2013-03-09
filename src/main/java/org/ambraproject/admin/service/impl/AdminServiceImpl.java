@@ -32,6 +32,8 @@ import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.ambraproject.routes.CrossRefLookupRoutes;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +57,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -62,6 +65,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   private static final String SEPARATORS = "[,;]";
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
+
+  @Produce(uri = CrossRefLookupRoutes.UPDATED_CITED_ARTICLES)
+  protected ProducerTemplate crossRefLookup;
 
   private List<OnCrossPubListener> onCrossPubListener;
 
@@ -116,6 +122,13 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       }
     });
     invokeOnCrossPubListeners(articleDoi);
+  }
+
+  @Override
+  public void refreshReferences(final String articleDoi, final String authID) {
+    crossRefLookup.sendBodyAndHeaders(articleDoi, new HashMap() {{
+      put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
+    }});
   }
 
   @Override

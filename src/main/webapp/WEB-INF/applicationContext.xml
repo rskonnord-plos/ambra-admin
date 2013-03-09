@@ -441,6 +441,8 @@
     <!-- property name="redeliveryInterval" value="10"/ -->
   </bean>
 
+  <bean id="crossRefLookupRouteBuilder" class="org.ambraproject.routes.CrossRefLookupRoutes" />
+
   <camelContext xmlns="http://camel.apache.org/schema/spring">
     <jmxAgent id="plos-queue" createConnector="false"/>
     <template id="messageProducerTemplate"/>

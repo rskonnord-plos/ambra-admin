@@ -186,6 +186,14 @@
       </fieldset>
 
       <fieldset>
+        <legend><strong>Refresh Article References</strong></legend>
+        <@s.form name="refreshReferences" action="refreshReferences" method="post" namespace="/">
+          Article Uri: <input type="article" name="article" label="Article Uri" size="80" value=""/>&nbsp;
+          <input type="submit" name="action" value="Fetch References" />
+        </@s.form>
+      </fieldset>
+
+      <fieldset>
         <legend><strong>Disable and Revert Ingest for Article</strong></legend>
         <@s.form name="disableArticle" action="disableArticle" method="post" namespace="/" onsubmit="return confirmDisableArticle();">
           Article Uri: <input type="article" name="article" label="Article Uri" size="80" value=""/>&nbsp;
