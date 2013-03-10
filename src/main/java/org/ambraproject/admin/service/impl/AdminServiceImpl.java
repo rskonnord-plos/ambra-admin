@@ -24,6 +24,7 @@ package org.ambraproject.admin.service.impl;
 import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
+import org.ambraproject.queue.MessageSender;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
@@ -32,8 +33,6 @@ import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -46,6 +45,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,13 +66,16 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   private static final String SEPARATORS = "[,;]";
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
-  @Produce(uri = CrossRefLookupRoutes.UPDATED_CITED_ARTICLES)
-  protected ProducerTemplate crossRefLookup;
-
+  private MessageSender messageSender;
   private List<OnCrossPubListener> onCrossPubListener;
 
   public void setOnCrossPubListener(List<OnCrossPubListener> onCrossPubListener) {
     this.onCrossPubListener = onCrossPubListener;
+  }
+
+  @Required
+  public void setMessageSender(MessageSender messageSender) {
+    this.messageSender = messageSender;
   }
 
   @Override
@@ -126,7 +129,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   public void refreshReferences(final String articleDoi, final String authID) {
-    crossRefLookup.sendBodyAndHeaders(articleDoi, new HashMap() {{
+    messageSender.sendMessage(CrossRefLookupRoutes.UPDATE_CITED_ARTICLES, articleDoi, new HashMap() {{
       put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
     }});
   }

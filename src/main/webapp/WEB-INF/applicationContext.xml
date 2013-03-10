@@ -225,6 +225,7 @@
 
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="messageSender" ref="messageSender"/>
     <property name="onCrossPubListener">
       <list>
         <ref bean="indexingService"/>
@@ -447,6 +448,7 @@
     <jmxAgent id="plos-queue" createConnector="false"/>
     <template id="messageProducerTemplate"/>
     <routeBuilder ref="routeBuilder"/>
+    <routeBuilder ref="crossRefLookupRouteBuilder"/>
   </camelContext>
 
   <bean id="messageSender" class="org.ambraproject.queue.CamelSender">

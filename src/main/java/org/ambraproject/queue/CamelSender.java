@@ -24,25 +24,43 @@ package org.ambraproject.queue;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Required;
 import org.w3c.dom.Document;
+import java.util.Map;
 
 /**
  * Apache Camel sender.
  * @author Dragisa Krsmanovic
+ * @author Joe Osowski
  */
 public class CamelSender implements MessageSender {
 
   private ProducerTemplate producerTemplate;
 
+  /**
+   * @inheritDoc
+   */
   @Required
   public void setProducerTemplate(ProducerTemplate producerTemplate) {
     this.producerTemplate = producerTemplate;
   }
 
+  /**
+   * @inheritDoc
+   */
   public void sendMessage(String destination, String body) {
     producerTemplate.sendBody(destination, body);
   }
 
+  /**
+   * @inheritDoc
+   */
   public void sendMessage(String destination, Document body) {
     producerTemplate.sendBody(destination, body);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public void sendMessage(String destination, Object body, Map<String,Object> headers) {
+    producerTemplate.sendBodyAndHeaders(destination, body, headers);
   }
 }

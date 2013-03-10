@@ -23,9 +23,12 @@ package org.ambraproject.queue;
 
 import org.w3c.dom.Document;
 
+import java.util.Map;
+
 /**
  * Message sender interface. 
  * @author Dragisa Krsmanovic
+ * @author Joe Osowski
  */
 public interface MessageSender {
 
@@ -42,4 +45,12 @@ public interface MessageSender {
    * @param body Message body,
    */
   void sendMessage(String destination, Document body);
+
+  /**
+   * Send a generic message with headers
+   * @param destination the destination endpoint
+   * @param body the body of the queue message
+   * @param headers headers to append to the queue message
+   */
+  public void sendMessage(String destination, Object body, Map<String,Object> headers);
 }
