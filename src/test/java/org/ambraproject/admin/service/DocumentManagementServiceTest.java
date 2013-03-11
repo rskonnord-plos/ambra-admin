@@ -136,11 +136,13 @@ public class DocumentManagementServiceTest extends AdminBaseTest {
     relatedArticle.setRelatedArticles(Arrays.asList(foreignRelationship));
     dummyDataStore.store(relatedArticle);
 
+    article = dummyDataStore.get(Article.class, id);
     //add a reciprocal relationship on original article
     ArticleRelationship relationship = new ArticleRelationship();
     relationship.setOtherArticleDoi(relatedArticle.getDoi());
     relationship.setOtherArticleID(relatedArticle.getID());
     article.getRelatedArticles().add(relationship);
+
     dummyDataStore.update(article);
 
     return new Object[][] {
