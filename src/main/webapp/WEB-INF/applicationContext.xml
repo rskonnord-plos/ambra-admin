@@ -302,6 +302,7 @@
     <property name="onPublishListeners">
       <list>
         <ref bean="indexingService"/>
+        <ref bean="adminService"/>
       </list>
     </property>
     <property name="onDeleteListeners">

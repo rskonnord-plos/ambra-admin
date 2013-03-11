@@ -122,10 +122,11 @@ public class IndexingServiceImpl extends HibernateServiceImpl
    *
    * @see Routes
    * @param articleId ID of the published article
+   * @param authId the authorization ID of the current user
    * @throws Exception if message send fails
    */
   @Transactional(readOnly = true)
-  public void articlePublished(String articleId) throws Exception {
+  public void articlePublished(String articleId, String authId) throws Exception {
     if (indexingQueue != null) {
       log.info("Indexing published article " + articleId);
       indexOneArticle(articleId);

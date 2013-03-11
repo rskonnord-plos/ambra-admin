@@ -402,7 +402,7 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
       try {
         // mark article as active
         articleService.setState(article, authId, Article.STATE_ACTIVE);
-        invokeOnPublishListeners(article);
+        invokeOnPublishListeners(article, authId);
 
         msgs.add("Published: " + article);
         log.info("Published article: '" + article + "'");
@@ -493,12 +493,14 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * Invokes all objects that are registered to listen to article publish event.
    *
    * @param articleId Article ID
+   * @param authId the authorization ID of the current user
+   *
    * @throws Exception If listener method failed
    */
-  private void invokeOnPublishListeners(String articleId) throws Exception {
+  private void invokeOnPublishListeners(String articleId, String authId) throws Exception {
     if (onPublishListeners != null) {
       for (OnPublishListener listener : onPublishListeners) {
-        listener.articlePublished(articleId);
+        listener.articlePublished(articleId, authId);
       }
     }
   }

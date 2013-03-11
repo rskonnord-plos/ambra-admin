@@ -24,6 +24,7 @@ package org.ambraproject.admin.service.impl;
 import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
+import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.queue.MessageSender;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
@@ -61,8 +62,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public class AdminServiceImpl extends HibernateServiceImpl implements AdminService {
-
+public class AdminServiceImpl extends HibernateServiceImpl implements AdminService, OnPublishListener {
   private static final String SEPARATORS = "[,;]";
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
@@ -125,6 +125,12 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       }
     });
     invokeOnCrossPubListeners(articleDoi);
+  }
+
+  @Override
+  public void articlePublished(String articleId, String authID) throws Exception
+  {
+    refreshReferences(articleId, authID);
   }
 
   @Override

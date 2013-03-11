@@ -45,9 +45,10 @@ public interface IndexingService {
    *
    * @see org.ambraproject.queue.Routes
    * @param articleId ID of the published article
+   * @param authId the authorization ID of the current user
    * @throws Exception if message send fails
    */
-  public void articlePublished(String articleId) throws Exception;
+  public void articlePublished(String articleId, String authId) throws Exception;
 
   /**
    * Method that is fired on article cross publish operation.
