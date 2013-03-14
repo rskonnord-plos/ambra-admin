@@ -55,11 +55,12 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
- * Service class that handles article search indexing. It is plugged in as OnPublishListener into
+ * Service class for indexing SOLR dat. It is plugged in as OnPublishListener into
  * DocumentManagementService.
  *
  * @author Bill OConnor
  * @author Dragisa Krsmanovic
+ * @author Joe Osowski
  */
 public class IndexingServiceImpl extends HibernateServiceImpl
   implements OnPublishListener, OnDeleteListener, OnCrossPubListener, IndexingService {

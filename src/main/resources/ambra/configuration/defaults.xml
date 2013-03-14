@@ -98,9 +98,11 @@
     </virtualJournals>
 
     <services>
-      <quartz>
-
-      </quartz>
+      <!-- Some default values for when the reindex occurs for academic editors -->
+      <academic-editor-reindex>
+        <indexingMailReceiver>dev@plos.org</indexingMailReceiver>
+        <reindex-cron>0 0 0 ? * SUN</reindex-cron>
+      </academic-editor-reindex>
 
       <ingest>
         <default>org/ambraproject/article/service/pmc2obj.xslt</default>
