@@ -135,6 +135,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   public void refreshReferences(final String articleDoi, final String authID) {
+    log.debug("Sending message to: {}, ({},{})", new Object[] { CrossRefLookupRoutes.UPDATE_CITED_ARTICLES,
+      articleDoi, authID });
+
     messageSender.sendMessage(CrossRefLookupRoutes.UPDATE_CITED_ARTICLES, articleDoi, new HashMap() {{
       put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
     }});
