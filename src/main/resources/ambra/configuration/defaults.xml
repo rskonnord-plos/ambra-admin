@@ -98,6 +98,9 @@
     </virtualJournals>
 
     <services>
+      <queue>
+        <refreshCitedArticles>activemq:plos.updatedCitedArticles?transacted=false</refreshCitedArticles>
+      </queue>
       <quartz>
 
       </quartz>

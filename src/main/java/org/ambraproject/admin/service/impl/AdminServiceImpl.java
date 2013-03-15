@@ -26,6 +26,7 @@ import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.queue.MessageSender;
+import org.ambraproject.queue.Routes;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
@@ -34,6 +35,7 @@ import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -63,14 +65,19 @@ import java.util.Iterator;
 import java.util.List;
 
 public class AdminServiceImpl extends HibernateServiceImpl implements AdminService, OnPublishListener {
-  private static final String SEPARATORS = "[,;]";
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
   private MessageSender messageSender;
+  private Configuration configuration;
   private List<OnCrossPubListener> onCrossPubListener;
 
   public void setOnCrossPubListener(List<OnCrossPubListener> onCrossPubListener) {
     this.onCrossPubListener = onCrossPubListener;
+  }
+
+  @Required
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Required
@@ -135,12 +142,17 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   public void refreshReferences(final String articleDoi, final String authID) {
-    log.debug("Sending message to: {}, ({},{})", new Object[] { CrossRefLookupRoutes.UPDATE_CITED_ARTICLES,
-      articleDoi, authID });
+    log.debug("Sending message to: {}, ({},{})", new Object[] {
+      "activemq:plos.updatedCitedArticles?transacted=true", articleDoi, authID });
 
-    messageSender.sendMessage(CrossRefLookupRoutes.UPDATE_CITED_ARTICLES, articleDoi, new HashMap() {{
-      put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
-    }});
+    String refreshCitedArticlesQueue = configuration.getString("ambra.services.queue.refreshCitedArticles", null);
+    if (refreshCitedArticlesQueue != null) {
+      messageSender.sendMessage(refreshCitedArticlesQueue, articleDoi, new HashMap() {{
+        put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
+      }});
+    } else {
+      throw new RuntimeException("Refresh cited articles queue not defined. No route created.");
+    }
   }
 
   @Override

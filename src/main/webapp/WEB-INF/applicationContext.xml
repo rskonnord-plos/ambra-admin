@@ -230,6 +230,7 @@
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="messageSender" ref="messageSender"/>
+    <property name="configuration" ref="ambraConfiguration"/>
     <property name="onCrossPubListener">
       <list>
         <ref bean="indexingService"/>
@@ -447,13 +448,10 @@
     <!-- property name="redeliveryInterval" value="10"/ -->
   </bean>
 
-  <bean id="crossRefLookupRouteBuilder" class="org.ambraproject.routes.CrossRefLookupRoutes" />
-
   <camelContext xmlns="http://camel.apache.org/schema/spring">
     <jmxAgent id="plos-queue" createConnector="false"/>
     <template id="messageProducerTemplate"/>
     <routeBuilder ref="routeBuilder"/>
-    <routeBuilder ref="crossRefLookupRouteBuilder"/>
   </camelContext>
 
   <bean id="messageSender" class="org.ambraproject.queue.CamelSender">
