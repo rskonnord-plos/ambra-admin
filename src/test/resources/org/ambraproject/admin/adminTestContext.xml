@@ -34,6 +34,7 @@
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
     <property name="messageSender" ref="messageSender"/>
+    <property name="configuration" ref="ambraConfiguration"/>
     <property name="onCrossPubListener">
       <list>
         <ref bean="onCrossPubListener"/>
