@@ -33,8 +33,9 @@ public interface OnPublishListener {
   /**
    * After article has been published all registered listeners are invoked through this method.
    * @param articleId ID of the published article
+   * @param authId the authorization ID of the current user
    * @throws Exception if operation failed. Will cause publish operation to fail.
    */
-  public void articlePublished(String articleId) throws Exception;
+  public void articlePublished(String articleId, String authId) throws Exception;
 
 }

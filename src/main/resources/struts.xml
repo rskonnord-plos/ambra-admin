@@ -133,6 +133,15 @@
       </result>
     </action>
 
+    <action name="refreshReferences" class="org.ambraproject.admin.action.AdminTopAction" method="refreshReferences">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+    </action>
+
     <action name="deleteArticle" class="org.ambraproject.admin.action.DeleteArticleAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/articleDelete.ftl</param>

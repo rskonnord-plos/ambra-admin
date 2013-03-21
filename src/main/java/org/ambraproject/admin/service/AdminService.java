@@ -72,6 +72,14 @@ public interface AdminService {
   public void crossPubArticle(String articleDoi, String journalKey) throws Exception;
 
   /**
+   * Send a message to the queue to start the process of querying crossref for new dois.
+   *
+   * @param articleDoi
+   * @param authID
+   */
+  public void refreshReferences(final String articleDoi, final String authID);
+
+  /**
    * remove an article from a journal it's cross-published in and invoke all cross-publish listeners
    *
    * @param articleDoi the doi of the article to remove

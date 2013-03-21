@@ -24,7 +24,7 @@ public class DummyIndexingService implements IndexingService {
   }
 
   @Override
-  public void articlePublished(String articleId) throws Exception {
+  public void articlePublished(String articleId, String authId) throws Exception {
 
   }
 

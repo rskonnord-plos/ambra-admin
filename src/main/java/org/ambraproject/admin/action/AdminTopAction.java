@@ -54,7 +54,6 @@ public class AdminTopAction extends BaseAdminActionSupport {
   private List<ArticleInfo> publishableArticles;
   private Map<String, List<Syndication>> syndicationMap = new HashMap<String, List<Syndication>>();
   private List<Syndication> syndications;
-
   private ArticleService articleService;
   private DocumentManagementService documentManagementService;
   private Ingester ingester;
@@ -115,6 +114,36 @@ public class AdminTopAction extends BaseAdminActionSupport {
     } catch (Exception e) {
       addActionError("Failed to successfully unpublish article: " + article + ". <br>" + e);
       log.error("Failed to successfully unpublish article: " + article, e);
+    }
+
+    if (!setCommonFields())
+      return ERROR;
+
+    return SUCCESS;
+  }
+
+  /**
+   * Struts action method, request that the queue fetch article references
+   *
+   * @return Struts result
+   *
+   * @throws Exception when error occurs
+   */
+  public String refreshReferences() throws Exception {
+    if (article != null) {
+      article = article.trim();
+    }
+
+    try {
+      UriUtil.validateUri(article, "Article Uri");
+
+      adminService.refreshReferences(article, getAuthId());
+
+      addActionMessage("Successfully queued a job to refresh article references");
+
+    } catch (Exception e) {
+      addActionError("Failed to queue a job to refresh article references<br>" + e);
+      log.error("Failed to queue a job to refresh article references: " + article, e);
     }
 
     if (!setCommonFields())

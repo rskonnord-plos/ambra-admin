@@ -98,6 +98,9 @@
     </virtualJournals>
 
     <services>
+      <queue>
+        <refreshCitedArticles>activemq:plos.updatedCitedArticles?transacted=false</refreshCitedArticles>
+      </queue>
       <quartz>
 
       </quartz>
@@ -188,7 +191,7 @@
         </post>
         <query>
           <url>
-            http://doi.crossref.org/servlet/query?usr=${ambra.services.crossref.login}&amp;pwd=${ambra.services.crossref.password}&amp;format=piped&amp;type=a&amp;qdata=
+            http://search.crossref.org/links
           </url>
         </query>
         <guestquery>
