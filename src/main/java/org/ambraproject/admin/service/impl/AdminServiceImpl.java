@@ -26,7 +26,6 @@ import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.queue.MessageSender;
-import org.ambraproject.queue.Routes;
 import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
