@@ -27,6 +27,7 @@ import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.queue.MessageSender;
 import org.ambraproject.queue.Routes;
+import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
@@ -152,6 +153,22 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       }});
     } else {
       throw new RuntimeException("Refresh cited articles queue not defined. No route created.");
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public void sendJournalAlerts(SavedSearchRetriever.AlertType type)
+  {
+    log.debug("Sending message to send alerts for type: {}", type);
+
+    String sendSearchAlertsQueue = configuration.getString("ambra.services.queue.sendSearchAlerts", null);
+    if (sendSearchAlertsQueue != null) {
+      messageSender.sendMessage(sendSearchAlertsQueue, type.toString());
+    } else {
+      throw new RuntimeException("No message sent to send alerts, No route created.");
     }
   }
 

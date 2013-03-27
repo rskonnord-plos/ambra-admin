@@ -21,6 +21,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
+import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
@@ -78,6 +79,13 @@ public interface AdminService {
    * @param authID
    */
   public void refreshReferences(final String articleDoi, final String authID);
+
+  /**
+   * This method queues up all the email alerts to be sent for the given period
+   *
+   * @param type the type of search alert to send (Weekly or monthly)
+   */
+  public void sendJournalAlerts(SavedSearchRetriever.AlertType type);
 
   /**
    * remove an article from a journal it's cross-published in and invoke all cross-publish listeners
