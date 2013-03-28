@@ -30,6 +30,7 @@ import org.ambraproject.models.Volume;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -84,8 +85,10 @@ public interface AdminService {
    * This method queues up all the email alerts to be sent for the given period
    *
    * @param type the type of search alert to send (Weekly or monthly)
+   * @param startTime the start time to use as the start date of the search to perform.  Can be null
+   * @param endTime the end time to use as the start date of the search to perform.  Can be null
    */
-  public void sendJournalAlerts(SavedSearchRetriever.AlertType type);
+  public void sendJournalAlerts(SavedSearchRetriever.AlertType type, Date startTime, Date endTime);
 
   /**
    * remove an article from a journal it's cross-published in and invoke all cross-publish listeners

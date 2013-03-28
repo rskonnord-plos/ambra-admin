@@ -22,6 +22,10 @@ import org.ambraproject.search.SavedSearchRetriever;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Action class for resending email alerts
  *
@@ -31,28 +35,89 @@ import org.slf4j.LoggerFactory;
 public class ManageEmailAlertsAction extends BaseAdminActionSupport {
   private static final Logger log = LoggerFactory.getLogger(ManageEmailAlertsAction.class);
 
-  @SuppressWarnings("unchecked")
+  private String startTimeStr;
+  private String endTimeStr;
+
+  private Date startDateTime;
+  private Date endDateTime;
+
   @Override
   public String execute() throws Exception {
-    // create a faux journal object for template
-    initJournal();
-
     return SUCCESS;
   }
 
   public String sendMonthlyAlerts() {
-    this.adminService.sendJournalAlerts(SavedSearchRetriever.AlertType.MONTHLY);
+    try {
+      if(parseDates()) {
+        this.adminService.sendJournalAlerts(SavedSearchRetriever.AlertType.MONTHLY, this.startDateTime, this.endDateTime);
 
-    addActionMessage("Queued Monthly Alerts to be sent.");
+        addActionMessage("Queued Monthly Alerts to be sent.");
 
-    return SUCCESS;
+        return SUCCESS;
+      } else {
+        return INPUT;
+      }
+    } catch(Exception ex) {
+      addActionError("Error queueing message: " + ex.getMessage());
+      return ERROR;
+    }
   }
 
   public String sendWeeklyAlerts() {
-    this.adminService.sendJournalAlerts(SavedSearchRetriever.AlertType.WEEKLY);
+    try {
+      if(parseDates()) {
+        this.adminService.sendJournalAlerts(SavedSearchRetriever.AlertType.WEEKLY, this.startDateTime, this.endDateTime);
 
-    addActionMessage("Queued Weekly Alerts to be sent.");
+        addActionMessage("Queued Weekly Alerts to be sent.");
 
-    return SUCCESS;
+        return SUCCESS;
+      } else {
+        return INPUT;
+      }
+    } catch(Exception ex) {
+      addActionError("Error queueing message: " + ex.getMessage());
+      return ERROR;
+    }
+  }
+
+  private boolean parseDates() {
+    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+
+    if(this.startTimeStr == null || this.startTimeStr.trim().length() == 0) {
+      this.startDateTime = null;
+    } else {
+      try {
+        this.startDateTime = formatter.parse(this.startTimeStr);
+
+        addActionMessage("Start Date set to:" + this.startDateTime.toString());
+
+      } catch(ParseException ex) {
+        addActionError("Start date can not be parsed: " + ex.getMessage());
+      }
+    }
+
+    if(this.endTimeStr == null || this.endTimeStr.trim().length() == 0) {
+      this.endDateTime = null;
+    } else {
+      try {
+        this.endDateTime = formatter.parse(this.endTimeStr);
+
+        addActionMessage("End Date set to:" + this.endDateTime.toString());
+
+      } catch(ParseException ex) {
+        addActionError("End date can not be parsed: " + ex.getMessage());
+      }
+    }
+
+    return (getActionErrors().size() == 0);
+  }
+
+
+  public void setStartTime(String startTime) {
+    this.startTimeStr = startTime;
+  }
+
+  public void setEndTime(String endTime) {
+    this.endTimeStr = endTime;
   }
 }

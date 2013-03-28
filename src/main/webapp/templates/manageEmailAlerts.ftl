@@ -29,14 +29,22 @@
 
   <fieldset>
     <legend><strong>Send Weekly Alerts</strong></legend>
+    Enter start and end times as needed.  If fields are left blank, appropriate values will be assigned.<br/>
+    <br/>
     <@s.form name="sendWeeklyAlerts" action="sendWeeklyAlerts" method="post" namespace="/">
+      Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
+      End Time: <input type="text" name="endTime" label="End Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       <input type="submit" name="action" value="Send" />
     </@s.form>
   </fieldset>
 
   <fieldset>
     <legend><strong>Send Monthly Alerts</strong></legend>
+    Enter start and end times as needed.  If fields are left blank, appropriate values will be assigned.<br/>
+    <br/>
     <@s.form name="sendMonthlyAlerts" action="sendMonthlyAlerts" method="post">
+      Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
+      End Time: <input type="text" name="endTime" label="End Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       <input type="submit" name="action" value="Send" />
     </@s.form>
   </fieldset>

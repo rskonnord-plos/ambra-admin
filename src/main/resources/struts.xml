@@ -290,6 +290,9 @@
       <result name="success" type="freemarker">
         <param name="location">/templates/manageEmailAlerts.ftl</param>
       </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
       <result name="error" type="freemarker">
         <param name="location">/templates/manageEmailAlerts.ftl</param>
       </result>
@@ -298,6 +301,9 @@
     <action name="sendWeeklyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
             method="sendWeeklyAlerts">
       <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
         <param name="location">/templates/manageEmailAlerts.ftl</param>
       </result>
       <result name="error" type="freemarker">
