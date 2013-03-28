@@ -20,6 +20,11 @@
 <head>
   <title>Ambra: Administration: Resend email alerts</title>
   <#include "includes/header.ftl">
+  <script type="text/javascript">
+    function confirmResend() {
+      return confirm('Are you sure you want to resend this alert? (Please no spam!)');
+    }
+  </script>
 </head>
 <body>
   <h1 style="text-align: center">Ambra: Administration: Resend email alerts</h1>
@@ -31,7 +36,7 @@
     <legend><strong>Send Weekly Alerts</strong></legend>
     Enter start and end times as needed.  If fields are left blank, appropriate values will be assigned.<br/>
     <br/>
-    <@s.form name="sendWeeklyAlerts" action="sendWeeklyAlerts" method="post" namespace="/">
+    <@s.form name="sendWeeklyAlerts" action="sendWeeklyAlerts" method="post" namespace="/" onsubmit="return confirmResend();">
       Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       End Time: <input type="text" name="endTime" label="End Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       <input type="submit" name="action" value="Send" />
