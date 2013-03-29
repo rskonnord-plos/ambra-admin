@@ -43,6 +43,9 @@ public class ManageEmailAlertsAction extends BaseAdminActionSupport {
 
   @Override
   public String execute() throws Exception {
+    // create a faux journal object for templates
+    initJournal();
+
     return SUCCESS;
   }
 
