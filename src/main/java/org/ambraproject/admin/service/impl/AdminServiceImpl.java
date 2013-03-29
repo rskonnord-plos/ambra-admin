@@ -172,8 +172,8 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
 
       //The queue expects dates to be in a specific format
-      headers.put(SavedSearchEmailRoutes.HEADER_STARTTIME, formatter.format(startTime));
-      headers.put(SavedSearchEmailRoutes.HEADER_ENDTIME, formatter.format(endTime));
+      headers.put(SavedSearchEmailRoutes.HEADER_STARTTIME, (startTime == null?null:formatter.format(startTime)));
+      headers.put(SavedSearchEmailRoutes.HEADER_ENDTIME, (endTime == null?null:formatter.format(endTime)));
 
       messageSender.sendMessage(sendSearchAlertsQueue, type.toString(), headers);
     } else {
