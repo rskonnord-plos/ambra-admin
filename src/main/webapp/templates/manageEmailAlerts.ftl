@@ -34,7 +34,7 @@
 
   <fieldset>
     <legend><strong>Send Weekly Alerts</strong></legend>
-    Enter start and end times as needed.  If fields are left blank, appropriate values will be assigned.<br/>
+    Enter start and end times as needed.  If fields are left blank, start time will be set to today -7 days, end time will be set to "Now". <br/>
     <br/>
     <@s.form name="sendWeeklyAlerts" action="sendWeeklyAlerts" method="post" namespace="/" onsubmit="return confirmResend();">
       Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
@@ -45,7 +45,7 @@
 
   <fieldset>
     <legend><strong>Send Monthly Alerts</strong></legend>
-    Enter start and end times as needed.  If fields are left blank, appropriate values will be assigned.<br/>
+    Enter start and end times as needed.  If fields are left blank, start time will be set to today -1 month, end time will be set to "Now".<br/>
     <br/>
     <@s.form name="sendMonthlyAlerts" action="sendMonthlyAlerts" method="post">
       Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
