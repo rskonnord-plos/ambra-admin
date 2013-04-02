@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Id$
- *
  * Copyright (c) 2006-2011 by Public Library of Science
  *     http://plos.org
  *     http://ambraproject.org
@@ -26,7 +23,10 @@ import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.queue.MessageSender;
-import org.ambraproject.queue.Routes;
+import org.ambraproject.service.article.ArticleClassifier;
+import org.ambraproject.service.article.ArticleService;
+import org.ambraproject.service.article.FetchArticleService;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
@@ -53,6 +53,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
 import org.ambraproject.routes.CrossRefLookupRoutes;
+import org.w3c.dom.Document;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,6 +69,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
   private MessageSender messageSender;
+  private FetchArticleService fetchArticleService;
+  private ArticleService articleService;
+  private ArticleClassifier articleClassifier;
   private Configuration configuration;
   private List<OnCrossPubListener> onCrossPubListener;
 
@@ -83,6 +87,21 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @Required
   public void setMessageSender(MessageSender messageSender) {
     this.messageSender = messageSender;
+  }
+
+  @Required
+  public void setFetchArticleService(FetchArticleService fetchArticleService) {
+    this.fetchArticleService = fetchArticleService;
+  }
+
+  @Required
+  public void setArticleClassifier(ArticleClassifier articleClassifier) {
+    this.articleClassifier = articleClassifier;
+  }
+
+  @Required
+  public void setArticleService(ArticleService articleService) {
+    this.articleService = articleService;
   }
 
   @Override
@@ -698,6 +717,30 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     } catch (IndexOutOfBoundsException e) {
       return null;
     }
+  }
+
+  @Override
+  @Transactional
+  public List<String> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException {
+    // Attempt to assign categories to the article based on the taxonomy server.
+
+    Document articleXml = fetchArticleService.getArticleDocument(new ArticleInfo(articleDoi));
+    List<String> terms = null;
+
+    try {
+      terms = articleClassifier.classifyArticle(articleXml);
+    } catch (Exception e) {
+      log.warn("Taxonomy server not responding, but ingesting article anyway", e);
+    }
+
+    if (terms != null && terms.size() > 0) {
+      Article article = articleService.getArticle(articleDoi, authID);
+      articleService.setArticleCategories(article, terms);
+
+      return terms;
+    }
+
+    return Collections.emptyList();
   }
 
   private void invokeOnCrossPubListeners(String articleDoi) throws Exception {

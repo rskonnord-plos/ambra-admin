@@ -35,6 +35,9 @@
     <property name="sessionFactory" ref="sessionFactory"/>
     <property name="messageSender" ref="messageSender"/>
     <property name="configuration" ref="ambraConfiguration"/>
+    <property name="articleService" ref="articleService" />
+    <property name="articleClassifier" ref="articleClassifier" />
+    <property name="fetchArticleService" ref="fetchArticleService" />
     <property name="onCrossPubListener">
       <list>
         <ref bean="onCrossPubListener"/>

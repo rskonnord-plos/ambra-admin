@@ -21,6 +21,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
+import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
@@ -243,4 +244,16 @@ public interface AdminService {
    * @return a comma-delimited list of the articles in groups
    */
   public String formatArticleCsv(List<TOCArticleGroup> issueArticleGroups);
+
+  /**
+   * Refresh the subject categories associated with an article from the taxonomy server
+   *
+   * @param articleDoi the article DOI
+   * @param authID the authID of the current user
+
+   * @return a list of the new terms applied (or empty list if there was a problem)
+   *
+   * @throws NoSuchArticleIdException
+   */
+  public List<String> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
 }
