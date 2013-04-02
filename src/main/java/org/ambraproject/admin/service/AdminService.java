@@ -1,7 +1,5 @@
-/* $HeadURL$
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -21,15 +19,13 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
+import org.ambraproject.models.Category;
 import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -251,9 +247,9 @@ public interface AdminService {
    * @param articleDoi the article DOI
    * @param authID the authID of the current user
 
-   * @return a list of the new terms applied (or empty list if there was a problem)
+   * @return a list of the new categories applied (or empty list if there was a problem)
    *
    * @throws NoSuchArticleIdException
    */
-  public List<String> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
+  public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
 }

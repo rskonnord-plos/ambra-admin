@@ -1,7 +1,5 @@
-/* $HeadURL::                                                                            $
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -26,6 +24,7 @@ import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.IngestArchiveProcessor;
 import org.ambraproject.article.service.Ingester;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Category;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.service.article.ArticleService;
 import org.ambraproject.service.article.DuplicateArticleIdException;
@@ -166,14 +165,14 @@ public class AdminTopAction extends BaseAdminActionSupport {
     try {
       UriUtil.validateUri(article, "Article Uri");
 
-      List<String> newTerms = adminService.refreshSubjectCategories(article, getAuthId());
+      List<Category> newCategories = adminService.refreshSubjectCategories(article, getAuthId());
 
-      if(newTerms.size() > 0) {
+      if(newCategories.size() > 0) {
         addActionMessage("Successfully refreshed article subject categories for: " + article);
-        addActionMessage("New Terms applied:");
+        addActionMessage("New Terms applied (Only the top 8 are selected):");
 
-        for(String a : newTerms) {
-          addActionMessage(a);
+        for(Category a : newCategories) {
+          addActionMessage(a.getPath());
         }
       } else {
         addActionMessage("Failed to refresh subject categories for: " + article);

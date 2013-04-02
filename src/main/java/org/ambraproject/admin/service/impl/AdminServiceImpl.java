@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011 by Public Library of Science
+ * Copyright (c) 2006-2013 by Public Library of Science
  *     http://plos.org
  *     http://ambraproject.org
  *
@@ -22,6 +22,7 @@ import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
+import org.ambraproject.models.Category;
 import org.ambraproject.queue.MessageSender;
 import org.ambraproject.service.article.ArticleClassifier;
 import org.ambraproject.service.article.ArticleService;
@@ -721,7 +722,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   @Transactional
-  public List<String> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException {
+  public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException {
     // Attempt to assign categories to the article based on the taxonomy server.
 
     Document articleXml = fetchArticleService.getArticleDocument(new ArticleInfo(articleDoi));
@@ -735,9 +736,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
     if (terms != null && terms.size() > 0) {
       Article article = articleService.getArticle(articleDoi, authID);
-      articleService.setArticleCategories(article, terms);
-
-      return terms;
+      return articleService.setArticleCategories(article, terms);
     }
 
     return Collections.emptyList();
