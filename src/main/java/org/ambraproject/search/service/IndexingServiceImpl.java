@@ -55,11 +55,12 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
- * Service class that handles article search indexing. It is plugged in as OnPublishListener into
+ * Service class for indexing SOLR dat. It is plugged in as OnPublishListener into
  * DocumentManagementService.
  *
  * @author Bill OConnor
  * @author Dragisa Krsmanovic
+ * @author Joe Osowski
  */
 public class IndexingServiceImpl extends HibernateServiceImpl
   implements OnPublishListener, OnDeleteListener, OnCrossPubListener, IndexingService {
@@ -182,6 +183,7 @@ public class IndexingServiceImpl extends HibernateServiceImpl
   @SuppressWarnings("unchecked")
   @Override
   public void reindexAcademicEditors() throws Exception {
+    log.info("Reindexing Academic Editors");
     List<AcademicEditorView> editors = this.raptorService.getAcademicEditor();
 
     Map<String, String> params = new HashMap<String, String>();
@@ -201,6 +203,8 @@ public class IndexingServiceImpl extends HibernateServiceImpl
 
     String csvData = sw.toString();
 
+    log.info("CSV data created @ {} ", csvData.length());
+
     //Post the updates
     this.solrHttpService.makeSolrPostRequest(params, csvData, true);
 
@@ -209,6 +213,8 @@ public class IndexingServiceImpl extends HibernateServiceImpl
       Collections.<String,String>emptyMap(),
       "<delete><query>timestamp:[* TO NOW-1HOUR] AND doc_type:(academic_editor OR section_editor)</query></delete>",
       false);
+
+    log.info("Reindexing Academic Editors complete");
   }
 
   /**
