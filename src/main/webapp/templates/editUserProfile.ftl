@@ -57,7 +57,9 @@
         <@s.a href="%{editProfileByAdminURL}">Profile</@s.a>,
         <@s.a href="%{editPreferencesByAdminURL}">Alerts/Preferences</@s.a>,
         <@s.a href="%{editSearchAlertsByAdminURL}">Search Alerts</@s.a>,
-        <@s.a href="%{editRolesURL}">Roles</@s.a>
+        <#if permissions?seq_contains("MANAGE_ROLES")>
+          <@s.a href="%{editRolesURL}">Roles</@s.a>
+        </#if>
 
         <br/><br/>
 
