@@ -145,14 +145,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     log.debug("Sending message to: {}, ({},{})", new Object[] {
       "activemq:plos.updatedCitedArticles?transacted=true", articleDoi, authID });
 
-    String refreshCitedArticlesQueue = configuration.getString("ambra.services.queue.refreshCitedArticles", null);
-    if (refreshCitedArticlesQueue != null) {
-      messageSender.sendMessage(refreshCitedArticlesQueue, articleDoi, new HashMap() {{
-        put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
-      }});
-    } else {
-      throw new RuntimeException("Refresh cited articles queue not defined. No route created.");
-    }
+    messageSender.sendMessage(Routes.REFRESH_REFERENCES, articleDoi, new HashMap() {{
+      put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
+    }});
   }
 
   @Override
