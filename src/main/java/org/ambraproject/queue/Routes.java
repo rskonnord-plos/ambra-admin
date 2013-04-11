@@ -44,7 +44,6 @@ public class Routes extends SpringRouteBuilder {
   public static final String SEARCH_INDEX = "seda:search.index";
   public static final String SEARCH_DELETE = "seda:search.delete";
   public static final String AE_REINDEX = "seda:ae.index";
-  public static final String REFRESH_REFERENCES = "seda:refresh.references";
 
   private String mailEndpoint;
 
@@ -222,21 +221,6 @@ public class Routes extends SpringRouteBuilder {
       }
     } else {
       log.warn("ambra.services.academic-editor-reindex.indexingMailReceiver not set. Reindex queue not created.");
-    }
-
-    String refreshCitedArticlesQueue = configuration.getString("ambra.services.queue.refreshCitedArticles", null);
-
-    if (refreshCitedArticlesQueue != null) {
-      log.info("Creating article search indexing route");
-
-      from(REFRESH_REFERENCES)
-        .to("log:org.ambraproject.queue.refresh.references.MessageReceived?level=INFO" +
-          "&showBodyType=false" +
-          "&showBody=false" +
-          "&showExchangeId=true")
-        .to(refreshCitedArticlesQueue);
-    } else {
-      log.warn("ambra.services.queue.refreshCitedArticles not set, refresh cited articles queue not defined. No route created.");
     }
   }
 }
