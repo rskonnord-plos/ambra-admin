@@ -47,7 +47,7 @@
     <legend><strong>Send Monthly Alerts</strong></legend>
     Enter start and end times as needed.  If fields are left blank, start time will be set to today -1 month, end time will be set to "Now".<br/>
     <br/>
-    <@s.form name="sendMonthlyAlerts" action="sendMonthlyAlerts" method="post">
+    <@s.form name="sendMonthlyAlerts" action="sendMonthlyAlerts" method="post" namespace="/" onsubmit="return confirmResend();">
       Start Time: <input type="text" name="startTime" label="Start Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       End Time: <input type="text" name="endTime" label="End Date" size="10" value=""/>&nbsp;(MM/DD/YYYY)<br/>
       <input type="submit" name="action" value="Send" />
