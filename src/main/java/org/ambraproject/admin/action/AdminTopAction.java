@@ -1,7 +1,5 @@
-/* $HeadURL::                                                                            $
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -26,6 +24,7 @@ import org.ambraproject.admin.service.SyndicationService;
 import org.ambraproject.article.service.IngestArchiveProcessor;
 import org.ambraproject.article.service.Ingester;
 import org.ambraproject.models.Article;
+import org.ambraproject.models.Category;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.service.article.ArticleService;
 import org.ambraproject.service.article.DuplicateArticleIdException;
@@ -35,7 +34,6 @@ import org.ambraproject.views.article.ArticleInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -144,6 +142,45 @@ public class AdminTopAction extends BaseAdminActionSupport {
     } catch (Exception e) {
       addActionError("Failed to queue a job to refresh article references<br>" + e);
       log.error("Failed to queue a job to refresh article references: " + article, e);
+    }
+
+    if (!setCommonFields())
+      return ERROR;
+
+    return SUCCESS;
+  }
+
+  /**
+   * Struts action method, refresh the subject categories associated with an article via the taxonomy server
+   *
+   * @return Struts result
+   *
+   * @throws Exception when error occurs
+   */
+  public String refreshSubjectCategories() throws Exception {
+    if (article != null) {
+      article = article.trim();
+    }
+
+    try {
+      UriUtil.validateUri(article, "Article Uri");
+
+      List<Category> newCategories = adminService.refreshSubjectCategories(article, getAuthId());
+
+      if(newCategories.size() > 0) {
+        addActionMessage("Successfully refreshed article subject categories for: " + article);
+        addActionMessage("New Terms applied (Only the top 8 are selected):");
+
+        for(Category a : newCategories) {
+          addActionMessage(a.getPath());
+        }
+      } else {
+        addActionMessage("Failed to refresh subject categories for: " + article);
+      }
+
+    } catch (Exception e) {
+      addActionError("Failed to refresh subject categories: " + e);
+      log.error("Failed to refresh subject categories", e);
     }
 
     if (!setCommonFields())

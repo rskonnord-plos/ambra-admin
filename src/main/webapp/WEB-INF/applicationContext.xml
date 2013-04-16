@@ -227,10 +227,40 @@
   *
   *****************************************-->
 
+  <!-- Collection not used in this context, provided to satisfy spring-->
+  <util:map id="xslEmptyMap" />
+
+  <!-- Duplicated in the application context in the ambra webapp -->
+  <util:map id="xmlFactoryProperties">
+    <entry key="javax.xml.transform.TransformerFactory"
+           value="net.sf.saxon.TransformerFactoryImpl"/>
+    <entry key="javax.xml.transform.Transformer"
+           value="net.sf.saxon.Controller"/>
+  </util:map>
+
+  <bean id="articleTransformService" class="org.ambraproject.service.xml.XMLServiceImpl" init-method="init">
+    <property name="articleRep" value="XML"/>
+    <!-- Property not used in this context, provided to satisfy spring injection -->
+    <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
+    <property name="xslTemplateMap" ref="xslEmptyMap"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="xmlFactoryProperty" ref="xmlFactoryProperties"/>
+  </bean>
+
+  <bean id="fetchArticleService" class="org.ambraproject.service.article.FetchArticleServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory" />
+    <property name="articleTransformService" ref="articleTransformService" />
+    <property name="fileStoreService" ref="fileStoreService" />
+    <property name="articleHtmlCache" ref="articleHtmlCache" />
+  </bean>
+
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
     <property name="messageSender" ref="messageSender"/>
     <property name="configuration" ref="ambraConfiguration"/>
+    <property name="articleService" ref="articleService" />
+    <property name="articleClassifier" ref="articleClassifier" />
+    <property name="fetchArticleService" ref="fetchArticleService" />
     <property name="onCrossPubListener">
       <list>
         <ref bean="indexingService"/>
@@ -260,6 +290,7 @@
     <property name="httpClient" ref="httpClient"/>
     <property name="serviceUrl" value="${ambra.services.ai.url}"/>
   </bean>
+
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
     <property name="documentBuilder" ref="documentBuilder"/>
     <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>

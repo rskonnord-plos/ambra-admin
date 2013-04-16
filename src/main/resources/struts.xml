@@ -211,6 +211,16 @@
       </result>
     </action>
 
+    <action name="refreshSubjectCategories" class="org.ambraproject.admin.action.AdminTopAction" method="refreshSubjectCategories">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+      <!-- stay in adminTop even on error -->
+      <result name="error" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+    </action>
+
     <action name="processArticles" class="org.ambraproject.admin.action.AdminTopAction" method="processArticles">
       <result name="success" type="freemarker">
         <param name="location">/templates/adminTop.ftl</param>
