@@ -286,6 +286,41 @@
       </result>
     </action>
 
+    <action name="manageEmailAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendMonthlyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+      method="sendMonthlyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendWeeklyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+            method="sendWeeklyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
     <action name="editRoles" class="org.ambraproject.user.action.EditRolesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/editUserRoles.ftl</param>

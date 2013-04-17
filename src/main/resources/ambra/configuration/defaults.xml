@@ -100,6 +100,7 @@
     <services>
       <queue>
         <refreshCitedArticles>activemq:plos.updatedCitedArticles?transacted=false</refreshCitedArticles>
+        <sendSearchAlerts>activemq:ambra.searchAlerts?transacted=false</sendSearchAlerts>
       </queue>
 
       <!-- Some default values for when the reindex occurs for academic editors -->

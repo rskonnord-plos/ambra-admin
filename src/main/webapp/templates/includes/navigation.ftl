@@ -25,6 +25,7 @@
 <@s.url id="manageVirtualJournalsURL" namespace="/" action="manageVirtualJournals" />
 <@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
 <@s.url id="manageCaches" namespace="/" action="manageCaches" />
+<@s.url id="manageEmailAlerts" namespace="/" action="manageEmailAlerts" />
 <@s.url id="manageRoles" namespace="/" action="manageRoles" />
 <@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
 <@s.url id="logout" includeParams="none" namespace="/" action="secureRedirect"
@@ -52,6 +53,9 @@
   </#if>
   <#if permissions?seq_contains("MANAGE_CACHES")>
     <@s.a href="${manageCaches}">Caches</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("RESEND_EMAIL_ALERTS")>
+    <@s.a href="${manageEmailAlerts}">Manage Email Alerts</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("MANAGE_ROLES")>
     <@s.a href="${manageRoles}">Roles</@s.a>

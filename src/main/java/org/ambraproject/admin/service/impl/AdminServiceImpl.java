@@ -28,6 +28,8 @@ import org.ambraproject.service.article.ArticleClassifier;
 import org.ambraproject.service.article.ArticleService;
 import org.ambraproject.service.article.FetchArticleService;
 import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.routes.SavedSearchEmailRoutes;
+import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
@@ -56,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.ambraproject.routes.CrossRefLookupRoutes;
 import org.w3c.dom.Document;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -65,6 +68,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class AdminServiceImpl extends HibernateServiceImpl implements AdminService, OnPublishListener {
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
@@ -162,8 +166,8 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Override
   public void refreshReferences(final String articleDoi, final String authID) {
-    log.debug("Sending message to: {}, ({},{})", new Object[] {
-      "activemq:plos.updatedCitedArticles?transacted=true", articleDoi, authID });
+    log.debug("Sending message to: {}, ({},{})", new Object[]{
+      "activemq:plos.updatedCitedArticles?transacted=true", articleDoi, authID});
 
     String refreshCitedArticlesQueue = configuration.getString("ambra.services.queue.refreshCitedArticles", null);
     if (refreshCitedArticlesQueue != null) {
@@ -172,6 +176,29 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       }});
     } else {
       throw new RuntimeException("Refresh cited articles queue not defined. No route created.");
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public void sendJournalAlerts(SavedSearchRetriever.AlertType type, Date startTime, Date endTime)
+  {
+    log.debug("Sending message to send alerts for type: {}", type);
+
+    String sendSearchAlertsQueue = configuration.getString("ambra.services.queue.sendSearchAlerts", null);
+    if (sendSearchAlertsQueue != null) {
+      Map<String,Object> headers = new HashMap<String, Object>();
+      SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+
+      //The queue expects dates to be in a specific format
+      headers.put(SavedSearchEmailRoutes.HEADER_STARTTIME, (startTime == null?null:formatter.format(startTime)));
+      headers.put(SavedSearchEmailRoutes.HEADER_ENDTIME, (endTime == null?null:formatter.format(endTime)));
+
+      messageSender.sendMessage(sendSearchAlertsQueue, type.toString(), headers);
+    } else {
+      throw new RuntimeException("No message sent to send alerts, No route created.");
     }
   }
 
