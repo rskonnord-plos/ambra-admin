@@ -489,7 +489,7 @@
         <executions>
           <execution>
             <id>purge-local-dependencies</id>
-            <phase>process-sources</phase>
+            <phase>validate</phase>
             <goals>
               <goal>purge-local-repository</goal>
             </goals>
