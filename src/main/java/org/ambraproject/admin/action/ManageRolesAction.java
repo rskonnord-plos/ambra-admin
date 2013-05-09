@@ -33,6 +33,9 @@ public class ManageRolesAction extends BaseAdminActionSupport {
    */
   public String execute()
   {
+    // create a faux journal object for templates
+    initJournal();
+
     UserProfile userProfile = userService.getUserByAuthId(getAuthId());
     this.userRoles = adminRolesService.getAllRoles(userProfile.getID());
 

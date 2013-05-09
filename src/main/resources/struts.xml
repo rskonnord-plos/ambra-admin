@@ -211,6 +211,16 @@
       </result>
     </action>
 
+    <action name="refreshSubjectCategories" class="org.ambraproject.admin.action.AdminTopAction" method="refreshSubjectCategories">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+      <!-- stay in adminTop even on error -->
+      <result name="error" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+    </action>
+
     <action name="processArticles" class="org.ambraproject.admin.action.AdminTopAction" method="processArticles">
       <result name="success" type="freemarker">
         <param name="location">/templates/adminTop.ftl</param>
@@ -273,6 +283,41 @@
       </result>
       <result name="input" type="freemarker">
         <param name="location">/templates/searchUser.ftl</param>
+      </result>
+    </action>
+
+    <action name="manageEmailAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendMonthlyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+      method="sendMonthlyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendWeeklyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+            method="sendWeeklyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
       </result>
     </action>
 

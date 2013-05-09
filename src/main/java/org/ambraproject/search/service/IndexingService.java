@@ -24,8 +24,11 @@ package org.ambraproject.search.service;
 import org.apache.commons.configuration.Configuration;
 
 /**
- * Service class for (re)indexing articles
+ * Service class for indexing SOLR data
+ *
  * @author Dragisa Krsmanovic
+ * @author Bill OConnor
+ * @author Joe Osowski
  */
 public interface IndexingService {
 

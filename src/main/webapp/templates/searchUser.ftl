@@ -40,7 +40,9 @@
               <li>
                 User: {Id: <b>${user.ID}</b>; User name: <b>${user.displayName!}</b>; Email: <b>${user.email!}</b>}
                 <@s.a href="%{editProfileByAdminURL}">Edit Profile</@s.a>&nbsp;
-                <@s.a href="%{editRolesURL}">Edit Roles</@s.a>
+                <#if permissions?seq_contains("MANAGE_ROLES")>
+                  <@s.a href="%{editRolesURL}">Edit Roles</@s.a>
+                </#if>
               </li>
             </#list>
           </ul>

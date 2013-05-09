@@ -1,7 +1,5 @@
-/* $HeadURL$
- * $Id$
- *
- * Copyright (c) 2006-2010 by Public Library of Science
+/*
+ * Copyright (c) 2006-2013 by Public Library of Science
  * http://plos.org
  * http://ambraproject.org
  *
@@ -21,14 +19,15 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
+import org.ambraproject.models.Category;
+import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
-
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,6 +77,15 @@ public interface AdminService {
    * @param authID
    */
   public void refreshReferences(final String articleDoi, final String authID);
+
+  /**
+   * This method queues up all the email alerts to be sent for the given period
+   *
+   * @param type the type of search alert to send (Weekly or monthly)
+   * @param startTime the start time to use as the start date of the search to perform.  Can be null
+   * @param endTime the end time to use as the start date of the search to perform.  Can be null
+   */
+  public void sendJournalAlerts(SavedSearchRetriever.AlertType type, Date startTime, Date endTime);
 
   /**
    * remove an article from a journal it's cross-published in and invoke all cross-publish listeners
@@ -243,4 +251,16 @@ public interface AdminService {
    * @return a comma-delimited list of the articles in groups
    */
   public String formatArticleCsv(List<TOCArticleGroup> issueArticleGroups);
+
+  /**
+   * Refresh the subject categories associated with an article from the taxonomy server
+   *
+   * @param articleDoi the article DOI
+   * @param authID the authID of the current user
+
+   * @return a list of the new categories applied (or empty list if there was a problem)
+   *
+   * @throws NoSuchArticleIdException
+   */
+  public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
 }
