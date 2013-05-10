@@ -32,6 +32,7 @@
     <ambra.version>2.6.3</ambra.version>
     <filestore.version>1.0.1</filestore.version>
     <solr.version>4.1.0</solr.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <repositories>
@@ -400,7 +401,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
+          <encoding>UTF-8</encoding>
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
           <encoding>${maven.compiler.encoding}</encoding>
@@ -423,8 +426,9 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>tomcat-maven-plugin</artifactId>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat6-maven-plugin</artifactId>
+        <version>2.1</version>
         <configuration>
           <path>/admin</path>
           <contextFile>/etc/ambra/context.xml</contextFile>
@@ -451,11 +455,6 @@
             <version>7.0.21</version>
           </dependency>
           <dependency>
-            <groupId>org.ambraproject</groupId>
-            <artifactId>file-store</artifactId>
-            <version>${filestore.version}</version>
-          </dependency>
-          <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.12</version>
@@ -477,6 +476,26 @@
           <preparationGoals>clean install</preparationGoals>
           <arguments>-Ppackages,distribution,release</arguments>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>purge-local-dependencies</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>purge-local-repository</goal>
+            </goals>
+            <configuration>
+              <resolutionFuzziness>groupId</resolutionFuzziness>
+              <includes>
+                <include>org.ambraproject</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <!--Turn on filtering of test resource to set up directories -->
