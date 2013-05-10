@@ -484,7 +484,7 @@
         <executions>
           <execution>
             <id>purge-local-dependencies</id>
-            <phase>validate</phase>
+            <phase>initialize</phase>
             <goals>
               <goal>purge-local-repository</goal>
             </goals>
