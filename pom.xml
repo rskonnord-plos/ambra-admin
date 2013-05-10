@@ -455,11 +455,6 @@
             <version>7.0.21</version>
           </dependency>
           <dependency>
-            <groupId>org.ambraproject</groupId>
-            <artifactId>file-store</artifactId>
-            <version>${filestore.version}</version>
-          </dependency>
-          <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.12</version>
