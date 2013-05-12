@@ -42,6 +42,7 @@
       <url>http://maven.ambraproject.org/maven2/release/</url>
       <releases>
         <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </releases>
       <snapshots>
         <enabled>false</enabled>
@@ -53,6 +54,7 @@
       <url>http://maven.ambraproject.org/maven2/snapshot/</url>
       <releases>
         <enabled>false</enabled>
+        <updatePolicy>always</updatePolicy>
       </releases>
       <snapshots>
         <enabled>true</enabled>
@@ -476,26 +478,6 @@
           <preparationGoals>clean install</preparationGoals>
           <arguments>-Ppackages,distribution,release</arguments>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.7</version>
-        <executions>
-          <execution>
-            <id>purge-local-dependencies</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>purge-local-repository</goal>
-            </goals>
-            <configuration>
-              <resolutionFuzziness>groupId</resolutionFuzziness>
-              <includes>
-                <include>org.ambraproject</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
     <!--Turn on filtering of test resource to set up directories -->
