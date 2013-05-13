@@ -477,26 +477,6 @@
           <arguments>-Ppackages,distribution,release</arguments>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.7</version>
-        <executions>
-          <execution>
-            <id>purge-local-dependencies</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>purge-local-repository</goal>
-            </goals>
-            <configuration>
-              <resolutionFuzziness>groupId</resolutionFuzziness>
-              <includes>
-                <include>org.ambraproject</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
     <!--Turn on filtering of test resource to set up directories -->
     <testResources>
