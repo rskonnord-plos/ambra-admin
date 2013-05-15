@@ -38,6 +38,7 @@ import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
 import org.ambraproject.service.hibernate.HibernateServiceImpl;
+import org.apache.camel.CamelExecutionException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -171,9 +172,14 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
     String refreshCitedArticlesQueue = configuration.getString("ambra.services.queue.refreshCitedArticles", null);
     if (refreshCitedArticlesQueue != null) {
-      messageSender.sendMessage(refreshCitedArticlesQueue, articleDoi, new HashMap() {{
-        put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
-      }});
+      try {
+        messageSender.sendMessage(refreshCitedArticlesQueue, articleDoi, new HashMap() {{
+          put(CrossRefLookupRoutes.HEADER_AUTH_ID, authID);
+        }});
+      } catch (CamelExecutionException ex) {
+        log.error(ex.getMessage(), ex);
+        throw new RuntimeException("Failed to queue job for refreshing article references, is the queue running?");
+      }
     } else {
       throw new RuntimeException("Refresh cited articles queue not defined. No route created.");
     }

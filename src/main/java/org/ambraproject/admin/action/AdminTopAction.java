@@ -423,8 +423,14 @@ public class AdminTopAction extends BaseAdminActionSupport {
 
     try {
       List<String> msgs = documentManagementService.publish(articles, getAuthId());
-      for (String msg : msgs)
-        addActionMessage(msg);
+
+      for (String msg : msgs) {
+        if(msg.contains("Error")) {
+          addActionError(msg);
+        } else {
+          addActionMessage(msg);
+        }
+      }
 
       return true;
     } catch (Exception e) {
