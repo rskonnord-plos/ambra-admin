@@ -402,14 +402,25 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
       try {
         // mark article as active
         articleService.setState(article, authId, Article.STATE_ACTIVE);
-        invokeOnPublishListeners(article, authId);
 
         msgs.add("Published: " + article);
         log.info("Published article: '" + article + "'");
       } catch (Exception e) {
-        log.error("Could not publish article: '" + article + "'", e);
+        log.error("Error publishing article: '" + article + "'", e);
         msgs.add("Error publishing: '" + article + "' - " + e.toString());
       }
+
+      try {
+        //Invoke on publish listeners
+        invokeOnPublishListeners(article, authId);
+
+        msgs.add("Publish events invoked: " + article);
+        log.info("Publish events invoked: '" + article + "'");
+      } catch (Exception e) {
+        log.error("Error invoking publish events: '" + article + "'", e);
+        msgs.add("Error invoking publish events: '" + article + "' - " + e.toString());
+      }
+
     }
     return msgs;
   }
