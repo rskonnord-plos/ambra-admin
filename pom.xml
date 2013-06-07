@@ -29,7 +29,7 @@
     <activemq.version>5.2.0</activemq.version>
     <easymock.version>2.5.2</easymock.version>
     <conf-helper.version>2.2.1</conf-helper.version>
-    <ambra.version>2.6.4-FEND-901</ambra.version>
+    <ambra.version>2.6.7</ambra.version>
     <filestore.version>1.0.1</filestore.version>
     <solr.version>4.1.0</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
