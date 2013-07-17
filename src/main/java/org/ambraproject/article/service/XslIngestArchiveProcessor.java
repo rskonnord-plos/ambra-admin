@@ -559,31 +559,6 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
     return references;
   }
 
-  // TODO: consider deleting this method.  It is not presently called.  This is the old taxonomy,
-  // where we get category information from the article XML.  We are changing this over to the
-  // new AI taxonomy, which we get from a call to an external server.  I'm keeping this method
-  // around for the time being since it's not clear what we should do if the taxonomy server
-  // is down (perhaps fall back to this)?
-  private Set<Category> parseArticleCategories(Document transformedXml) throws XPathExpressionException {
-    int categoryCount = Integer.valueOf(xPathUtil.evaluate(transformedXml, "count(//Article/categories)"));
-    Set<Category> categories = new HashSet<Category>(categoryCount);
-    for (int i = 1; i <= categoryCount; i++) {
-      String mainCategory = xPathUtil.evaluate(transformedXml, "//Article/categories[" + i + "]/mainCategory/text()");
-      String subCategory = xPathUtil.evaluate(transformedXml, "//Article/categories[" + i + "]/subCategory/text()");
-      String categoryStr = "";
-      Category category = new Category();
-      if (!mainCategory.isEmpty()) {
-        categoryStr = "/" + mainCategory;
-      }
-      if (!subCategory.isEmpty()) {
-        categoryStr = categoryStr + "/" + subCategory;
-      }
-      category.setPath(categoryStr);
-      categories.add(category);
-    }
-    return categories;
-  }
-
   private Set<String> parseArticleTypes(Document transformedXml) throws XPathExpressionException {
     NodeList articleTypeNodes = xPathUtil.selectNodes(transformedXml, "//Article/articleType/text()");
     Set<String> articleTypes = new HashSet<String>(articleTypeNodes.getLength());
