@@ -22,12 +22,13 @@
 <@s.url id="manageFlags" namespace="/" action="manageFlags"/>
 <@s.url id="manageAnnotation" namespace="/" action="manageAnnotation"/>
 <@s.url id="manageUsersURL" namespace="/" action="findUser" />
-<@s.url id="manageVirtualJournalsURL" namespace="/" action="manageVirtualJournals" />
-<@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing" />
-<@s.url id="manageCaches" namespace="/" action="manageCaches" />
-<@s.url id="manageEmailAlerts" namespace="/" action="manageEmailAlerts" />
-<@s.url id="manageRoles" namespace="/" action="manageRoles" />
-<@s.url id="deleteArticle" namespace="/" action="deleteArticle" />
+<@s.url id="manageVirtualJournalsURL" namespace="/" action="manageVirtualJournals"/>
+<@s.url id="manageSearchIndexing" namespace="/" action="manageSearchIndexing"/>
+<@s.url id="manageCaches" namespace="/" action="manageCaches"/>
+<@s.url id="manageNews" namespace="/" action="manageNews"/>
+<@s.url id="manageEmailAlerts" namespace="/" action="manageEmailAlerts"/>
+<@s.url id="manageRoles" namespace="/" action="manageRoles"/>
+<@s.url id="deleteArticle" namespace="/" action="deleteArticle"/>
 <@s.url id="logout" includeParams="none" namespace="/" action="secureRedirect"
   goTo="${freemarker_config.casLogoutURL}?" +
   "service=${Request[freemarker_config.journalContextAttributeKey].baseUrl}/" +
@@ -53,6 +54,9 @@
   </#if>
   <#if permissions?seq_contains("MANAGE_CACHES")>
     <@s.a href="${manageCaches}">Caches</@s.a>,&nbsp;
+  </#if>
+  <#if permissions?seq_contains("MANAGE_NEWS")>
+    <@s.a href="${manageNews}">News</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("RESEND_EMAIL_ALERTS")>
     <@s.a href="${manageEmailAlerts}">Manage Email Alerts</@s.a>,&nbsp;

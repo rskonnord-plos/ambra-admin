@@ -782,4 +782,15 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       }
     }
   }
+
+  @Override
+  public String getNewsArticles() throws SQLException {
+   //TODO get articles from db
+   return null;
+  }
+
+  @Override
+  public void setNewsArticles(String articles) throws SQLException {
+   //TODO save to db
+  }
 }

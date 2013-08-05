@@ -562,6 +562,12 @@
       </result>
     </action>
 
+    <action name="manageNews" class="org.ambraproject.admin.action.ManageNewsAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageNews.ftl</param>
+      </result>
+    </action>
+
     <action name="manageSearchIndexing" class="org.ambraproject.admin.action.IndexArticlesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/indexArticle.ftl</param>

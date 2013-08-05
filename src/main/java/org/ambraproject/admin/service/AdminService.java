@@ -20,13 +20,15 @@ package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
 import org.ambraproject.models.Category;
-import org.ambraproject.service.article.NoSuchArticleIdException;
-import org.ambraproject.search.SavedSearchRetriever;
-import org.ambraproject.views.article.ArticleInfo;
-import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
 import org.ambraproject.models.Volume;
+import org.ambraproject.search.SavedSearchRetriever;
+import org.ambraproject.service.article.NoSuchArticleIdException;
+import org.ambraproject.views.TOCArticleGroup;
+import org.ambraproject.views.article.ArticleInfo;
+
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -263,4 +265,8 @@ public interface AdminService {
    * @throws NoSuchArticleIdException
    */
   public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
+
+  public String getNewsArticles() throws SQLException;
+
+  public void setNewsArticles(String articles) throws SQLException;
 }
