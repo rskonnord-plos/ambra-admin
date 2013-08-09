@@ -493,6 +493,18 @@
       </result>
     </action>
 
+    <action name="manageArticleCategory" class="org.ambraproject.admin.action.ManageArticleCategoryAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageArticleCategory.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageArticleCategory.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageArticleCategory.ftl</param>
+      </result>
+    </action>
+
     <action name="manageRoles" class="org.ambraproject.admin.action.ManageRolesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageRoles.ftl</param>
@@ -559,12 +571,6 @@
     <action name="manageCaches" class="org.ambraproject.admin.action.ManageCachesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageCaches.ftl</param>
-      </result>
-    </action>
-
-    <action name="manageNews" class="org.ambraproject.admin.action.ManageNewsAction">
-      <result name="success" type="freemarker">
-        <param name="location">/templates/manageNews.ftl</param>
       </result>
     </action>
 

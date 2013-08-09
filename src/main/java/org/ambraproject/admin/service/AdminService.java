@@ -19,6 +19,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
+import org.ambraproject.models.ArticleCategory;
 import org.ambraproject.models.Category;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
@@ -28,7 +29,6 @@ import org.ambraproject.service.article.NoSuchArticleIdException;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -140,8 +140,7 @@ public interface AdminService {
    * @param displayName the display name of the volume.
    * @return the volume object that was created. ( returns null if there is no journal or volumeUri already exists ).
    */
-  public Volume createVolume(String journalName, String volumeUri, String displayName)
-  ;
+  public Volume createVolume(String journalName, String volumeUri, String displayName);
 
   /**
    * Remove volumes from the journal and delete them.
@@ -266,7 +265,14 @@ public interface AdminService {
    */
   public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
 
-  public String getNewsArticles() throws SQLException;
+  /**
+   * Create a new article category and add it to the current Journal's list of categories it contains.
+   *
+   * @param journalName Keyname of the current journal
+   * @param displayName the display name of the article category.
+   * @return the article category object that was created. ( returns null if there is no journal already
+   * exists).
+   */
+  public ArticleCategory createArticleCategory(String journalName, String displayName);
 
-  public void setNewsArticles(String articles) throws SQLException;
 }

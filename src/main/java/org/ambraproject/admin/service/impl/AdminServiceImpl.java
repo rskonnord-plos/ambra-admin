@@ -22,22 +22,24 @@ import org.ambraproject.ApplicationException;
 import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
+import org.ambraproject.models.Article;
+import org.ambraproject.models.ArticleCategory;
 import org.ambraproject.models.Category;
+import org.ambraproject.models.Issue;
+import org.ambraproject.models.Journal;
+import org.ambraproject.models.Volume;
 import org.ambraproject.queue.MessageSender;
+import org.ambraproject.routes.CrossRefLookupRoutes;
+import org.ambraproject.routes.SavedSearchEmailRoutes;
+import org.ambraproject.search.SavedSearchRetriever;
 import org.ambraproject.service.article.ArticleClassifier;
 import org.ambraproject.service.article.ArticleService;
 import org.ambraproject.service.article.FetchArticleService;
 import org.ambraproject.service.article.NoSuchArticleIdException;
-import org.ambraproject.routes.SavedSearchEmailRoutes;
-import org.ambraproject.search.SavedSearchRetriever;
+import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.ambraproject.views.TOCArticleGroup;
 import org.ambraproject.views.article.ArticleInfo;
 import org.ambraproject.views.article.ArticleType;
-import org.ambraproject.models.Article;
-import org.ambraproject.models.Issue;
-import org.ambraproject.models.Journal;
-import org.ambraproject.models.Volume;
-import org.ambraproject.service.hibernate.HibernateServiceImpl;
 import org.apache.camel.CamelExecutionException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
@@ -56,8 +58,8 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.transaction.annotation.Transactional;
-import org.ambraproject.routes.CrossRefLookupRoutes;
 import org.w3c.dom.Document;
+
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -783,14 +785,38 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     }
   }
 
+  @Transactional
   @Override
-  public String getNewsArticles() throws SQLException {
-   //TODO get articles from db
-   return null;
+  public ArticleCategory createArticleCategory(final String journalKey, final String displayName) {
+    if (StringUtils.isEmpty(journalKey)) {
+      throw new IllegalArgumentException("No journal specified");
+    } else if (StringUtils.isEmpty(displayName)) {
+      throw new IllegalArgumentException("No display name specified");
+    }
+    return (ArticleCategory) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        //if the journal doesn't exist, return null
+        if (journal == null) {
+          return null;
+        } else {
+          //check if a category with the same name exists, and if so, return null
+          for (ArticleCategory existingCategory : journal.getArticleCategory()) {
+            if (existingCategory.getDisplayName().equals(displayName)) {
+              return null;
+            }
+          }
+          ArticleCategory newCategory = new ArticleCategory();
+          newCategory.setDisplayName(displayName);
+          journal.getArticleCategory().add(newCategory);
+          session.update(journal);
+          return newCategory;
+        }
+      }
+    });
   }
 
-  @Override
-  public void setNewsArticles(String articles) throws SQLException {
-   //TODO save to db
-  }
 }
