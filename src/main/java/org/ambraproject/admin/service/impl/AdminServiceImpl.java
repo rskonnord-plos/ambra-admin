@@ -823,9 +823,26 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @SuppressWarnings("unchecked")
   @Override
   @Transactional(readOnly = true)
-  public List<ArticleList> getArticleList(final String journalKey, final String listCode) {
-    //TODO
-    return null;
+  public List<ArticleList> getArticleList(final String journalKey) {
+    //article list are lazy so we need to access them in a session
+    return (List<ArticleList>) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        if (journal == null) {
+          log.debug("No journal existed for key: " + journalKey);
+          return Collections.emptyList();
+        } else {
+          //bring up all the volumes
+          for (int i = 0; i < journal.getArticleList().size(); i++) {
+            journal.getArticleList().get(i);
+          }
+          return journal.getArticleList();
+        }
+      }
+    });
   }
 
 }

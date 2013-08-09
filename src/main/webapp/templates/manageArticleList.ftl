@@ -53,11 +53,10 @@
     </p>
 
     <!-- list Existing Article List -->
-    <#--
     <fieldset>
       <legend>Existing Article List</legend>
 
-      <#-- Check to see if there are article list Associated with this Journal
+      <#-- Check to see if there are article list Associated with this Journal -->
       <#if (articleList?size > 0)>
         <@s.form method="post" namespace="/" action="manageArticleList" name="removeList" id="removeList" >
           <@s.hidden name="command" value="REMOVE_LIST"/>
@@ -92,6 +91,6 @@
       <#else>
         <strong>There are no article list currently associated with ${journal.journalKey}.</strong>
       </#if>
-    </fieldset>-->
+    </fieldset>
   </body>
 </html>

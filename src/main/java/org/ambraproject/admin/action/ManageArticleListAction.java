@@ -123,7 +123,7 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
   }
 
   private void repopulate() {
-    articleList = adminService.getArticleList(getCurrentJournal(), listCode);
+    articleList = adminService.getArticleList(getCurrentJournal());
     initJournal();
   }
 

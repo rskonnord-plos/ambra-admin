@@ -286,6 +286,6 @@ public interface AdminService {
    * not
    *                          exist.
    */
-  public List<ArticleList> getArticleList(String journalName, String listCode);
+  public List<ArticleList> getArticleList(String journalName);
 
 }
