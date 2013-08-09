@@ -23,7 +23,7 @@ import org.ambraproject.admin.service.AdminService;
 import org.ambraproject.admin.service.OnCrossPubListener;
 import org.ambraproject.admin.service.OnPublishListener;
 import org.ambraproject.models.Article;
-import org.ambraproject.models.ArticleCategory;
+import org.ambraproject.models.ArticleList;
 import org.ambraproject.models.Category;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
@@ -787,13 +787,13 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
   @Transactional
   @Override
-  public ArticleCategory createArticleCategory(final String journalKey, final String displayName) {
+  public ArticleList createArticleList(final String journalKey, final String listCode, final String displayName) {
     if (StringUtils.isEmpty(journalKey)) {
       throw new IllegalArgumentException("No journal specified");
-    } else if (StringUtils.isEmpty(displayName)) {
-      throw new IllegalArgumentException("No display name specified");
+    } else if (StringUtils.isEmpty(listCode)) {
+      throw new IllegalArgumentException("No listCode specified");
     }
-    return (ArticleCategory) hibernateTemplate.execute(new HibernateCallback() {
+    return (ArticleList) hibernateTemplate.execute(new HibernateCallback() {
       @Override
       public Object doInHibernate(Session session) throws HibernateException, SQLException {
         Journal journal = (Journal) session.createCriteria(Journal.class)
@@ -803,20 +803,29 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
         if (journal == null) {
           return null;
         } else {
-          //check if a category with the same name exists, and if so, return null
-          for (ArticleCategory existingCategory : journal.getArticleCategory()) {
-            if (existingCategory.getDisplayName().equals(displayName)) {
+          //check if a list with the same listcode exists, and if so, return null
+          for (ArticleList existingList : journal.getArticleList()) {
+            if (existingList.getListCode().equals(listCode)) {
               return null;
             }
           }
-          ArticleCategory newCategory = new ArticleCategory();
-          newCategory.setDisplayName(displayName);
-          journal.getArticleCategory().add(newCategory);
+          ArticleList newArticleList = new ArticleList();
+          newArticleList.setListCode(listCode);
+          newArticleList.setDisplayName(displayName);
+          journal.getArticleList().add(newArticleList);
           session.update(journal);
-          return newCategory;
+          return newArticleList;
         }
       }
     });
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  @Transactional(readOnly = true)
+  public List<ArticleList> getArticleList(final String journalKey, final String listCode) {
+    //TODO
+    return null;
   }
 
 }

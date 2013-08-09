@@ -13,43 +13,36 @@
 
 package org.ambraproject.admin.action;
 
-import org.ambraproject.models.ArticleCategory;
-import org.ambraproject.models.Issue;
-import org.ambraproject.models.Volume;
+import org.ambraproject.models.ArticleList;
 import org.ambraproject.views.TOCArticleGroup;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Volumes are associated with some journals and hubs. A volume is an aggregation of of issues. Issue are aggregations
- * of articles.
+ * Article List are associated with some journals. A article list is an aggregation of articles.
  */
 @SuppressWarnings("serial")
-public class ManageArticleCategoryAction extends BaseAdminActionSupport {
+public class ManageArticleListAction extends BaseAdminActionSupport {
 
   // Past in as parameters
   private String command;
-  private String[] categoryToDelete;
+  private String[] listToDelete;
   private String displayName;
+  private String listCode;
 
   private String articlesToAddCsv;
   private boolean respectOrder = false;
 
   private String[] articlesToRemove;
 
-  //Used by template
   // Fields Used by template
-  private ArticleCategory articleCategory;
+  private List<ArticleList> articleList;
   private String articleOrderCSV;
-  private List<ArticleCategory> articleCategories;
   private List<TOCArticleGroup> articleGroups;
 
-  private static final Logger log = LoggerFactory.getLogger(ManageArticleCategoryAction.class);
+  private static final Logger log = LoggerFactory.getLogger(ManageArticleListAction.class);
 
   /**
    * Enumeration used to dispatch commands within the action.
@@ -57,9 +50,9 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
   public enum MVJ_COMMANDS {
     ADD_ARTICLE,
     REMOVE_ARTICLES,
-    CREATE_CATEGORY,
-    REMOVE_CATEGORY,
-    UPDATE_CATEGORY,
+    CREATE_LIST,
+    REMOVE_LIST,
+    UPDATE_LIST,
     INVALID;
 
     /**
@@ -87,16 +80,16 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
   public String execute() throws Exception {
 
     switch (MVJ_COMMANDS.toCommand(command)) {
-      case CREATE_CATEGORY:
-        createCategory();
+      case CREATE_LIST:
+        createArticleList();
         break;
 
-      case REMOVE_CATEGORY:
-        //removeCategory();
+      case REMOVE_LIST:
+        //removeArticleList();
         break;
 
-      case UPDATE_CATEGORY:
-        //updateCategory();
+      case UPDATE_LIST:
+        //updateArticleList();
         break;
 
       case ADD_ARTICLE:
@@ -114,23 +107,23 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
     return SUCCESS;
   }
 
-  private void createCategory() {
+  private void createArticleList() {
     try {
-      ArticleCategory category = adminService.createArticleCategory(getCurrentJournal(), displayName);
-      if (category != null) {
-        addActionMessage("Created New Category: " + displayName);
+      ArticleList article = adminService.createArticleList(getCurrentJournal(), listCode,  displayName);
+      if (article != null) {
+        addActionMessage("Created New Article List: " + displayName);
       } else {
-        addActionError("Duplicate Category: " + displayName);
+        addActionError("Duplicate Article List: " + displayName);
       }
     } catch (Exception e) {
-      log.error("Error creating category " + displayName + " for " + getCurrentJournal(), e);
-      addActionError("Category not created due to the following error: " + e.getMessage());
+      log.error("Error creating article list " + displayName + " for " + getCurrentJournal(), e);
+      addActionError("Article list not created due to the following error: " + e.getMessage());
     }
     repopulate();
   }
 
   private void repopulate() {
-    //articleCategory = adminService.getArticleCategory(getCurrentJournal());
+    articleList = adminService.getArticleList(getCurrentJournal(), listCode);
     initJournal();
   }
 
@@ -142,12 +135,20 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
     this.command = command;
   }
 
-  public String[] getCategoryToDelete() {
-    return categoryToDelete;
+  public String[] getListToDelete() {
+    return listToDelete;
   }
 
-  public void setCategoryToDelete(String[] categoryToDelete) {
-    this.categoryToDelete = categoryToDelete;
+  public void setListToDelete(String[] listToDelete) {
+    this.listToDelete = listToDelete;
+  }
+
+  public String getListCode() {
+    return listCode;
+  }
+
+  public void setListCode(String listCode) {
+    this.listCode = listCode;
   }
 
   public String getDisplayName() {
@@ -182,12 +183,12 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
     this.articlesToRemove = articlesToRemove;
   }
 
-  public ArticleCategory getArticleCategory() {
-    return articleCategory;
+  public List<ArticleList> getArticleList() {
+    return articleList;
   }
 
-  public void setArticleCategory(ArticleCategory articleCategory) {
-    this.articleCategory = articleCategory;
+  public void setArticleList(List<ArticleList> articleList) {
+    this.articleList = articleList;
   }
 
   public String getArticleOrderCSV() {
@@ -196,14 +197,6 @@ public class ManageArticleCategoryAction extends BaseAdminActionSupport {
 
   public void setArticleOrderCSV(String articleOrderCSV) {
     this.articleOrderCSV = articleOrderCSV;
-  }
-
-  public List<ArticleCategory> getArticleCategories() {
-    return articleCategories;
-  }
-
-  public void setArticleCategories(List<ArticleCategory> articleCategories) {
-    this.articleCategories = articleCategories;
   }
 
   public List<TOCArticleGroup> getArticleGroups() {

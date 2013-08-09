@@ -19,7 +19,7 @@
 package org.ambraproject.admin.service;
 
 import org.ambraproject.ApplicationException;
-import org.ambraproject.models.ArticleCategory;
+import org.ambraproject.models.ArticleList;
 import org.ambraproject.models.Category;
 import org.ambraproject.models.Issue;
 import org.ambraproject.models.Journal;
@@ -266,13 +266,26 @@ public interface AdminService {
   public List<Category> refreshSubjectCategories(String articleDoi, String authID) throws NoSuchArticleIdException;
 
   /**
-   * Create a new article category and add it to the current Journal's list of categories it contains.
+   * Create a new article list and add it to the current Journal's.
    *
    * @param journalName Keyname of the current journal
-   * @param displayName the display name of the article category.
-   * @return the article category object that was created. ( returns null if there is no journal already
+   * @param listCode  the code of the new article list.
+   * @param displayName the display name of the article list.
+   * @return the article list object that was created. ( returns null if there is no journal already
    * exists).
    */
-  public ArticleCategory createArticleCategory(String journalName, String displayName);
+  public ArticleList createArticleList(String journalName, String listCode, String displayName);
+
+  /**
+   * Uses the list of article listCode  maintained by the journal to create a list of ArticleList objects.
+   *
+   * @param journalName Keyname of the current journal
+   * @return the list of articleList for the current journal (never null)
+   * @throws RuntimeException throws RuntimeException if any one of the ArticleList listCode supplied by the journal
+   * does
+   * not
+   *                          exist.
+   */
+  public List<ArticleList> getArticleList(String journalName, String listCode);
 
 }

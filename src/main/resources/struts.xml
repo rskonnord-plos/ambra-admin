@@ -493,15 +493,15 @@
       </result>
     </action>
 
-    <action name="manageArticleCategory" class="org.ambraproject.admin.action.ManageArticleCategoryAction">
+    <action name="manageArticleList" class="org.ambraproject.admin.action.ManageArticleListAction">
       <result name="success" type="freemarker">
-        <param name="location">/templates/manageArticleCategory.ftl</param>
+        <param name="location">/templates/manageArticleList.ftl</param>
       </result>
       <result name="input" type="freemarker">
-        <param name="location">/templates/manageArticleCategory.ftl</param>
+        <param name="location">/templates/manageArticleList.ftl</param>
       </result>
       <result name="error" type="freemarker">
-        <param name="location">/templates/manageArticleCategory.ftl</param>
+        <param name="location">/templates/manageArticleList.ftl</param>
       </result>
     </action>
 
