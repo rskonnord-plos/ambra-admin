@@ -14,10 +14,11 @@
 package org.ambraproject.admin.action;
 
 import org.ambraproject.models.ArticleList;
-import org.ambraproject.views.TOCArticleGroup;
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,15 +33,10 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
   private String displayName;
   private String listCode;
 
-  private String articlesToAddCsv;
-  private boolean respectOrder = false;
-
   private String[] articlesToRemove;
 
   // Fields Used by template
   private List<ArticleList> articleList;
-  private String articleOrderCSV;
-  private List<TOCArticleGroup> articleGroups;
 
   private static final Logger log = LoggerFactory.getLogger(ManageArticleListAction.class);
 
@@ -48,11 +44,8 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
    * Enumeration used to dispatch commands within the action.
    */
   public enum MVJ_COMMANDS {
-    ADD_ARTICLE,
-    REMOVE_ARTICLES,
     CREATE_LIST,
     REMOVE_LIST,
-    UPDATE_LIST,
     INVALID;
 
     /**
@@ -85,19 +78,7 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
         break;
 
       case REMOVE_LIST:
-        //removeArticleList();
-        break;
-
-      case UPDATE_LIST:
-        //updateArticleList();
-        break;
-
-      case ADD_ARTICLE:
-        //addArticles();
-        break;
-
-      case REMOVE_ARTICLES:
-        //removeArticles();
+        removeArticleList();
         break;
 
       case INVALID:
@@ -107,6 +88,9 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
     return SUCCESS;
   }
 
+  /**
+   * Create an article list
+   */
   private void createArticleList() {
     try {
       ArticleList article = adminService.createArticleList(getCurrentJournal(), listCode,  displayName);
@@ -118,6 +102,22 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
     } catch (Exception e) {
       log.error("Error creating article list " + displayName + " for " + getCurrentJournal(), e);
       addActionError("Article list not created due to the following error: " + e.getMessage());
+    }
+    repopulate();
+  }
+
+  /**
+   * remove article list
+   */
+  private void removeArticleList() {
+    try {
+      if (!ArrayUtils.isEmpty(listToDelete)) {
+        String[] deletedList = adminService.deleteArticleList(getCurrentJournal(), listToDelete);
+        addActionMessage("Successfully removed the following article list: " + Arrays.toString(deletedList));
+      }
+    } catch (Exception e) {
+      log.error("Error deleting article list: " + Arrays.toString(listToDelete), e);
+      addActionError("Article List remove failed due to the following error: " + e.getMessage());
     }
     repopulate();
   }
@@ -159,22 +159,6 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
     this.displayName = displayName;
   }
 
-  public String getArticlesToAddCsv() {
-    return articlesToAddCsv;
-  }
-
-  public void setArticlesToAddCsv(String articlesToAddCsv) {
-    this.articlesToAddCsv = articlesToAddCsv;
-  }
-
-  public boolean isRespectOrder() {
-    return respectOrder;
-  }
-
-  public void setRespectOrder(boolean respectOrder) {
-    this.respectOrder = respectOrder;
-  }
-
   public String[] getArticlesToRemove() {
     return articlesToRemove;
   }
@@ -191,19 +175,4 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
     this.articleList = articleList;
   }
 
-  public String getArticleOrderCSV() {
-    return articleOrderCSV;
-  }
-
-  public void setArticleOrderCSV(String articleOrderCSV) {
-    this.articleOrderCSV = articleOrderCSV;
-  }
-
-  public List<TOCArticleGroup> getArticleGroups() {
-    return articleGroups;
-  }
-
-  public void setArticleGroups(List<TOCArticleGroup> articleGroups) {
-    this.articleGroups = articleGroups;
-  }
 }

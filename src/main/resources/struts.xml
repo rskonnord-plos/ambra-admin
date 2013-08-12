@@ -505,6 +505,15 @@
       </result>
     </action>
 
+    <action name="articleManagement" class="org.ambraproject.admin.action.ArticleManagementAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/articleManagement.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/articleManagement.ftl</param>
+      </result>
+    </action>
+
     <action name="manageRoles" class="org.ambraproject.admin.action.ManageRolesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageRoles.ftl</param>

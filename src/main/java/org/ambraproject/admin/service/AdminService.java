@@ -282,10 +282,62 @@ public interface AdminService {
    * @param journalName Keyname of the current journal
    * @return the list of articleList for the current journal (never null)
    * @throws RuntimeException throws RuntimeException if any one of the ArticleList listCode supplied by the journal
-   * does
-   * not
-   *                          exist.
+   * does not exist.
    */
   public List<ArticleList> getArticleList(String journalName);
+
+  /**
+   * Create a comma-delimited string of article dois in the articles groups
+   * @return a comma-delimited list of the articles in list
+   */
+  public String formatArticleInfoCsv(List<ArticleInfo> articleInfoList);
+
+  /**
+   * Remove article list from the journal and delete them.
+   *
+   * @param journalKey Keyname of the current journal
+   * @param listCode the listcode of the article list to delete
+   * @return the listCode of the article list that were actually deleted
+   */
+  public String[] deleteArticleList(String journalKey, String... listCode);
+
+  /**
+   * Get an Article List specified by listCode.
+   *
+   * @param listCode of the articleList to retrieve
+   * @return the ArticleList object specified by listCode.
+   */
+  public ArticleList getList(String listCode);
+
+  /**
+   * Add article dois to an article List. If any dois are already in the list, they will not be added again.
+   *
+   * @param listCode of the article list to update
+   * @param articleDois the dois to add to the issue.
+   */
+  public void addArticlesToList(String listCode, String... articleDois);
+
+  /**
+   * Remove articles from an article list
+   *
+   * @param listCode of the article list to update
+   * @param articleDois the dois of articles to remove from the issue
+   */
+  public void removeArticlesFromList(String listCode, String... articleDois);
+
+  /**
+   * Update a Article List
+   *
+   * @param listCode of the articleList to update
+   * @param displayName to set on the article list
+   * @param articleDois  a list of article dois to set on the issue
+   */
+  public void updateList(String listCode, String displayName, List<String> articleDois);
+
+  /**
+   * Get a list of the articles in a list
+   * @param articleList is the articlelist
+   */
+  public List<ArticleInfo> getArticleList(ArticleList articleList);
 
 }

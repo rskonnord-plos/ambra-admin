@@ -785,6 +785,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     }
   }
 
+  /**
+   * @inheritDoc
+   */
   @Transactional
   @Override
   public ArticleList createArticleList(final String journalKey, final String listCode, final String displayName) {
@@ -820,6 +823,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     });
   }
 
+  /**
+   * @inheritDoc
+   */
   @SuppressWarnings("unchecked")
   @Override
   @Transactional(readOnly = true)
@@ -835,7 +841,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
           log.debug("No journal existed for key: " + journalKey);
           return Collections.emptyList();
         } else {
-          //bring up all the volumes
+          //bring up all the article list
           for (int i = 0; i < journal.getArticleList().size(); i++) {
             journal.getArticleList().get(i);
           }
@@ -843,6 +849,211 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
         }
       }
     });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public String formatArticleInfoCsv(List<ArticleInfo> articleInfoList) {
+    if (articleInfoList.isEmpty()) {
+      return "";
+    }
+    String csv = "";
+    for (ArticleInfo article : articleInfoList) {
+      csv += article.getDoi() + ",";
+    }
+    return csv.substring(0, csv.lastIndexOf(","));
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Transactional
+  @Override
+  public String[] deleteArticleList(final String journalKey, final String... listCode) {
+    //article list are lazy, so we have to access them in a session
+    return (String[]) hibernateTemplate.execute(new HibernateCallback() {
+      @Override
+      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+        Journal journal = (Journal) session.createCriteria(Journal.class)
+            .add(Restrictions.eq("journalKey", journalKey))
+            .uniqueResult();
+        if (journal == null) {
+          throw new IllegalArgumentException("No such journal: " + journalKey);
+        }
+        List<String> deletedArticleList = new ArrayList<String>(listCode.length);
+        Iterator<ArticleList> iterator = journal.getArticleList().iterator();
+        while (iterator.hasNext()) {
+          ArticleList articleList = iterator.next();
+          if (ArrayUtils.indexOf(listCode, articleList.getListCode()) != -1) {
+            iterator.remove();
+            session.delete(articleList);
+            deletedArticleList.add(articleList.getListCode());
+          }
+        }
+        session.update(journal);
+        return deletedArticleList.toArray(new String[deletedArticleList.size()]);
+      }
+    });
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public ArticleList getList(String listCode) {
+    log.debug("Retrieving list with listCode '{}'", listCode);
+    try {
+      return (ArticleList) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(ArticleList.class)
+              .add(Restrictions.eq("listCode", listCode))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      return null;
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional
+  public void addArticlesToList(String listCode, String... articleDois) {
+    log.debug("Adding articles {} to list '{}'", Arrays.toString(articleDois), listCode);
+    ArticleList articleList;
+    try {
+      articleList = (ArticleList) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(ArticleList.class)
+              .add(Restrictions.eq("listCode", listCode))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //it's ok if the list doesn't exist
+      return;
+    }
+    for (String doi : articleDois) {
+      if (!articleList.getArticleDois().contains(doi)) {
+        articleList.getArticleDois().add(doi);
+      }
+    }
+    hibernateTemplate.update(articleList);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional
+  public void removeArticlesFromList(String listCode, String... articleDois) {
+    log.debug("Removing articles {} to article list '{}'", Arrays.toString(articleDois), listCode);
+    ArticleList articleList;
+    try {
+      articleList = (ArticleList) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(ArticleList.class)
+              .add(Restrictions.eq("listCode", listCode))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //it's ok if the list doesn't exist
+      return;
+    }
+    for (String doi : articleDois) {
+      articleList.getArticleDois().remove(doi);
+    }
+    hibernateTemplate.update(articleList);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional
+  public void updateList(String listCode, String displayName, List<String> articleDois) {
+    log.debug("Updating list '{}'", listCode);
+    ArticleList articleList;
+    try {
+      articleList = (ArticleList) hibernateTemplate.findByCriteria(
+          DetachedCriteria.forClass(ArticleList.class)
+              .add(Restrictions.eq("listCode", listCode))
+              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
+      ).get(0);
+    } catch (IndexOutOfBoundsException e) {
+      //if the list doesn't exist, just return
+      return;
+    }
+    //check that we aren't adding or removing an article here
+    for (String oldDoi : articleList.getArticleDois()) {
+      if (!articleDois.contains(oldDoi)) {
+        throw new IllegalArgumentException("Removed article '" + oldDoi + "' when updating list");
+      }
+    }
+    for (String newDoi : articleDois) {
+      if (!articleList.getArticleDois().contains(newDoi)) {
+        throw new IllegalArgumentException("Added article '" + newDoi + "' when updating list");
+      }
+    }
+
+    articleList.getArticleDois().clear();
+    articleList.getArticleDois().addAll(articleDois);
+    articleList.setDisplayName(displayName);
+
+    hibernateTemplate.update(articleList);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional(readOnly = true)
+  @SuppressWarnings("unchecked")
+  public List<ArticleInfo> getArticleList(final ArticleList articleList) {
+    //if the list doesn't have any dois, return an empty list of groups
+    if (articleList.getArticleDois() == null || articleList.getArticleDois().isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    //Create a comparator to sort articles
+    Comparator<ArticleInfo> comparator;
+
+    comparator = new Comparator<ArticleInfo>() {
+      @Override
+      public int compare(ArticleInfo left, ArticleInfo right) {
+        Integer leftIndex = articleList.getArticleDois().indexOf(left.getDoi());
+        Integer rightIndex = articleList.getArticleDois().indexOf(right.getDoi());
+        return leftIndex.compareTo(rightIndex);
+      }
+    };
+
+    //keep track of dois in a separate list so we can remove them as we find articles and then keep track of the orphans at the end
+    List<String> dois = new ArrayList<String>(articleList.getArticleDois());
+
+    List<Object[]> rows = hibernateTemplate.findByNamedParam(
+        "select a.doi, a.title from Article a where a.doi in :dois",
+        new String[]{"dois"},
+        new Object[]{articleList.getArticleDois()}
+    );
+
+    List<ArticleInfo> result = new ArrayList<ArticleInfo>();
+
+    Iterator<Object[]> iterator = rows.iterator();
+    while (iterator.hasNext()) {
+      Object[] row = iterator.next();
+      if (dois.contains(row[0])) {
+        ArticleInfo articleInfo = new ArticleInfo();
+        articleInfo.setDoi((String) row[0]);
+        articleInfo.setTitle((String) row[1]);
+        result.add(articleInfo);
+
+        iterator.remove();
+        dois.remove(articleInfo.getDoi());
+      }
+    }
+    Collections.sort(result, comparator);
+
+    return result;
   }
 
 }
