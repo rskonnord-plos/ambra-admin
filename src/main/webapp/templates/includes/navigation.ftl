@@ -55,8 +55,8 @@
   <#if permissions?seq_contains("MANAGE_CACHES")>
     <@s.a href="${manageCaches}">Caches</@s.a>,&nbsp;
   </#if>
-  <#if permissions?seq_contains("MANAGE_ARTICLES")>
-    <@s.a href="${manageArticleList}">Articles</@s.a>,&nbsp;
+  <#if permissions?seq_contains("MANAGE_ARTICLE_LISTS")>
+    <@s.a href="${manageArticleList}">Article Lists</@s.a>,&nbsp;
   </#if>
   <#if permissions?seq_contains("RESEND_EMAIL_ALERTS")>
     <@s.a href="${manageEmailAlerts}">Manage Email Alerts</@s.a>,&nbsp;

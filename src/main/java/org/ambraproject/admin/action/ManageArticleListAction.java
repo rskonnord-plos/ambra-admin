@@ -33,8 +33,6 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
   private String displayName;
   private String listCode;
 
-  private String[] articlesToRemove;
-
   // Fields Used by template
   private List<ArticleList> articleList;
 
@@ -157,14 +155,6 @@ public class ManageArticleListAction extends BaseAdminActionSupport {
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
-  }
-
-  public String[] getArticlesToRemove() {
-    return articlesToRemove;
-  }
-
-  public void setArticlesToRemove(String[] articlesToRemove) {
-    this.articlesToRemove = articlesToRemove;
   }
 
   public List<ArticleList> getArticleList() {

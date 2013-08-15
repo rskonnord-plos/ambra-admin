@@ -69,9 +69,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AdminServiceImpl extends HibernateServiceImpl implements AdminService, OnPublishListener {
   private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
@@ -796,9 +798,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     } else if (StringUtils.isEmpty(listCode)) {
       throw new IllegalArgumentException("No listCode specified");
     }
-    return (ArticleList) hibernateTemplate.execute(new HibernateCallback() {
+    return hibernateTemplate.execute(new HibernateCallback<ArticleList>() {
       @Override
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+      public ArticleList doInHibernate(Session session) throws HibernateException, SQLException {
         Journal journal = (Journal) session.createCriteria(Journal.class)
             .add(Restrictions.eq("journalKey", journalKey))
             .uniqueResult();
@@ -831,9 +833,9 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @Transactional(readOnly = true)
   public List<ArticleList> getArticleList(final String journalKey) {
     //article list are lazy so we need to access them in a session
-    return (List<ArticleList>) hibernateTemplate.execute(new HibernateCallback() {
+    return hibernateTemplate.execute(new HibernateCallback<List<ArticleList>>() {
       @Override
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+      public List<ArticleList> doInHibernate(Session session) throws HibernateException, SQLException {
         Journal journal = (Journal) session.createCriteria(Journal.class)
             .add(Restrictions.eq("journalKey", journalKey))
             .uniqueResult();
@@ -854,28 +856,13 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   /**
    * @inheritDoc
    */
-  @Override
-  public String formatArticleInfoCsv(List<ArticleInfo> articleInfoList) {
-    if (articleInfoList.isEmpty()) {
-      return "";
-    }
-    String csv = "";
-    for (ArticleInfo article : articleInfoList) {
-      csv += article.getDoi() + ",";
-    }
-    return csv.substring(0, csv.lastIndexOf(","));
-  }
-
-  /**
-   * @inheritDoc
-   */
   @Transactional
   @Override
   public String[] deleteArticleList(final String journalKey, final String... listCode) {
     //article list are lazy, so we have to access them in a session
-    return (String[]) hibernateTemplate.execute(new HibernateCallback() {
+    return hibernateTemplate.execute(new HibernateCallback<String[]>() {
       @Override
-      public Object doInHibernate(Session session) throws HibernateException, SQLException {
+      public String[] doInHibernate(Session session) throws HibernateException, SQLException {
         Journal journal = (Journal) session.createCriteria(Journal.class)
             .add(Restrictions.eq("journalKey", journalKey))
             .uniqueResult();
@@ -923,17 +910,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @Transactional
   public void addArticlesToList(String listCode, String... articleDois) {
     log.debug("Adding articles {} to list '{}'", Arrays.toString(articleDois), listCode);
-    ArticleList articleList;
-    try {
-      articleList = (ArticleList) hibernateTemplate.findByCriteria(
-          DetachedCriteria.forClass(ArticleList.class)
-              .add(Restrictions.eq("listCode", listCode))
-              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
-      ).get(0);
-    } catch (IndexOutOfBoundsException e) {
-      //it's ok if the list doesn't exist
-      return;
-    }
+    ArticleList articleList = getList(listCode);
     for (String doi : articleDois) {
       if (!articleList.getArticleDois().contains(doi)) {
         articleList.getArticleDois().add(doi);
@@ -949,17 +926,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @Transactional
   public void removeArticlesFromList(String listCode, String... articleDois) {
     log.debug("Removing articles {} to article list '{}'", Arrays.toString(articleDois), listCode);
-    ArticleList articleList;
-    try {
-      articleList = (ArticleList) hibernateTemplate.findByCriteria(
-          DetachedCriteria.forClass(ArticleList.class)
-              .add(Restrictions.eq("listCode", listCode))
-              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
-      ).get(0);
-    } catch (IndexOutOfBoundsException e) {
-      //it's ok if the list doesn't exist
-      return;
-    }
+    ArticleList articleList = getList(listCode);
     for (String doi : articleDois) {
       articleList.getArticleDois().remove(doi);
     }
@@ -973,25 +940,23 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
   @Transactional
   public void updateList(String listCode, String displayName, List<String> articleDois) {
     log.debug("Updating list '{}'", listCode);
-    ArticleList articleList;
-    try {
-      articleList = (ArticleList) hibernateTemplate.findByCriteria(
-          DetachedCriteria.forClass(ArticleList.class)
-              .add(Restrictions.eq("listCode", listCode))
-              .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)
-      ).get(0);
-    } catch (IndexOutOfBoundsException e) {
-      //if the list doesn't exist, just return
-      return;
-    }
+    ArticleList articleList = getList(listCode);
     //check that we aren't adding or removing an article here
+    Set<String> articleDoisSet = new HashSet<String>();
+    for (String doi: articleDois) {
+      articleDoisSet.add(doi);
+    }
+    Set<String> articleListSet = new HashSet<String>();
+    for (String doi: articleList.getArticleDois()) {
+      articleListSet.add(doi);
+    }
     for (String oldDoi : articleList.getArticleDois()) {
-      if (!articleDois.contains(oldDoi)) {
+      if (!articleDoisSet.contains(oldDoi)) {
         throw new IllegalArgumentException("Removed article '" + oldDoi + "' when updating list");
       }
     }
     for (String newDoi : articleDois) {
-      if (!articleList.getArticleDois().contains(newDoi)) {
+      if (!articleListSet.contains(newDoi)) {
         throw new IllegalArgumentException("Added article '" + newDoi + "' when updating list");
       }
     }
@@ -1015,20 +980,23 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
       return Collections.emptyList();
     }
 
+    final Map<String, Integer> indices = new HashMap<String, Integer>();
+    int i=0;
+    for (String doi: articleList.getArticleDois()) {
+      indices.put(doi, Integer.valueOf(i++));
+    }
+
     //Create a comparator to sort articles
     Comparator<ArticleInfo> comparator;
 
     comparator = new Comparator<ArticleInfo>() {
       @Override
       public int compare(ArticleInfo left, ArticleInfo right) {
-        Integer leftIndex = articleList.getArticleDois().indexOf(left.getDoi());
-        Integer rightIndex = articleList.getArticleDois().indexOf(right.getDoi());
+        Integer leftIndex = indices.get(left.getDoi());
+        Integer rightIndex = indices.get(right.getDoi());
         return leftIndex.compareTo(rightIndex);
       }
     };
-
-    //keep track of dois in a separate list so we can remove them as we find articles and then keep track of the orphans at the end
-    List<String> dois = new ArrayList<String>(articleList.getArticleDois());
 
     List<Object[]> rows = hibernateTemplate.findByNamedParam(
         "select a.doi, a.title from Article a where a.doi in :dois",
@@ -1038,22 +1006,33 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
 
     List<ArticleInfo> result = new ArrayList<ArticleInfo>();
 
-    Iterator<Object[]> iterator = rows.iterator();
-    while (iterator.hasNext()) {
-      Object[] row = iterator.next();
-      if (dois.contains(row[0])) {
-        ArticleInfo articleInfo = new ArticleInfo();
-        articleInfo.setDoi((String) row[0]);
-        articleInfo.setTitle((String) row[1]);
-        result.add(articleInfo);
-
-        iterator.remove();
-        dois.remove(articleInfo.getDoi());
-      }
+    for (Object[] row: rows) {
+      ArticleInfo articleInfo = new ArticleInfo();
+      articleInfo.setDoi((String) row[0]);
+      articleInfo.setTitle((String) row[1]);
+      result.add(articleInfo);
     }
     Collections.sort(result, comparator);
 
     return result;
   }
 
+  /**
+   * @inheritDoc
+   */
+  @Override
+  @Transactional
+  public List<String> getOrphanArticleList(final ArticleList articleList, final List<ArticleInfo> validArticles) {
+    Set<String> validDois = new HashSet<String>();
+    for (ArticleInfo validArticle: validArticles) {
+      validDois.add(validArticle.getDoi());
+    }
+    List<String> orphans = new ArrayList<String>();
+    for (String doi: articleList.getArticleDois()) {
+      if (!validDois.contains(doi)) {
+        orphans.add(doi);
+      }
+    }
+    return orphans;
+  }
 }

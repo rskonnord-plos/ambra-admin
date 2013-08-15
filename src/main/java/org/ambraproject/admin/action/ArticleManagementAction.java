@@ -15,6 +15,7 @@ package org.ambraproject.admin.action;
 
 import org.ambraproject.models.ArticleList;
 import org.ambraproject.views.article.ArticleInfo;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +38,16 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
   private ArticleList articleList;
   private String articleOrderCSV;
   private List<ArticleInfo> articleInfoList;
+  private List<String> orphanDois;
 
-  public enum IM_COMMANDS {
+  public enum ImCommands {
     ADD_ARTICLE,
     REMOVE_ARTICLES,
     UPDATE_LIST,
     INVALID;
 
-    public static IM_COMMANDS toCommand(String command) {
-      IM_COMMANDS a;
+    public static ImCommands toCommand(String command) {
+      ImCommands a;
       try {
         a = valueOf(command);
       } catch (Exception e) {
@@ -59,7 +61,7 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
   @Override
   public String execute() throws Exception {
 
-    switch (IM_COMMANDS.toCommand(command)) {
+    switch (ImCommands.toCommand(command)) {
       case ADD_ARTICLE:
         addArticles();
         break;
@@ -126,8 +128,26 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
   private void repopulate() {
     articleList = adminService.getList(listCode);
     articleInfoList = adminService.getArticleList(articleList);
-    articleOrderCSV = adminService.formatArticleInfoCsv(articleInfoList);
+    orphanDois = adminService.getOrphanArticleList(articleList, articleInfoList);
+    articleOrderCSV = formatArticleInfoCsv(articleInfoList);
     initJournal();
+  }
+
+  private String formatArticleInfoCsv(List<ArticleInfo> articleInfoList) {
+    if (articleInfoList.isEmpty()) {
+      return "";
+    }
+    String[] articles = new String[articleInfoList.size()];
+    int i=0;
+    for (ArticleInfo article : articleInfoList) {
+      articles[i++] = article.getDoi();
+    }
+
+    return StringUtils.join(articles, ',');
+  }
+
+  public List<String> getOrphanDois() {
+    return orphanDois;
   }
 
   public String getListCode() {

@@ -287,12 +287,6 @@ public interface AdminService {
   public List<ArticleList> getArticleList(String journalName);
 
   /**
-   * Create a comma-delimited string of article dois in the articles groups
-   * @return a comma-delimited list of the articles in list
-   */
-  public String formatArticleInfoCsv(List<ArticleInfo> articleInfoList);
-
-  /**
    * Remove article list from the journal and delete them.
    *
    * @param journalKey Keyname of the current journal
@@ -326,11 +320,11 @@ public interface AdminService {
   public void removeArticlesFromList(String listCode, String... articleDois);
 
   /**
-   * Update a Article List
+   * Update a Article List. This will only allow reordering
    *
    * @param listCode of the articleList to update
    * @param displayName to set on the article list
-   * @param articleDois  a list of article dois to set on the issue
+   * @param articleDois  a list of article dois to set on the articleList
    */
   public void updateList(String listCode, String displayName, List<String> articleDois);
 
@@ -339,5 +333,13 @@ public interface AdminService {
    * @param articleList is the articlelist
    */
   public List<ArticleInfo> getArticleList(ArticleList articleList);
+
+  /**
+   * Get a list of orphaned article
+   * @param articleList
+   * @param validArticles
+   * @return dois of article list
+   */
+  public List<String> getOrphanArticleList(ArticleList articleList, List<ArticleInfo> validArticles);
 
 }

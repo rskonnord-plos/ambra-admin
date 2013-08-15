@@ -109,6 +109,32 @@
               </tr>
             </#list>
           </table>
+          <#if (orphanDois?size > 0) >
+            <b>Orphaned Articles</b>
+            <table border="1" cellpadding="10" cellspacing="0">
+              <tr>
+                <td colspan="2">
+                  <ul>
+                    <li><kbd>Incorrect URIs not associated with an article.</kbd></li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <th>Delete</th>
+                <th>Article URI</th>
+              </tr>
+              <#list orphanDois as orphan>
+                <tr>
+                  <td align="center">
+                    <@s.checkbox name="articlesToRemove" fieldValue="${orphan}"/>
+                  </td>
+                  <td>
+                    ${orphan}
+                  </td>
+                </tr>
+              </#list>
+            </table>
+          </#if>
           <@s.submit value="Remove Selected Articles"/>
         </@s.form>
       <#else>
