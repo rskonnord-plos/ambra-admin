@@ -79,11 +79,11 @@
                 <@s.hidden name="displayName"/>
               <#else>
                 <!--after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)"-->
-                  <@s.textfield name="displayName" label="Username" required="true" tabindex="1" maxlength="18" after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)" />
+                  <@s.textfield name="displayName" label="Username" requiredLabel="true" tabindex="1" maxlength="18" after="(Usernames are <strong>permanent</strong> and must be between 4 and 18 characters)" />
               </#if>
               <@s.select label="Title" name="title" value="title" col=true list="%{#selectList.allTitles}" tabindex="10" />
-              <@s.textfield name="givenNames" label="First Name" col=true required="true" tabindex="2" />
-              <@s.textfield name="surnames" label="Last Name" col=true required="true" tabindex="3"/>
+              <@s.textfield name="givenNames" label="First Name" col=true requiredLabel="true" tabindex="2" />
+              <@s.textfield name="surnames" label="Last Name" col=true requiredLabel="true" tabindex="3"/>
               <@s.textfield name="city" label="City" col=true row=true tabindex="4"/>
               <@s.select label="Country" name="country" value="country" list="%{#selectList.get('countries')}" tabindex="5" col=true />
               <@s.textarea name="biographyText" label="Short Biography" cssClass="long-input" rows="5" cols="50" tabindex="14"/>

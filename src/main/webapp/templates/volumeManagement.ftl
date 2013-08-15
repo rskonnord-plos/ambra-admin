@@ -45,8 +45,7 @@
           <tr>
             <th align="center">Display Name</th>
             <td>
-                <@s.textfield name="displayName" value="${volume.displayName}"
-                    size="50" required="true"/>
+                <@s.textfield name="displayName" value="${volume.displayName}" size="50" requiredLabel="true"/>
             </td>
           </tr>
           <tr>
@@ -68,12 +67,12 @@
       <table border="0" cellpadding="10" cellspacing="0">
         <tr>
           <th align="center">Issue (URI)</th>
-            <td><@s.textfield name="issueURI" size="50" required="true" /></td>
+            <td><@s.textfield name="issueURI" size="50" requiredLabel="true" /></td>
           </tr>
           <tr>
             <th align="center">Display Name</th>
             <td>
-                <@s.textfield name="displayName" size="50" required="true"/>
+                <@s.textfield name="displayName" size="50" requiredLabel="true"/>
             </td>
           </tr>
           <tr>

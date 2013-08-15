@@ -53,7 +53,7 @@
       <fieldset>
           <legend><b>Find User by Authorization Id</b></legend>
           <@s.form name="findUserByUserIdForm" action="findUserByAuthId" namespace="/" method="post">
-            <@s.textfield name="userAuthId" label="Auth Id" required="true"/>
+            <@s.textfield name="userAuthId" label="Auth Id" requiredLabel="true"/>
             <@s.submit value="Find Auth Id" />
           </@s.form>
       </fieldset>
@@ -63,7 +63,7 @@
       <fieldset>
           <legend><b>Find User by Email</b></legend>
           <@s.form name="findUserByEmailAddressForm" action="findUserByEmailAddress" namespace="/" method="post">
-            <@s.textfield name="emailAddress" label="Email Address" required="true"/>
+            <@s.textfield name="emailAddress" label="Email Address" requiredLabel="true"/>
             <@s.submit value="Find User Email" />
           </@s.form>
       </fieldset>
@@ -73,7 +73,7 @@
       <fieldset>
           <legend><b>Find User by Name</b></legend>
           <@s.form name="findUserByNameForm" action="findUserByName" namespace="/" method="post">
-            <@s.textfield name="name" label="User Name" required="true"/>
+            <@s.textfield name="name" label="User Name" requiredLabel="true"/>
             <@s.submit value="Find User Name" />
           </@s.form>
       </fieldset>
