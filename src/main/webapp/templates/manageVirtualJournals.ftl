@@ -70,11 +70,11 @@ name="createVolume" id="create_volume" >
   <table border="0" cellpadding="10" cellspacing="0">
     <tr>
       <th align="center">Volume (URI)</th>
-      <td><@s.textfield name="volumeURI" size="50" required="true"/></td>
+      <td><@s.textfield name="volumeURI" size="50" requiredLabel="true"/></td>
     </tr>
     <tr>
       <th align="center">Display Name</th>
-      <td><@s.textfield name="displayName" size="50" required="true"/></td>
+      <td><@s.textfield name="displayName" size="50" requiredLabel="true"/></td>
     </tr>
   </table>
   <@s.submit align="right" value="Create"/>

@@ -75,11 +75,11 @@
 
   <fieldset>
     <legend><b>Annotation Details</b></legend>
-    <@s.hidden name="annotationId" label="hiddenAnnotationId" required="true" value="${annotation.ID?c}"/>
+    <@s.hidden name="annotationId" label="hiddenAnnotationId" requiredLabel="true" value="${annotation.ID?c}"/>
     <table>
       <tr>
         <td><b>Title</b></td>
-        <@s.hidden name="title" label="title" required="true" value="${annotation.originalTitle!}"/>
+        <@s.hidden name="title" label="title" requiredLabel="true" value="${annotation.originalTitle!}"/>
         <td>${annotation.originalTitle!"No Title for this Annotation"}</td>
       </tr>
       <tr>
@@ -163,17 +163,17 @@
             </tr>
             <tr>
               <td><b>URL</b></td>
-              <@s.hidden name="annotationCitation.url" label="annotationCitation.url" required="true" value="${citation.url!}"/>
+              <@s.hidden name="annotationCitation.url" label="annotationCitation.url" requiredLabel="true" value="${citation.url!}"/>
               <td>${citation.url!"No URL"}</td>
             </tr>
             <tr>
               <td><b>Note</b></td>
-              <@s.hidden name="annotationCitation.note" label="annotationCitation.note" required="true" value="${citation.note!}"/>
+              <@s.hidden name="annotationCitation.note" label="annotationCitation.note" requiredLabel="true" value="${citation.note!}"/>
               <td>${citation.note!"No Note"}</td>
             </tr>
             <tr>
               <td><b>Summary</b></td>
-              <@s.hidden name="annotationCitation.summary" label="annotationCitation.summary" required="true" value="${citation.summary!}"/>
+              <@s.hidden name="annotationCitation.summary" label="annotationCitation.summary" requiredLabel="true" value="${citation.summary!}"/>
               <td>${citation.summary!"No Summary"}</td>
             </tr>
             <tr>
