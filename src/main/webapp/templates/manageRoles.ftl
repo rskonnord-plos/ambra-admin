@@ -46,7 +46,7 @@ method="post" title="Create Role Form" name="createRole">
 <fieldset>
   <legend>Create new Role</legend>
   <p>
-    <@s.textfield name="roleName" label="Role Name" required="true" /><br/>
+    <@s.textfield name="roleName" label="Role Name" requiredLabel="true" /><br/>
     <@s.submit value="Create Role" />
   </p>
 </fieldset>
