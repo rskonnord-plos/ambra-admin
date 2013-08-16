@@ -49,7 +49,7 @@
             </tr>
             <tr>
               <th align="center">Article URI List
-                <br><kbd>(Manual ordering changes only)</kbd></br>
+                <br><kbd>(Reorder only. If there is any orphaned article, delete them first)</kbd></br>
               </th>
               <td>
                 <@s.textfield name="articleOrderCSV" value="${articleOrderCSV!}" size="100"/>
@@ -84,11 +84,11 @@
     <!-- list Existing Article For this list-->
     <fieldset>
       <legend>Articles in List</legend>
-      <#if (articleInfoList?size > 0)>
-        <@s.form  method="post" namespace="/" action="articleManagement" name="removeArticles" id="removeArticles">
-          <@s.hidden name="command" value="REMOVE_ARTICLES"/>
-          <@s.hidden name="listCode" value="${articleList.listCode}"/>
-          <table border="1" cellpadding="10" cellspacing="0">
+      <@s.form  method="post" namespace="/" action="articleManagement" name="removeArticles" id="removeArticles">
+        <@s.hidden name="command" value="REMOVE_ARTICLES"/>
+        <@s.hidden name="listCode" value="${articleList.listCode}"/>
+        <table border="1" cellpadding="10" cellspacing="0">
+          <#if (articleInfoList?size > 0)>
             <tr>
               <th>Delete</th>
               <th>Article URI</th>
@@ -101,45 +101,47 @@
                   <@s.checkbox name="articlesToRemove" fieldValue="${article.doi}"/>
                 </td>
                 <td>
-                  ${article.doi}
+                ${article.doi}
                 </td>
                 <td>
                   <a target="_article" href="${articleURL}">${article.title}</a>
                 </td>
               </tr>
             </#list>
-          </table>
-          <#if (orphanDois?size > 0) >
-            <b>Orphaned Articles</b>
-            <table border="1" cellpadding="10" cellspacing="0">
+          <#else>
+            <strong>There are no articles associated with this list.</strong>
+          </#if>
+        </table>
+        <#if (orphanDois?size > 0) >
+          <b>Orphaned Articles</b>
+          <table border="1" cellpadding="10" cellspacing="0">
+            <tr>
+              <td colspan="2">
+                <ul>
+                  <li><kbd>Incorrect URIs not associated with an article.</kbd></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <th>Delete</th>
+              <th>Article URI</th>
+            </tr>
+            <#list orphanDois as orphan>
               <tr>
-                <td colspan="2">
-                  <ul>
-                    <li><kbd>Incorrect URIs not associated with an article.</kbd></li>
-                  </ul>
+                <td align="center">
+                  <@s.checkbox name="articlesToRemove" fieldValue="${orphan}"/>
+                </td>
+                <td>
+                  ${orphan}
                 </td>
               </tr>
-              <tr>
-                <th>Delete</th>
-                <th>Article URI</th>
-              </tr>
-              <#list orphanDois as orphan>
-                <tr>
-                  <td align="center">
-                    <@s.checkbox name="articlesToRemove" fieldValue="${orphan}"/>
-                  </td>
-                  <td>
-                    ${orphan}
-                  </td>
-                </tr>
-              </#list>
-            </table>
-          </#if>
+            </#list>
+          </table>
+        </#if>
+        <#if (articleInfoList?size > 0 || orphanDois?size > 0)>
           <@s.submit value="Remove Selected Articles"/>
-        </@s.form>
-      <#else>
-        <strong>There are no articles associated with this list.</strong>
-      </#if>
+        </#if>
+      </@s.form>
     </fieldset>
 
   </body>

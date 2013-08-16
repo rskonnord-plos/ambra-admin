@@ -85,7 +85,7 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
    * add articles to article list
    */
   private void addArticles() {
-    if (articlesToAddCsv != null) {
+    if (articlesToAddCsv != null && !articlesToAddCsv.isEmpty()) {
       try {
         adminService.addArticlesToList(listCode, articlesToAddCsv.split(","));
         addActionMessage("Successfully added articles to list");

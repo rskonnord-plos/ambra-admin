@@ -912,7 +912,7 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     log.debug("Adding articles {} to list '{}'", Arrays.toString(articleDois), listCode);
     ArticleList articleList = getList(listCode);
     for (String doi : articleDois) {
-      if (!articleList.getArticleDois().contains(doi)) {
+      if (!doi.isEmpty() && !articleList.getArticleDois().contains(doi)) {
         articleList.getArticleDois().add(doi);
       }
     }
@@ -944,19 +944,24 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
     //check that we aren't adding or removing an article here
     Set<String> articleDoisSet = new HashSet<String>();
     for (String doi: articleDois) {
-      articleDoisSet.add(doi);
+      if (!doi.isEmpty()) {
+        articleDoisSet.add(doi);
+      }
     }
+
     Set<String> articleListSet = new HashSet<String>();
     for (String doi: articleList.getArticleDois()) {
       articleListSet.add(doi);
     }
+
     for (String oldDoi : articleList.getArticleDois()) {
       if (!articleDoisSet.contains(oldDoi)) {
         throw new IllegalArgumentException("Removed article '" + oldDoi + "' when updating list");
       }
     }
+
     for (String newDoi : articleDois) {
-      if (!articleListSet.contains(newDoi)) {
+      if (!newDoi.isEmpty() && !articleListSet.contains(newDoi)) {
         throw new IllegalArgumentException("Added article '" + newDoi + "' when updating list");
       }
     }
@@ -1021,7 +1026,6 @@ public class AdminServiceImpl extends HibernateServiceImpl implements AdminServi
    * @inheritDoc
    */
   @Override
-  @Transactional
   public List<String> getOrphanArticleList(final ArticleList articleList, final List<ArticleInfo> validArticles) {
     Set<String> validDois = new HashSet<String>();
     for (ArticleInfo validArticle: validArticles) {
