@@ -49,7 +49,7 @@
             </tr>
             <tr>
               <th align="center">Article URI List
-                <br><kbd>(Reorder only. If there is any orphaned article, delete them first)</kbd></br>
+                <br><kbd>(Reorder only)</kbd></br>
               </th>
               <td>
                 <@s.textfield name="articleOrderCSV" value="${articleOrderCSV!}" size="100"/>

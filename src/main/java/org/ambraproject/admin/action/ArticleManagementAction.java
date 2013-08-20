@@ -89,7 +89,7 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
       try {
         adminService.addArticlesToList(listCode, articlesToAddCsv.split(","));
         addActionMessage("Successfully added articles to list");
-      } catch (Exception e) {
+      } catch (IllegalArgumentException e) {
         log.error("Failed to add article(s) '" + articlesToAddCsv + "' to list " + listCode, e);
         addActionMessage("Article(s) not added due to the following error: " + e.getMessage());
       }
@@ -104,7 +104,7 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
     try {
       adminService.removeArticlesFromList(listCode, articlesToRemove);
       addActionMessage("Removed the following article(s) from list: " + Arrays.toString(articlesToRemove));
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       log.error("Failed to remove articles " + Arrays.toString(articlesToRemove) + " from list " + listCode, e);
       addActionMessage("Article(s) not removed due to the following error: " + e.getMessage());
     }
@@ -118,7 +118,7 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
     try {
       adminService.updateList(listCode, displayName, Arrays.asList(articleOrderCSV.split(",")));
       addActionMessage("Successfully updated list " + listCode);
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       log.error("Failed to update list '" + listCode + "'", e);
       addActionError("Article List not updated due to the following error: " + e.getMessage());
     }
@@ -129,21 +129,21 @@ public class ArticleManagementAction extends BaseAdminActionSupport {
     articleList = adminService.getList(listCode);
     articleInfoList = adminService.getArticleList(articleList);
     orphanDois = adminService.getOrphanArticleList(articleList, articleInfoList);
-    articleOrderCSV = formatArticleInfoCsv(articleInfoList);
+    articleOrderCSV = formatArticleDoiCsv(articleList.getArticleDois());
     initJournal();
   }
 
-  private String formatArticleInfoCsv(List<ArticleInfo> articleInfoList) {
-    if (articleInfoList.isEmpty()) {
+  public String formatArticleDoiCsv(List<String> articleDois) {
+    if (articleDois.isEmpty()) {
       return "";
     }
-    String[] articles = new String[articleInfoList.size()];
+    String[] dois = new String[articleDois.size()];
     int i=0;
-    for (ArticleInfo article : articleInfoList) {
-      articles[i++] = article.getDoi();
+    for (String doi : articleDois) {
+      dois[i++] = doi;
     }
 
-    return StringUtils.join(articles, ',');
+    return StringUtils.join(dois, ',');
   }
 
   public List<String> getOrphanDois() {
