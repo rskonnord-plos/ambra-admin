@@ -35,7 +35,6 @@
         <legend>Create Article List</legend>
         <@s.form method="post" namespace="/"  action="manageArticleList" name="createList" id="create_list" >
           <@s.hidden name="command" value="CREATE_LIST"/>
-          <@s.hidden name="journalToModify" value="${journal.journalKey}"/>
 
           <table border="0" cellpadding="10" cellspacing="0">
             <tr>
