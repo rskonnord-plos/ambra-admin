@@ -28,6 +28,7 @@ import org.ambraproject.views.article.ArticleInfo;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -69,6 +70,17 @@ public class AdminTopActionTest extends AdminWebTest {
   @Autowired
   @Qualifier("filestoreDir")
   protected String filestoreDir;
+
+  @BeforeClass
+  public void resetResources() {
+    // TODO if there is a way to reset the resources, that logic should replace this hack
+    // (files in the test-classes/ingest folder, which are files in the test/resources/ingest)
+    // having this extra file here is causing the testBasicRequest test to fail
+    File zip = new File(ingestDir, "pone.00000.zip");
+    if (zip.exists()) {
+      zip.delete();
+    }
+  }
 
   @Test
   public void testBasicRequest() throws Exception {
