@@ -330,8 +330,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
     //properties that used to be in dublin core
     if (xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/title") != null) {
-      article.setTitle(Rhino.getAllText(xPathUtil.selectSingleNode(
-          transformedXml, "//Article/dublinCore/title")));
+      article.setTitle(getAllText(xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/title")));
     }
     if (!xPathUtil.evaluate(transformedXml, "//Article/dublinCore/format/text()").isEmpty()) {
       article.setFormat(xPathUtil.evaluate(transformedXml, "//Article/dublinCore/format/text()"));
@@ -340,7 +339,7 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
       article.setLanguage(xPathUtil.evaluate(transformedXml, "//Article/dublinCore/language/text()"));
     }
     if (xPathUtil.selectSingleNode(transformedXml, "//Article/dublinCore/description") != null) {
-      article.setDescription(Rhino.getAllText(xPathUtil.selectSingleNode(transformedXml,
+      article.setDescription(getAllText(xPathUtil.selectSingleNode(transformedXml,
           "//Article/dublinCore/description")));
     }
     if (!xPathUtil.evaluate(transformedXml, "//Article/dublinCore/rights/text()").isEmpty()) {
@@ -516,15 +515,15 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
       Node noteNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/note");
       if (noteNode != null) {
-        citedArticle.setNote(Rhino.getAllText(noteNode));
+        citedArticle.setNote(getAllText(noteNode));
       }
       Node titleNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/title");
       if (titleNode != null) {
-        citedArticle.setTitle(Rhino.getAllText(titleNode));
+        citedArticle.setTitle(getAllText(titleNode));
       }
       Node summaryNode = xPathUtil.selectSingleNode(transformedXml, nodeXpath + "/summary");
       if (summaryNode != null) {
-        citedArticle.setSummary(Rhino.getAllText(summaryNode));
+        citedArticle.setSummary(getAllText(summaryNode));
       }
 
       //Set the people referenced by the article in this citation
@@ -888,5 +887,27 @@ public class XslIngestArchiveProcessor implements IngestArchiveProcessor {
 
     Templates translet = tFactory.newTemplates(new StreamSource(templateStream));
     return translet.newTransformer();
+  }
+
+  /**
+   * Helper method to get all the text of child nodes of a given node
+   *
+   * @param node - the node to use as base
+   * @return - all nested text in the node
+   */
+  private static String getAllText(Node node) {
+
+    String text = "";
+    for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+      Node childNode = node.getChildNodes().item(i);
+      if (Node.TEXT_NODE == childNode.getNodeType()) {
+        text += childNode.getNodeValue();
+      } else if (Node.ELEMENT_NODE == childNode.getNodeType()) {
+        text += "<" + childNode.getNodeName() + ">";
+        text += getAllText(childNode);
+        text += "</" + childNode.getNodeName() + ">";
+      }
+    }
+    return text.replaceAll("[\n\t]", "").trim();
   }
 }
