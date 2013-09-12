@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ambraproject</groupId>
   <artifactId>ambra-admin</artifactId>
-  <version>2.8.0</version>
+  <version>2.6.4</version>
   <packaging>war</packaging>
   <name>Ambra Administration</name>
 
@@ -22,23 +22,17 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
     <spring.version>3.2.2.RELEASE</spring.version>
     <xerces.version>2.9.1</xerces.version>
-    <struts.version>2.3.15.1</struts.version>
+    <struts.version>2.3.1.2</struts.version>
     <camel.version>2.10.4</camel.version>
     <activemq.version>5.2.0</activemq.version>
-    <easymock.version>3.2</easymock.version>
+    <easymock.version>2.5.2</easymock.version>
     <conf-helper.version>2.2.1</conf-helper.version>
-    <ambra.version>2.7.9-plosone-homepage</ambra.version>
+    <ambra.version>2.6.4-FEND-901</ambra.version>
     <filestore.version>1.0.1</filestore.version>
     <solr.version>4.1.0</solr.version>
-    <hsqldb.version>2.3.0</hsqldb.version>
-    <junit.version>4.11</junit.version>
-    <testng.version>6.8.1</testng.version>
-    <commons-dbcp.version>1.4</commons-dbcp.version>
-    <surefire.version>2.16</surefire.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <repositories>
@@ -229,6 +223,15 @@
     </dependency>
 
     <dependency>
+      <groupId>org.ambraproject</groupId>
+      <artifactId>ambra-base</artifactId>
+      <version>${ambra.version}</version>
+      <!--In a future version of maven, this classifier may need to change to test-jar-->
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>
       <version>${xerces.version}</version>
@@ -264,15 +267,6 @@
           <artifactId>spring-mock</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.ambraproject</groupId>
-      <artifactId>ambra-base</artifactId>
-      <version>${ambra.version}</version>
-      <!--In a future version of maven, this classifier may need to change to test-jar-->
-      <classifier>tests</classifier>
-      <scope>test</scope>
     </dependency>
 
     <!--Transitive test dependencies don't get handed down from ambra-->
@@ -338,7 +332,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <version>4.10</version>
       <scope>test</scope>
     </dependency>
 
@@ -353,21 +347,22 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>${testng.version}</version>
+      <version>5.7</version>
+      <classifier>jdk15</classifier>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>
-      <version>${commons-dbcp.version}</version>
+      <version>1.4</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.hsqldb</groupId>
+      <groupId>hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
+      <version>1.8.0.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -416,14 +411,14 @@
           <encoding>${maven.compiler.encoding}</encoding>
         </configuration>
       </plugin>
-
       <!--settings for running tests-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${surefire.version}</version>
+        <version>2.8</version>
         <configuration>
           <argLine>-Xms1024m -Xmx2048m -XX:MaxPermSize=1024m</argLine>
+          <parallel>false</parallel>
           <systemProperties>
             <property>
               <name>log4j.configuration</name>
@@ -432,7 +427,6 @@
           </systemProperties>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.tomcat.maven</groupId>
         <artifactId>tomcat6-maven-plugin</artifactId>
