@@ -500,5 +500,24 @@
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
   </bean>
 
+  <bean id="searchService" class="org.ambraproject.service.search.SolrSearchService">
+    <property name="serverFactory" ref="solrServerFactory"/>
+    <property name="configuration" ref="ambraConfiguration"/>
+  </bean>
+
+  <bean id="taxonomyEhCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+    <property name="cacheName" value="TaxonomyCache"/>
+  </bean>
+
+  <bean id="taxonomyCache" class="org.ambraproject.service.cache.EhcacheProvider">
+    <constructor-arg index="0" ref="taxonomyEhCache"/>
+  </bean>
+
+  <bean id="taxonomyService" class="org.ambraproject.service.taxonomy.TaxonomyServiceImpl">
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="searchService" ref="searchService"/>
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="cache" ref="taxonomyCache"/>
+  </bean>
 
 </beans>

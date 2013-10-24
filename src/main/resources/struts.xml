@@ -604,8 +604,30 @@
       </result>
     </action>
 
+    <action name="featuredArticle" class="org.ambraproject.admin.action.FeaturedArticleAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
+    <action name="featuredArticleCreate" class="org.ambraproject.admin.action.FeaturedArticleAction" method="create">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
+    <action name="featuredArticleDelete" class="org.ambraproject.admin.action.FeaturedArticleAction" method="delete">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
     <action name="selectList" class="org.ambraproject.action.ListingAction"/>
-
   </package>
-
 </struts>
