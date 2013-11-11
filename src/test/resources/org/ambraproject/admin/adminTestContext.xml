@@ -33,6 +33,11 @@
 
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="messageSender" ref="messageSender"/>
+    <property name="configuration" ref="ambraConfiguration"/>
+    <property name="articleService" ref="articleService" />
+    <property name="articleClassifier" ref="articleClassifier" />
+    <property name="fetchArticleService" ref="fetchArticleService" />
     <property name="onCrossPubListener">
       <list>
         <ref bean="onCrossPubListener"/>
@@ -121,9 +126,15 @@
            value="org/ambraproject/article/service/pmc2obj-v3.xslt"/>
   </util:map>
 
+  <bean id="crossRefLookupService" class="org.ambraproject.service.crossref.CrossRefLookupServiceImpl">
+    <property name="httpClient" ref="httpClient"/>
+    <property name="crossRefUrl" value="${ambra.services.crossref.query.url}"/>
+  </bean>
+
   <bean id="articleService" class="org.ambraproject.service.article.ArticleServiceImpl">
     <property name="sessionFactory" ref="sessionFactory"/>
     <property name="permissionsService" ref="permissionsService"/>
+    <property name="crossRefLookupService" ref="crossRefLookupService"/>
   </bean>
 
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">

@@ -14,7 +14,6 @@
 package org.ambraproject.admin.action;
 
 import com.opensymphony.xwork2.Action;
-import com.sun.tools.hat.internal.oql.OQLEngine;
 import org.ambraproject.action.BaseActionSupport;
 import org.ambraproject.admin.AdminWebTest;
 import org.ambraproject.admin.service.AdminService;

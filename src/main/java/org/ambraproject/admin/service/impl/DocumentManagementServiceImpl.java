@@ -402,14 +402,25 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
       try {
         // mark article as active
         articleService.setState(article, authId, Article.STATE_ACTIVE);
-        invokeOnPublishListeners(article);
 
         msgs.add("Published: " + article);
         log.info("Published article: '" + article + "'");
       } catch (Exception e) {
-        log.error("Could not publish article: '" + article + "'", e);
+        log.error("Error publishing article: '" + article + "'", e);
         msgs.add("Error publishing: '" + article + "' - " + e.toString());
       }
+
+      try {
+        //Invoke on publish listeners
+        invokeOnPublishListeners(article, authId);
+
+        msgs.add("Publish events invoked: " + article);
+        log.info("Publish events invoked: '" + article + "'");
+      } catch (Exception e) {
+        log.error("Error invoking publish events: '" + article + "'", e);
+        msgs.add("Error invoking publish events: '" + article + "' - " + e.toString());
+      }
+
     }
     return msgs;
   }
@@ -493,12 +504,14 @@ public class DocumentManagementServiceImpl extends HibernateServiceImpl implemen
    * Invokes all objects that are registered to listen to article publish event.
    *
    * @param articleId Article ID
+   * @param authId the authorization ID of the current user
+   *
    * @throws Exception If listener method failed
    */
-  private void invokeOnPublishListeners(String articleId) throws Exception {
+  private void invokeOnPublishListeners(String articleId, String authId) throws Exception {
     if (onPublishListeners != null) {
       for (OnPublishListener listener : onPublishListeners) {
-        listener.articlePublished(articleId);
+        listener.articlePublished(articleId, authId);
       }
     }
   }

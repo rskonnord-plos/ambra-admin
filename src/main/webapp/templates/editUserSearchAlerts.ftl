@@ -40,7 +40,9 @@
   <@s.a href="%{editProfileByAdminURL}">Profile</@s.a>,
   <@s.a href="%{editPreferencesByAdminURL}">Alerts/Preferences</@s.a>,
   <@s.a href="%{editSearchAlertsByAdminURL}">Search Alerts</@s.a>,
-  <@s.a href="%{editRolesURL}">Roles</@s.a>
+  <#if permissions?seq_contains("MANAGE_ROLES")>
+    <@s.a href="%{editRolesURL}">Roles</@s.a>
+  </#if>
 
   <br/>
 
@@ -81,12 +83,12 @@
                 <li class="search-alerts-weekly">
                   <label for="${ua.savedSearchId}">
                     <@s.checkbox name="weeklyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllWeekly, this.form.weeklyAlerts);" fieldValue="${ua.savedSearchId}" value="${ua.weekly?string}"/>
-                    Weekly </label>
+                    Weekly (${ua.searchType})</label>
                 </li>
                 <li class="search-alerts-monthly">
                   <label for="${ua.savedSearchId}">
                     <@s.checkbox name="monthlyAlerts" onclick="selectCheckboxPerCollection(this.form.checkAllMonthly, this.form.monthlyAlerts);" fieldValue="${ua.savedSearchId}" value="${ua.monthly?string}"/>
-                    Monthly </label>
+                    Monthly (${ua.searchType}) </label>
                 </li>
                 <li class="search-alerts-delete">
                   <label for="${ua.savedSearchId}">

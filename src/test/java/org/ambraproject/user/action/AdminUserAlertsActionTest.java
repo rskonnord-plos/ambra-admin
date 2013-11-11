@@ -59,8 +59,8 @@ public class AdminUserAlertsActionTest extends AdminWebTest {
 
     //these come from the config
     List<UserAlert> alerts = new ArrayList<UserAlert>(2);
-    alerts.add(new UserAlert("journal", "Journal", true, true));
-    alerts.add(new UserAlert("journal1", "Journal 1", false, true));
+    alerts.add(new UserAlert("journal", "Journal", true, true, false));
+    alerts.add(new UserAlert("journal1", "Journal 1", false, true, false));
 
 
     dummyDataStore.store(user);

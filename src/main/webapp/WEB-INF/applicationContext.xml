@@ -74,11 +74,15 @@
     <constructor-arg index="0" ref="multiThreadedHttpConnectionManager"/>
   </bean>
 
-
   <!--service beans-->
+  <bean id="crossRefLookupService" class="org.ambraproject.service.crossref.CrossRefLookupServiceImpl">
+    <property name="httpClient" ref="httpClient"/>
+    <property name="crossRefUrl" value="${ambra.services.crossref.query.url}"/>
+  </bean>
 
   <bean id="articleService" class="org.ambraproject.service.article.ArticleServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="crossRefLookupService" ref="crossRefLookupService"/>
     <property name="permissionsService" ref="permissionsService"/>
   </bean>
 
@@ -223,8 +227,40 @@
   *
   *****************************************-->
 
+  <!-- Collection not used in this context, provided to satisfy spring-->
+  <util:map id="xslEmptyMap" />
+
+  <!-- Duplicated in the application context in the ambra webapp -->
+  <util:map id="xmlFactoryProperties">
+    <entry key="javax.xml.transform.TransformerFactory"
+           value="net.sf.saxon.TransformerFactoryImpl"/>
+    <entry key="javax.xml.transform.Transformer"
+           value="net.sf.saxon.Controller"/>
+  </util:map>
+
+  <bean id="articleTransformService" class="org.ambraproject.service.xml.XMLServiceImpl" init-method="init">
+    <property name="articleRep" value="XML"/>
+    <!-- Property not used in this context, provided to satisfy spring injection -->
+    <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
+    <property name="xslTemplateMap" ref="xslEmptyMap"/>
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="xmlFactoryProperty" ref="xmlFactoryProperties"/>
+  </bean>
+
+  <bean id="fetchArticleService" class="org.ambraproject.service.article.FetchArticleServiceImpl">
+    <property name="sessionFactory" ref="hibernateSessionFactory" />
+    <property name="articleTransformService" ref="articleTransformService" />
+    <property name="fileStoreService" ref="fileStoreService" />
+    <property name="articleHtmlCache" ref="articleHtmlCache" />
+  </bean>
+
   <bean id="adminService" class="org.ambraproject.admin.service.impl.AdminServiceImpl">
     <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="messageSender" ref="messageSender"/>
+    <property name="configuration" ref="ambraConfiguration"/>
+    <property name="articleService" ref="articleService" />
+    <property name="articleClassifier" ref="articleClassifier" />
+    <property name="fetchArticleService" ref="fetchArticleService" />
     <property name="onCrossPubListener">
       <list>
         <ref bean="indexingService"/>
@@ -253,7 +289,9 @@
   <bean id="articleClassifier" class="org.ambraproject.service.article.AIArticleClassifier">
     <property name="httpClient" ref="httpClient"/>
     <property name="serviceUrl" value="${ambra.services.ai.url}"/>
+    <property name="thesaurus" value="${ambra.services.ai.thesaurus}"/>
   </bean>
+
   <bean id="ingestArchiveProcessor" class="org.ambraproject.article.service.XslIngestArchiveProcessor">
     <property name="documentBuilder" ref="documentBuilder"/>
     <property name="xslDefaultTemplate" value="${ambra.services.ingest.default}"/>
@@ -297,6 +335,7 @@
     <property name="onPublishListeners">
       <list>
         <ref bean="indexingService"/>
+        <ref bean="adminService"/>
       </list>
     </property>
     <property name="onDeleteListeners">
@@ -461,5 +500,24 @@
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
   </bean>
 
+  <bean id="searchService" class="org.ambraproject.service.search.SolrSearchService">
+    <property name="serverFactory" ref="solrServerFactory"/>
+    <property name="configuration" ref="ambraConfiguration"/>
+  </bean>
+
+  <bean id="taxonomyEhCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+    <property name="cacheName" value="TaxonomyCache"/>
+  </bean>
+
+  <bean id="taxonomyCache" class="org.ambraproject.service.cache.EhcacheProvider">
+    <constructor-arg index="0" ref="taxonomyEhCache"/>
+  </bean>
+
+  <bean id="taxonomyService" class="org.ambraproject.service.taxonomy.TaxonomyServiceImpl">
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="searchService" ref="searchService"/>
+    <property name="sessionFactory" ref="hibernateSessionFactory"/>
+    <property name="cache" ref="taxonomyCache"/>
+  </bean>
 
 </beans>

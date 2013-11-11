@@ -241,17 +241,18 @@ public class IngesterTest extends AdminBaseTest {
     dummyDataStore.store(article);
 
     Issue issue = new Issue();
+    issue.setIssueUri("info:doi/10.1371/issue.pcol.v01.i01");
     issue.setImageUri(article.getDoi());
     issue.setDescription("This description should get overwritten");
-    String issueId = dummyDataStore.store(issue);
+    Long issueId = Long.valueOf(dummyDataStore.store(issue));
     
     return new Object[][]{
-        {archive, URI.create(issueId)}
+      { archive, issueId }
     };
   }
   
   @Test(dataProvider = "imageArticle", dependsOnMethods = {"testIngestWithForce", "testIngestDoesntCreateDuplicateCategories"})
-  public void testReIngestImageArticle(ZipFile archive, URI issueId) throws DuplicateArticleIdException, IngestException {
+  public void testReIngestImageArticle(ZipFile archive, Long issueId) throws DuplicateArticleIdException, IngestException {
     Article article = ingester.ingest(archive, true);
     Issue issue = dummyDataStore.get(Issue.class, issueId);
     assertEquals(issue.getDescription(), article.getDescription(),

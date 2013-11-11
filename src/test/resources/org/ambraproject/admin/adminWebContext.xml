@@ -79,6 +79,14 @@
     <property name="command" value="foo"/>
   </bean>
 
+  <bean id="manageArticleListAction" class="org.ambraproject.admin.action.ManageArticleListAction">
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="command" value="foo"/>
+    <property name="listCode" value=""/>
+  </bean>
+
   <bean id="volumeManagementAction" class="org.ambraproject.admin.action.VolumeManagementAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
@@ -89,6 +97,13 @@
   </bean>
 
   <bean id="issueManagementAction" class="org.ambraproject.admin.action.IssueManagementAction">
+    <property name="ambraConfiguration" ref="ambraConfiguration"/>
+    <property name="adminService" ref="adminService"/>
+    <property name="permissionsService" ref="permissionsService"/>
+    <property name="command" value="foo"/>
+  </bean>
+
+  <bean id="articleManagementAction" class="org.ambraproject.admin.action.ArticleManagementAction">
     <property name="ambraConfiguration" ref="ambraConfiguration"/>
     <property name="adminService" ref="adminService"/>
     <property name="permissionsService" ref="permissionsService"/>

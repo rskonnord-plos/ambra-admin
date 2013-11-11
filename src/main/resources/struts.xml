@@ -133,6 +133,15 @@
       </result>
     </action>
 
+    <action name="refreshReferences" class="org.ambraproject.admin.action.AdminTopAction" method="refreshReferences">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+    </action>
+
     <action name="deleteArticle" class="org.ambraproject.admin.action.DeleteArticleAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/articleDelete.ftl</param>
@@ -193,6 +202,16 @@
     </action>
 
     <action name="ingestArchives" class="org.ambraproject.admin.action.AdminTopAction" method="ingest">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+      <!-- stay in adminTop even on error -->
+      <result name="error" type="freemarker">
+        <param name="location">/templates/adminTop.ftl</param>
+      </result>
+    </action>
+
+    <action name="refreshSubjectCategories" class="org.ambraproject.admin.action.AdminTopAction" method="refreshSubjectCategories">
       <result name="success" type="freemarker">
         <param name="location">/templates/adminTop.ftl</param>
       </result>
@@ -264,6 +283,41 @@
       </result>
       <result name="input" type="freemarker">
         <param name="location">/templates/searchUser.ftl</param>
+      </result>
+    </action>
+
+    <action name="manageEmailAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendMonthlyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+      method="sendMonthlyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+    </action>
+
+    <action name="sendWeeklyAlerts" class="org.ambraproject.admin.action.ManageEmailAlertsAction"
+            method="sendWeeklyAlerts">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageEmailAlerts.ftl</param>
       </result>
     </action>
 
@@ -439,6 +493,27 @@
       </result>
     </action>
 
+    <action name="manageArticleList" class="org.ambraproject.admin.action.ManageArticleListAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/manageArticleList.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/manageArticleList.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/manageArticleList.ftl</param>
+      </result>
+    </action>
+
+    <action name="articleManagement" class="org.ambraproject.admin.action.ArticleManagementAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/articleManagement.ftl</param>
+      </result>
+      <result name="input" type="freemarker">
+        <param name="location">/templates/articleManagement.ftl</param>
+      </result>
+    </action>
+
     <action name="manageRoles" class="org.ambraproject.admin.action.ManageRolesAction">
       <result name="success" type="freemarker">
         <param name="location">/templates/manageRoles.ftl</param>
@@ -529,8 +604,30 @@
       </result>
     </action>
 
+    <action name="featuredArticle" class="org.ambraproject.admin.action.FeaturedArticleAction">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
+    <action name="featuredArticleCreate" class="org.ambraproject.admin.action.FeaturedArticleAction" method="create">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
+    <action name="featuredArticleDelete" class="org.ambraproject.admin.action.FeaturedArticleAction" method="delete">
+      <result name="success" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+      <result name="error" type="freemarker">
+        <param name="location">/templates/featuredArticles.ftl</param>
+      </result>
+    </action>
+
     <action name="selectList" class="org.ambraproject.action.ListingAction"/>
-
   </package>
-
 </struts>

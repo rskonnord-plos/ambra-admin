@@ -98,9 +98,16 @@
     </virtualJournals>
 
     <services>
-      <quartz>
+      <queue>
+        <refreshCitedArticles>activemq:plos.updatedCitedArticles?transacted=false</refreshCitedArticles>
+        <sendSearchAlerts>activemq:ambra.searchAlerts?transacted=false</sendSearchAlerts>
+      </queue>
 
-      </quartz>
+      <!-- Some default values for when the reindex occurs for academic editors -->
+      <academic-editor-reindex>
+        <indexingMailReceiver>dev@plos.org</indexingMailReceiver>
+        <reindex-cron>0 0 0 ? * SUN</reindex-cron>
+      </academic-editor-reindex>
 
       <ingest>
         <default>org/ambraproject/article/service/pmc2obj.xslt</default>
@@ -188,7 +195,7 @@
         </post>
         <query>
           <url>
-            http://doi.crossref.org/servlet/query?usr=${ambra.services.crossref.login}&amp;pwd=${ambra.services.crossref.password}&amp;format=piped&amp;type=a&amp;qdata=
+            http://search.crossref.org/links
           </url>
         </query>
         <guestquery>
@@ -196,10 +203,6 @@
         </guestquery>
         <xsl>crossref.xsl</xsl>
       </crossref>
-
-      <pubget>
-        <url>http://pubget.com/widgetizer/links_hash</url>
-      </pubget>
 
       <!-- FIXME: failover:tcp://address:port of ActiveMQ broker -->
       <activemq>tcp://${ambra.network.hosts.default}:61616</activemq>

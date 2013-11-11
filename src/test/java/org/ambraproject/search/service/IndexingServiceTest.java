@@ -84,7 +84,7 @@ public class IndexingServiceTest extends AdminBaseTest {
   public void testArticlePublished(Article article) throws Exception {
     String articleId = article.getDoi();
 
-    indexingService.articlePublished(articleId);
+    indexingService.articlePublished(articleId, DEFAULT_ADMIN_AUTHID);
 
     String solrID = articleId.replaceAll("info:doi/", "");
     SolrQuery query = new SolrQuery("id:\"" + solrID + "\"");
@@ -96,7 +96,7 @@ public class IndexingServiceTest extends AdminBaseTest {
 
   @Test(groups = {"badConfig"}, dependsOnGroups = {"originalConfig"})
   public void testNoIndexingQueueConfigured() throws Exception {
-    indexingService.articlePublished(oneArticleId);
+    indexingService.articlePublished(oneArticleId, DEFAULT_ADMIN_AUTHID);
   }
 
   @Test(dataProvider = "articleData", groups = {"originalConfig"}, dependsOnMethods = {"testIndexArticle"})

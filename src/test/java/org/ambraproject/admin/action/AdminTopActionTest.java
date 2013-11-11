@@ -26,8 +26,11 @@ import org.ambraproject.models.Article;
 import org.ambraproject.models.Syndication;
 import org.ambraproject.views.article.ArticleInfo;
 import org.apache.commons.io.FileUtils;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -35,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.List;
 import java.util.zip.ZipFile;
 
 import static org.testng.Assert.assertEquals;
@@ -69,6 +73,17 @@ public class AdminTopActionTest extends AdminWebTest {
   @Autowired
   @Qualifier("filestoreDir")
   protected String filestoreDir;
+
+  @BeforeClass
+  public void resetResources() {
+    // TODO if there is a way to reset the resources, that logic should replace this hack
+    // (files in the test-classes/ingest folder, which are files in the test/resources/ingest)
+    // having this extra file here is causing the testBasicRequest test to fail
+    File zip = new File(ingestDir, "pone.00000.zip");
+    if (zip.exists()) {
+      zip.delete();
+    }
+  }
 
   @Test
   public void testBasicRequest() throws Exception {
@@ -116,6 +131,17 @@ public class AdminTopActionTest extends AdminWebTest {
 
   @DataProvider(name = "articlesToSort")
   public Object[][] getArticlesToSort() {
+
+    List<Article> articleList = dummyDataStore.findByCriteria(
+        DetachedCriteria.forClass(Article.class)
+            .add(Restrictions.eq("state",Article.STATE_UNPUBLISHED)
+            )
+    );
+
+    for (Article article : articleList) {
+      dummyDataStore.delete(article);
+    }
+
     //some fake pub dates
     Calendar oneYearAgo = Calendar.getInstance();
     oneYearAgo.add(Calendar.YEAR, -1);
@@ -193,7 +219,7 @@ public class AdminTopActionTest extends AdminWebTest {
       ArticleInfo article = action.getPublishableArticles().get(i);
       ArticleInfo nextArticle = action.getPublishableArticles().get(i + 1);
       assertTrue(comparator.compare(article, nextArticle) <= 0,
-        "Articles weren't in order when sorting by: '" + directive + "'");
+          "Articles weren't in order when sorting by: '" + directive + "'");
     }
   }
 
